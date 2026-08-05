@@ -37,9 +37,10 @@
   </main>
 
   <script type="module">
-    import { watchAuthState } from "./js/firebase/auth.js";
+    import { requireAuth } from "./js/firebase/auth.js";
     import { renderNavbar } from "./js/components/navbar.js";
-    watchAuthState((profile) => renderNavbar(profile, "about.html"));
+    const profile = await requireAuth();
+    renderNavbar(profile, "about.html");
   </script>
 </body>
 </html>

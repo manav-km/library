@@ -19,13 +19,10 @@ const firebaseConfig = {
   databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com" // Realtime DB, for discussions
 };
 
-// DEMO_MODE: true until firebaseConfig above is filled in. In demo mode the
-// app runs entirely on the sample data in /data/sample-books.json and a
-// mock signed-in user, so the UI can be reviewed with no backend at all.
-export const DEMO_MODE = firebaseConfig.apiKey === "YOUR_API_KEY";
+export const DEMO_MODE = false;
 
-export const app = DEMO_MODE ? null : initializeApp(firebaseConfig);
-export const auth = DEMO_MODE ? null : getAuth(app);
-export const db = DEMO_MODE ? null : getFirestore(app);
-export const rtdb = DEMO_MODE ? null : getDatabase(app);
-export const storage = DEMO_MODE ? null : getStorage(app);
+export const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const rtdb = getDatabase(app);
+export const storage = getStorage(app);

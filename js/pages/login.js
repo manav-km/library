@@ -1,7 +1,13 @@
-import { signUp, logIn, signInWithGoogle } from "../firebase/auth.js";
+import { signUp, logIn, signInWithGoogle, watchAuthState } from "../firebase/auth.js";
 import { showToast, qs, qsa } from "../utils/helpers.js";
 
-// ---- Tab switching ----
+function redirectByRole(profile) {
+  if (profile.role === "teacher") window.location.href = "teacher-dashboard.html";
+  else if (profile.role === "admin") window.location.href = "admin-panel.html";
+  else window.location.href = "student-dashboard.html";
+}
+
+// ---- Tab switching & form elements ----
 const tabs = qsa(".auth-tab");
 const loginForm = qs("#login-form");
 const signupForm = qs("#signup-form");
@@ -16,11 +22,10 @@ tabs.forEach((tab) => {
   });
 });
 
-function redirectByRole(profile) {
-  if (profile.role === "teacher") window.location.href = "teacher-dashboard.html";
-  else if (profile.role === "admin") window.location.href = "admin-panel.html";
-  else window.location.href = "student-dashboard.html";
-}
+// Redirect already signed in users
+watchAuthState((profile) => {
+  if (profile) redirectByRole(profile);
+});
 
 // ---- Google Sign-in handler ----
 qsa(".google-signin-btn").forEach((btn) => {

@@ -1,10 +1,11 @@
-import { watchAuthState } from "../firebase/auth.js";
+import { requireAuth } from "../firebase/auth.js";
 import { getAllBooks } from "../firebase/firestore.js";
 import { renderNavbar } from "../components/navbar.js";
 import { renderBookGrid } from "../components/bookCard.js";
 import { spineColorFor } from "../utils/helpers.js";
 
-watchAuthState((profile) => renderNavbar(profile, "index.html"));
+const profile = await requireAuth();
+renderNavbar(profile, "index.html");
 
 async function init() {
   const books = await getAllBooks();

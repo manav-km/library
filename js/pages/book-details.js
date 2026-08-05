@@ -1,16 +1,13 @@
-import { watchAuthState } from "../firebase/auth.js";
+import { requireAuth } from "../firebase/auth.js";
 import { getBookById, getReviewsForBook, addReview, updateReview, deleteReview } from "../firebase/firestore.js";
 import { renderNavbar } from "../components/navbar.js";
 import { spineColorFor, escapeHTML, starString, timeAgo, showToast, qs, qsa } from "../utils/helpers.js";
 
-let currentProfile = null;
+const currentProfile = await requireAuth();
+renderNavbar(currentProfile, "library.html");
+
 let currentBook = null;
 let selectedRating = 0;
-
-watchAuthState((profile) => {
-  currentProfile = profile;
-  renderNavbar(profile, "library.html");
-});
 
 const params = new URLSearchParams(window.location.search);
 const bookId = params.get("id");
@@ -173,11 +170,6 @@ function wireReviewForm() {
   if (!form) return;
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!currentProfile) {
-      showToast("Sign in to post a review.", "error");
-      window.location.href = "login.html";
-      return;
-    }
     if (!selectedRating) {
       showToast("Choose a star rating first.", "error");
       return;

@@ -1,10 +1,11 @@
-import { watchAuthState } from "../firebase/auth.js";
+import { requireAuth } from "../firebase/auth.js";
 import { getAllBooks } from "../firebase/firestore.js";
 import { renderNavbar } from "../components/navbar.js";
 import { renderBookGrid } from "../components/bookCard.js";
 import { qs, qsa } from "../utils/helpers.js";
 
-watchAuthState((profile) => renderNavbar(profile, "library.html"));
+const profile = await requireAuth();
+renderNavbar(profile, "library.html");
 
 const grid = qs("#library-grid");
 const chipRow = qs("#genre-chips");
@@ -15,13 +16,13 @@ let books = [];
 let activeGenre = "all";
 
 function applyFilters() {
-  const term = searchInput.value.trim().toLowerCase();
+  const term = searchInput ? searchInput.value.trim().toLowerCase() : "";
   const filtered = books.filter((b) => {
     const matchesGenre = activeGenre === "all" || b.genre === activeGenre;
     const matchesTerm = !term ||
-      b.bookName.toLowerCase().includes(term) ||
-      b.author.toLowerCase().includes(term) ||
-      b.BK_ID.toLowerCase().includes(term);
+      (b.bookName || "").toLowerCase().includes(term) ||
+      (b.author || "").toLowerCase().includes(term) ||
+      (b.BK_ID || "").toLowerCase().includes(term);
     return matchesGenre && matchesTerm;
   });
   if (countLabel) {

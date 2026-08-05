@@ -1,18 +1,15 @@
-import { watchAuthState } from "../firebase/auth.js";
+import { requireAuth } from "../firebase/auth.js";
 import { getAllBooks } from "../firebase/firestore.js";
 import { listenToThread, sendMessage, deleteMessage } from "../firebase/realtime.js";
 import { renderNavbar } from "../components/navbar.js";
 import { initials, timeAgo, escapeHTML, qs, qsa } from "../utils/helpers.js";
 
-let currentProfile = null;
+const currentProfile = await requireAuth();
+renderNavbar(currentProfile, "discussions.html");
+
 let activeBook = null;
 let unsubscribe = null;
 let books = [];
-
-watchAuthState((profile) => {
-  currentProfile = profile;
-  renderNavbar(profile, "discussions.html");
-});
 
 const params = new URLSearchParams(window.location.search);
 const preselectId = params.get("book");
@@ -52,9 +49,9 @@ function openThread(book) {
   const input = qs("#chat-input");
   const sendBtn = qs("#chat-send-btn");
   if (input && sendBtn) {
-    input.disabled = !currentProfile;
-    sendBtn.disabled = !currentProfile;
-    input.placeholder = currentProfile ? "Write a message..." : "Sign in to join the discussion";
+    input.disabled = false;
+    sendBtn.disabled = false;
+    input.placeholder = "Write a message...";
   }
 
   if (unsubscribe) unsubscribe();

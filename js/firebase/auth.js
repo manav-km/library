@@ -2,7 +2,7 @@
 // Authentication + role-based access control
 // ==========================================================================
 
-import { auth, db, DEMO_MODE } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -18,55 +18,14 @@ import {
 
 const ADMIN_EMAILS = ["manavgmishra@gmail.com"];
 
-const DEMO_USER = {
-  uid: "admin-manav",
-  name: "Manav Mishra",
-  email: "manavgmishra@gmail.com",
-  role: "admin",
-  className: "",
-  section: "",
-  rollNumber: "",
-  favouriteGenre: "Mystery",
-  bio: "System Administrator",
-  profilePicture: ""
-};
-
 export async function signInWithGoogle() {
-  if (DEMO_MODE) return DEMO_USER;
   const provider = new GoogleAuthProvider();
   const result = await signInWithPopup(auth, provider);
   const user = result.user;
-
-  const isAdminEmail = ADMIN_EMAILS.includes((user.email || "").toLowerCase());
-  const userDocRef = doc(db, "users", user.uid);
-  const snap = await getDoc(userDocRef);
-
-  if (snap.exists()) {
-    const data = snap.data();
-    return isAdminEmail ? { ...data, role: "admin" } : data;
-  } else {
-    const profile = {
-      uid: user.uid,
-      name: user.displayName || user.email.split("@")[0],
-      email: user.email,
-      role: "student", // Always write "student" on creation to satisfy firestore.md security rules
-      className: "",
-      section: "",
-      rollNumber: "",
-      favouriteGenre: "Fiction",
-      bio: "",
-      profilePicture: user.photoURL || "",
-      createdAt: Date.now()
-    };
-    await setDoc(userDocRef, profile);
-    return isAdminEmail ? { ...profile, role: "admin" } : profile;
-  }
+  return getUserProfile(user.uid);
 }
 
 export async function signUp({ email, password, name, className, section, rollNumber, favouriteGenre }) {
-  if (DEMO_MODE) {
-    return { ...DEMO_USER, name, email: email || DEMO_USER.email, className, section, rollNumber, favouriteGenre };
-  }
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(cred.user, { displayName: name });
 
@@ -89,39 +48,57 @@ export async function signUp({ email, password, name, className, section, rollNu
 }
 
 export async function logIn(email, password) {
-  if (DEMO_MODE) return DEMO_USER;
   const cred = await signInWithEmailAndPassword(auth, email, password);
   return getUserProfile(cred.user.uid);
 }
 
 export async function logOut() {
-  if (DEMO_MODE) return;
   await signOut(auth);
 }
 
 export async function getUserProfile(uid) {
-  if (DEMO_MODE) return DEMO_USER;
+  const user = auth.currentUser;
   const userDocRef = doc(db, "users", uid);
   const snap = await getDoc(userDocRef);
-  if (!snap.exists()) return null;
-  const data = snap.data();
-  if (data && ADMIN_EMAILS.includes((data.email || "").toLowerCase()) && data.role !== "admin") {
-    await setDoc(userDocRef, { role: "admin" }, { merge: true });
-    data.role = "admin";
+
+  if (snap.exists()) {
+    const data = snap.data();
+    if (ADMIN_EMAILS.includes((data.email || "").toLowerCase())) {
+      return { ...data, role: "admin" };
+    }
+    return data;
+  } else if (user && user.uid === uid) {
+    const isAdminEmail = ADMIN_EMAILS.includes((user.email || "").toLowerCase());
+    const profile = {
+      uid: user.uid,
+      name: user.displayName || user.email.split("@")[0],
+      email: user.email,
+      role: "student", // Always write "student" on creation to satisfy firestore.md security rules
+      className: "",
+      section: "",
+      rollNumber: "",
+      favouriteGenre: "Fiction",
+      bio: "",
+      profilePicture: user.photoURL || "",
+      createdAt: Date.now()
+    };
+    await setDoc(userDocRef, profile);
+    return isAdminEmail ? { ...profile, role: "admin" } : profile;
   }
-  return data;
+  return null;
 }
 
 /** Fires callback(profile|null) on every auth change. Used by every page's guard. */
 export function watchAuthState(callback) {
-  if (DEMO_MODE) {
-    callback(DEMO_USER);
-    return () => {};
-  }
   return onAuthStateChanged(auth, async (user) => {
     if (!user) return callback(null);
-    const profile = await getUserProfile(user.uid);
-    callback(profile);
+    try {
+      const profile = await getUserProfile(user.uid);
+      callback(profile);
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+      callback(null);
+    }
   });
 }
 
