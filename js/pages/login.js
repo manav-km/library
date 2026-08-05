@@ -27,6 +27,17 @@ watchAuthState((profile) => {
   if (profile) redirectByRole(profile);
 });
 
+function formatAuthError(err) {
+  const code = err.code || "";
+  if (code.includes("operation-not-allowed") || code.includes("admin-restricted-operation") || err.message?.includes("ADMIN_ONLY_OPERATION")) {
+    return "Sign-in provider is disabled. Enable Email/Password and Google in Firebase Console -> Authentication -> Sign-in method.";
+  }
+  if (code.includes("invalid-api-key")) {
+    return "Invalid API key or restricted key in Google Cloud Console. Check Firebase Console project settings.";
+  }
+  return err.message || "Authentication failed. Check your details.";
+}
+
 // ---- Google Sign-in handler ----
 qsa(".google-signin-btn").forEach((btn) => {
   btn.addEventListener("click", async () => {
@@ -35,7 +46,8 @@ qsa(".google-signin-btn").forEach((btn) => {
       showToast(`Signed in with Google — welcome back, ${profile.name.split(" ")[0]}.`);
       setTimeout(() => redirectByRole(profile), 500);
     } catch (err) {
-      showToast(err.message || "Google sign-in failed. Try again.", "error");
+      console.error(err);
+      showToast(formatAuthError(err), "error");
     }
   });
 });
@@ -50,7 +62,8 @@ if (loginForm) {
       showToast(`Welcome back, ${profile.name.split(" ")[0]}.`);
       setTimeout(() => redirectByRole(profile), 500);
     } catch (err) {
-      showToast(err.message || "Could not sign in. Check your details.", "error");
+      console.error(err);
+      showToast(formatAuthError(err), "error");
     }
   });
 }
@@ -72,7 +85,8 @@ if (signupForm) {
       showToast("Account created — welcome to the library.");
       setTimeout(() => redirectByRole(profile), 500);
     } catch (err) {
-      showToast(err.message || "Could not create account.", "error");
+      console.error(err);
+      showToast(formatAuthError(err), "error");
     }
   });
 }
