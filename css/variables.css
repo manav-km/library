@@ -1,0 +1,100 @@
+/* ==========================================================================
+   SAJS Digital Library — Design Tokens
+   Theme: deep navy "reading room at night" — glass shelves, cyan reading-lamp
+   accent, indigo for interactive elements. Book IDs render in mono, like a
+   catalogue stamp.
+   ========================================================================== */
+
+:root {
+  /* ---- Core palette --------------------------------------------------- */
+  --bg-base:        #080B14;   /* page background */
+  --bg-elevated:    #0D1220;   /* section background, slightly lifted */
+  --bg-sunken:      #05070D;   /* recessed areas, code blocks */
+
+  --glass-fill:     rgba(23, 31, 51, 0.55);
+  --glass-fill-hi:  rgba(30, 40, 64, 0.72);
+  --glass-border:   rgba(120, 154, 255, 0.14);
+  --glass-border-hi:rgba(120, 154, 255, 0.28);
+
+  --indigo-600:     #4C5FEE;
+  --indigo-500:     #5B6EF5;
+  --indigo-400:     #7C8CF8;
+  --cyan-400:       #22D3EE;
+  --cyan-300:       #67E3F5;
+
+  --text-primary:   #EAEEFB;
+  --text-secondary: #9AA6C7;
+  --text-tertiary:  #616E92;
+
+  --success:        #34D399;
+  --warning:         #FBBF24;
+  --danger:          #F87171;
+
+  /* ---- Genre spine colors (the "shelf" signature motif) ---------------- */
+  --spine-fiction:      #7C8CF8;
+  --spine-nonfiction:   #22D3EE;
+  --spine-scifi:        #A78BFA;
+  --spine-history:      #FBBF24;
+  --spine-biography:    #34D399;
+  --spine-mystery:      #F87171;
+  --spine-poetry:       #F472B6;
+  --spine-classics:     #E2B93B;
+
+  /* ---- Typography -------------------------------------------------------
+     Display: Space Grotesk — geometric, slightly technical, reads like a
+       modern catalogue system rather than a generic school banner.
+     Body: Inter — quiet workhorse for long reading.
+     Mono: JetBrains Mono — used ONLY for book/catalogue IDs (SAJS-001),
+       so the ID reads like a stamped call-number, a small nod to real
+       library signage.
+  --------------------------------------------------------------------- */
+  --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-body:    'Inter', 'Segoe UI', sans-serif;
+  --font-mono:    'JetBrains Mono', 'Courier New', monospace;
+
+  --fs-h1: clamp(2.2rem, 3.4vw, 3.4rem);
+  --fs-h2: clamp(1.6rem, 2.2vw, 2.2rem);
+  --fs-h3: 1.3rem;
+  --fs-h4: 1.05rem;
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+  --fs-tiny: 0.75rem;
+
+  /* ---- Spacing scale ----------------------------------------------------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 96px;
+
+  /* ---- Radius / shadow / motion ------------------------------------------ */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 8px 30px rgba(2, 6, 16, 0.45);
+  --shadow-glow-cyan: 0 0 0 1px rgba(34, 211, 238, 0.25), 0 0 24px rgba(34, 211, 238, 0.12);
+  --shadow-glow-indigo: 0 0 0 1px rgba(91, 110, 245, 0.3), 0 0 24px rgba(91, 110, 245, 0.15);
+
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+  --dur-slow: 420ms;
+
+  --nav-height: 68px;
+  --content-max: 1280px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

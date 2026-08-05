@@ -1,0 +1,107 @@
+// ==========================================================================
+// Navbar component
+// ==========================================================================
+
+import { initials } from "../utils/helpers.js";
+import { logOut } from "../firebase/auth.js";
+
+const NAV_LINKS = [
+  { href: "index.html", label: "Home" },
+  { href: "library.html", label: "Library" },
+  { href: "discussions.html", label: "Discussions" },
+  { href: "about.html", label: "About" }
+];
+
+function roleHome(role) {
+  if (role === "teacher") return "teacher-dashboard.html";
+  if (role === "admin") return "admin-panel.html";
+  return "student-dashboard.html";
+}
+
+export function renderNavbar(profile, activePage = "") {
+  const mount = document.getElementById("navbar-mount");
+  if (!mount) return;
+
+  const links = NAV_LINKS.map(
+    (l) => `<a href="${l.href}" class="${activePage === l.href ? "active" : ""}">${l.label}</a>`
+  ).join("");
+
+  const dashboardHref = profile ? roleHome(profile.role) : "login.html";
+
+  mount.innerHTML = `
+    <nav class="navbar">
+      <div class="navbar-inner">
+        <a href="index.html" class="nav-brand">
+          <span class="crest">S</span>
+          SAJS Digital Library
+        </a>
+
+        <div class="nav-links">
+          ${links}
+          <a href="${dashboardHref}" class="${activePage === dashboardHref ? "active" : ""}">Dashboard</a>
+        </div>
+
+        <div class="nav-right">
+          ${profile ? `
+            <div class="dropdown" id="profile-dropdown">
+              <button class="avatar" id="profile-trigger" aria-haspopup="true" aria-label="Open profile menu">
+                ${profile.profilePicture ? `<img src="${profile.profilePicture}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : initials(profile.name)}
+              </button>
+              <div class="dropdown-menu">
+                <a href="${dashboardHref}">Dashboard</a>
+                <a href="${dashboardHref}#profile">My profile</a>
+                <button id="logout-btn">Sign out</button>
+              </div>
+            </div>
+          ` : `
+            <a href="login.html" class="btn btn-primary btn-sm">Sign in</a>
+          `}
+          <button class="hamburger" id="hamburger-btn" aria-label="Open menu" aria-expanded="false">
+            <span></span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="mobile-nav" id="mobile-nav">
+      ${links}
+      <a href="${dashboardHref}">Dashboard</a>
+      ${profile ? `<a href="#" id="mobile-logout">Sign out</a>` : `<a href="login.html">Sign in</a>`}
+    </div>
+  `;
+
+  wireInteractions();
+}
+
+function wireInteractions() {
+  const dropdown = document.getElementById("profile-dropdown");
+  const trigger = document.getElementById("profile-trigger");
+  if (trigger) {
+    trigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle("open");
+    });
+    document.addEventListener("click", () => dropdown.classList.remove("open"));
+  }
+
+  const logoutBtn = document.getElementById("logout-btn");
+  const mobileLogout = document.getElementById("mobile-logout");
+  [logoutBtn, mobileLogout].forEach((btn) => {
+    if (!btn) return;
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      await logOut();
+      window.location.href = "login.html";
+    });
+  });
+
+  const hamburger = document.getElementById("hamburger-btn");
+  const mobileNav = document.getElementById("mobile-nav");
+  if (hamburger && mobileNav) {
+    hamburger.addEventListener("click", () => {
+      const open = mobileNav.classList.toggle("open");
+      hamburger.classList.toggle("open", open);
+      hamburger.setAttribute("aria-expanded", String(open));
+    });
+  }
+}

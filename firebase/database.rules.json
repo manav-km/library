@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "discussions": {
+      "$bookId": {
+        "messages": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          "$messageId": {
+            ".validate": "newData.hasChildren(['sender', 'senderUid', 'message', 'timestamp'])"
+          }
+        }
+      }
+    }
+  }
+}

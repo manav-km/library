@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discussions — SAJS Digital Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <div id="navbar-mount"></div>
+
+  <main class="app-main">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Public · book-by-book</span>
+          <h1 style="margin:0; font-size:var(--fs-h2);">Discussions</h1>
+        </div>
+      </div>
+
+      <div class="discussion-shell card" style="padding:0; overflow:hidden;">
+        <div class="thread-list" style="padding:var(--sp-4); border-right:1px solid var(--glass-border);" id="thread-list">
+          <div class="skeleton" style="height:56px; margin-bottom:var(--sp-2);"></div>
+          <div class="skeleton" style="height:56px; margin-bottom:var(--sp-2);"></div>
+          <div class="skeleton" style="height:56px;"></div>
+        </div>
+
+        <div class="chat-panel">
+          <div style="padding:var(--sp-4); border-bottom:1px solid var(--glass-border);">
+            <h4 id="thread-title" style="margin:0;">Select a book to view its discussion</h4>
+            <span class="text-tertiary" id="thread-subtitle" style="font-size:var(--fs-tiny);"></span>
+          </div>
+          <div class="chat-scroll" id="chat-scroll"></div>
+          <div class="chat-input-row">
+            <input type="text" id="chat-input" placeholder="Write a message..." disabled>
+            <button class="btn btn-primary" id="chat-send-btn" disabled>Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/pages/discussions.js"></script>
+</body>
+</html>

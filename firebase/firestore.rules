@@ -1,0 +1,58 @@
+rules_version = '2';
+
+// ==========================================================================
+// Firestore security rules
+//
+// Role model: every user document has a `role` of "student", "teacher",
+// or "admin". Signup (client-side) always writes role: "student" — these
+// rules back that up server-side so a modified client can't self-promote.
+// ==========================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function myRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isTeacherOrAdmin() {
+      return isSignedIn() && (myRole() == "teacher" || myRole() == "admin");
+    }
+
+    function isAdmin() {
+      return isSignedIn() && myRole() == "admin";
+    }
+
+    // ---- users ----
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      // A user may create their own profile only as a student.
+      allow create: if isSignedIn() && request.auth.uid == uid
+                    && request.resource.data.role == "student";
+      // A user may update their own profile but never their own role.
+      allow update: if isSignedIn() && request.auth.uid == uid
+                    && request.resource.data.role == resource.data.role;
+      // Only admins may change roles (via a separate elevated update).
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ---- books ----
+    match /books/{bookId} {
+      allow read: if true; // public catalogue
+      allow create, update, delete: if isTeacherOrAdmin();
+    }
+
+    // ---- reviews ----
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isTeacherOrAdmin(); // moderation
+    }
+  }
+}

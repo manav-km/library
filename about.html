@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — SAJS Digital Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <div id="navbar-mount"></div>
+
+  <main class="app-main">
+    <div class="container" style="max-width: 760px;">
+      <span class="eyebrow">About this platform</span>
+      <h1>The library, extended past the shelves.</h1>
+      <p style="font-size:1.05rem;">SAJS Digital Library is Seth Anandram Jaipuria School's catalogue, reading community, and discussion space in one place. Every book in the physical library gets a permanent catalogue ID — <span class="mono">SAJS-001</span> and up — along with a full breakdown of its main idea, characters, setting, plot, and themes, so students can decide what to read next without guessing from a spine.</p>
+
+      <div class="divider"></div>
+
+      <h3>How accounts work</h3>
+      <p>Every account starts as a student account. Teachers are given catalogue and moderation access by a school admin — there's no self-service way to become a teacher, which keeps the reviews and discussions accountable to real staff.</p>
+
+      <h3>Catalogue IDs</h3>
+      <p>The <span class="mono">SAJS-</span> prefix is permanent — it's the school's own call-number system, assigned automatically and in order as new books are catalogued by a teacher.</p>
+
+      <div class="divider"></div>
+
+      <a href="library.html" class="btn btn-primary">Browse the library →</a>
+    </div>
+  </main>
+
+  <script type="module">
+    import { watchAuthState } from "./js/firebase/auth.js";
+    import { renderNavbar } from "./js/components/navbar.js";
+    watchAuthState((profile) => renderNavbar(profile, "about.html"));
+  </script>
+</body>
+</html>

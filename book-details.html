@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book — SAJS Digital Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <div id="navbar-mount"></div>
+
+  <main class="app-main">
+    <div class="container">
+
+      <!-- ============ Book overview ============ -->
+      <div class="book-hero" id="sec-overview" style="scroll-margin-top: calc(var(--nav-height) + var(--sp-4));">
+        <div class="skeleton" style="height:380px; width:260px;"></div>
+        <div class="stack">
+          <div class="skeleton" style="height:32px; width:60%;"></div>
+          <div class="skeleton" style="height:80px;"></div>
+        </div>
+      </div>
+
+      <div class="grid" style="grid-template-columns: 200px 1fr; gap: var(--sp-7); align-items:start;" id="body-grid">
+        <nav class="book-toc" id="book-toc">
+          <a href="#sec-overview" class="active">1. Overview</a>
+          <a href="#sec-mainidea">2. Main idea</a>
+          <a href="#sec-characters">3. Characters</a>
+          <a href="#sec-setting">4. Setting</a>
+          <a href="#sec-plot">5. Plot</a>
+          <a href="#sec-conflict">6. Conflict</a>
+          <a href="#sec-resolution">7. Resolution</a>
+          <a href="#sec-moral">8. Moral / Lesson</a>
+          <a href="#sec-summary">9. Summary</a>
+          <a href="#sec-reviews">Reviews</a>
+        </nav>
+
+        <div id="book-body">
+          <section class="book-section" id="sec-mainidea">
+            <span class="eyebrow">Main idea</span>
+            <p id="txt-mainidea">—</p>
+          </section>
+
+          <section class="book-section" id="sec-characters">
+            <span class="eyebrow">Characters</span>
+            <div id="txt-characters"></div>
+          </section>
+
+          <section class="book-section" id="sec-setting">
+            <span class="eyebrow">Setting</span>
+            <p id="txt-setting">—</p>
+          </section>
+
+          <section class="book-section" id="sec-plot">
+            <span class="eyebrow">Plot</span>
+            <p id="txt-plot">—</p>
+          </section>
+
+          <section class="book-section" id="sec-conflict">
+            <span class="eyebrow">Conflict</span>
+            <p id="txt-conflict">—</p>
+          </section>
+
+          <section class="book-section" id="sec-resolution">
+            <span class="eyebrow">Resolution</span>
+            <p id="txt-resolution">—</p>
+          </section>
+
+          <section class="book-section" id="sec-moral">
+            <span class="eyebrow">Moral / Lesson</span>
+            <p id="txt-moral">—</p>
+          </section>
+
+          <section class="book-section" id="sec-summary">
+            <span class="eyebrow">Summary</span>
+            <p id="txt-summary">—</p>
+          </section>
+
+          <!-- ============ Reviews ============ -->
+          <section class="book-section" id="sec-reviews">
+            <div class="section-head">
+              <div>
+                <span class="eyebrow">What readers think</span>
+                <h3 style="margin:0;">Reviews</h3>
+              </div>
+              <a href="#" id="discussion-link" class="btn btn-ghost btn-sm">Open discussion →</a>
+            </div>
+
+            <form id="review-form" class="card" style="margin-bottom:var(--sp-5);">
+              <div class="field">
+                <label>Your rating</label>
+                <div class="star-input" id="star-input">
+                  <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="review-text">Your review</label>
+                <textarea id="review-text" rows="3" placeholder="Keep it spoiler-free past the first act..." required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Post review</button>
+            </form>
+
+            <div id="reviews-list"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/pages/book-details.js"></script>
+</body>
+</html>

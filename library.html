@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library — SAJS Digital Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <div id="navbar-mount"></div>
+
+  <main class="app-main">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Full catalogue</span>
+          <h1 style="margin:0; font-size:var(--fs-h2);">Library</h1>
+        </div>
+      </div>
+
+      <div class="library-toolbar">
+        <div class="search-field">
+          <span class="icon">🔎</span>
+          <input type="text" id="search-input" placeholder="Search by title, author, or catalogue ID (e.g. SAJS-001)...">
+        </div>
+      </div>
+
+      <div class="genre-chip-row" id="genre-chips">
+        <button class="genre-chip active" data-genre="all">All genres</button>
+        <!-- Populated with genres present in the catalogue -->
+      </div>
+
+      <div id="results-count" class="text-tertiary" style="font-size:var(--fs-small); margin-bottom:var(--sp-4);"></div>
+
+      <div class="books-grid" id="library-grid">
+        <div class="skeleton" style="height:260px;"></div>
+        <div class="skeleton" style="height:260px;"></div>
+        <div class="skeleton" style="height:260px;"></div>
+        <div class="skeleton" style="height:260px;"></div>
+        <div class="skeleton" style="height:260px;"></div>
+        <div class="skeleton" style="height:260px;"></div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/pages/library.js"></script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+/* ==========================================================================
+   Page-specific styles
+   ========================================================================== */
+
+/* ---------- Landing hero -------------------------------------------------- */
+.hero {
+  position: relative;
+  padding: var(--sp-8) 0 var(--sp-7);
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: var(--sp-7);
+  align-items: center;
+}
+.hero-copy .eyebrow { margin-bottom: var(--sp-3); }
+.hero-copy p { max-width: 480px; font-size: 1.05rem; }
+.hero-actions { display: flex; gap: var(--sp-3); margin-top: var(--sp-6); }
+
+/* Signature: a "shelf" of overlapping book spines behind the hero copy,
+   built from the genre spine-color tokens — literal stacked spines. */
+.hero-shelf {
+  position: relative;
+  height: 340px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: var(--sp-5);
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+.hero-shelf::after {
+  content: '';
+  position: absolute; left: var(--sp-5); right: var(--sp-5); bottom: var(--sp-5);
+  height: 6px; border-radius: 3px;
+  background: linear-gradient(90deg, rgba(120,154,255,0.05), rgba(120,154,255,0.35), rgba(120,154,255,0.05));
+}
+.hero-shelf .spine {
+  flex: 1;
+  border-radius: 6px 6px 2px 2px;
+  background: var(--spine-color);
+  box-shadow: inset -6px 0 12px rgba(0,0,0,0.25);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: rgba(6,9,17,0.55);
+  writing-mode: vertical-rl;
+  animation: spine-rise var(--dur-slow) var(--ease-standard) backwards;
+}
+@keyframes spine-rise { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* ---------- Announcement / quick action strip --------------------------- */
+.quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); }
+.quick-action {
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  padding: var(--sp-4);
+  border-radius: var(--radius-md);
+}
+.quick-action .qa-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(120,154,255,0.12);
+  font-size: 1.1rem;
+}
+
+.announcement {
+  display: flex; gap: var(--sp-3);
+  padding: var(--sp-4) 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+.announcement:last-child { border-bottom: none; }
+.announcement .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--cyan-400); margin-top: 7px; flex-shrink: 0;
+}
+
+/* ---------- Auth page ------------------------------------------------------ */
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.auth-visual {
+  position: relative;
+  background: linear-gradient(160deg, #0d1428, #060911 65%);
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--sp-8);
+  overflow: hidden;
+}
+.auth-visual::before {
+  content: '';
+  position: absolute; width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(91,110,245,0.22), transparent 70%);
+  top: -100px; left: -100px;
+}
+.auth-form-side {
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--sp-6);
+}
+.auth-box { width: 100%; max-width: 400px; }
+.auth-tabs { display: flex; gap: var(--sp-2); margin-bottom: var(--sp-6); background: var(--bg-sunken); border-radius: var(--radius-pill); padding: 4px; }
+.auth-tab { flex: 1; text-align: center; padding: 9px; border-radius: var(--radius-pill); font-size: var(--fs-small); font-weight: 600; color: var(--text-tertiary); }
+.auth-tab.active { background: linear-gradient(135deg, var(--indigo-600), var(--indigo-400)); color: #fff; }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: var(--sp-4) 0;
+  color: var(--text-tertiary);
+  font-size: var(--fs-tiny);
+}
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--glass-border);
+}
+.auth-divider span {
+  padding: 0 var(--sp-3);
+}
+
+@media (max-width: 900px) {
+  .auth-shell { grid-template-columns: 1fr; }
+  .auth-visual { display: none; }
+  .hero { grid-template-columns: 1fr; }
+  .hero-shelf { height: 220px; }
+}
+
+/* ---------- Student dashboard --------------------------------------------- */
+.profile-card { text-align: center; }
+.profile-card .avatar-lg { margin: 0 auto var(--sp-3); }
+.stat-row { display: flex; justify-content: space-around; margin-top: var(--sp-4); padding-top: var(--sp-4); border-top: 1px solid var(--glass-border); }
+.stat-row .stat { text-align: center; }
+.stat-row .stat strong { display: block; font-family: var(--font-display); font-size: 1.3rem; }
+.stat-row .stat span { font-size: var(--fs-tiny); color: var(--text-tertiary); }
+
+.mini-book-row { display: flex; gap: var(--sp-4); overflow-x: auto; padding-bottom: var(--sp-2); }
+.mini-book-row .book-card { width: 130px; flex-shrink: 0; }
+
+/* ---------- Library filters ------------------------------------------------ */
+.library-toolbar { display: flex; gap: var(--sp-3); margin-bottom: var(--sp-6); flex-wrap: wrap; }
+.library-toolbar .search-field { flex: 1; min-width: 220px; position: relative; }
+.library-toolbar .search-field input { padding-left: 40px; }
+.library-toolbar .search-field .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); }
+.genre-chip-row { display: flex; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-6); }
+.genre-chip {
+  padding: 6px 16px; border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border); font-size: var(--fs-small); color: var(--text-secondary);
+}
+.genre-chip.active { background: linear-gradient(135deg, var(--indigo-600), var(--cyan-400)); color: #04141a; border-color: transparent; font-weight: 600; }
+
+/* ---------- Book details --------------------------------------------------- */
+.book-hero { display: grid; grid-template-columns: 260px 1fr; gap: var(--sp-7); margin-bottom: var(--sp-7); }
+.book-hero .book-cover { width: 260px; }
+.book-meta-row { display: flex; gap: var(--sp-3); flex-wrap: wrap; margin: var(--sp-3) 0 var(--sp-4); }
+.book-toc { display: flex; flex-direction: column; gap: 2px; position: sticky; top: calc(var(--nav-height) + var(--sp-5)); }
+.book-toc a { padding: 8px 12px; border-radius: var(--radius-sm); font-size: var(--fs-small); color: var(--text-tertiary); }
+.book-toc a.active { background: rgba(120,154,255,0.1); color: var(--cyan-300); }
+.book-section { padding-bottom: var(--sp-6); margin-bottom: var(--sp-6); border-bottom: 1px solid var(--glass-border); scroll-margin-top: calc(var(--nav-height) + var(--sp-4)); }
+.book-section:last-child { border-bottom: none; }
+.book-section .eyebrow { margin-bottom: var(--sp-2); }
+
+.character-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: var(--radius-pill); background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); font-size: var(--fs-small); margin: 0 6px 6px 0; }
+
+/* ---------- Reviews --------------------------------------------------------- */
+.review-item { padding: var(--sp-4) 0; border-bottom: 1px solid var(--glass-border); }
+.review-item:last-child { border-bottom: none; }
+.review-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
+.review-actions { display: flex; gap: var(--sp-2); }
+
+/* ---------- Discussion forum ------------------------------------------------ */
+.discussion-shell { display: grid; grid-template-columns: 280px 1fr; gap: var(--sp-5); height: calc(100vh - var(--nav-height) - var(--sp-9)); min-height: 520px; }
+.thread-list { overflow-y: auto; }
+.thread-item { padding: var(--sp-3); border-radius: var(--radius-md); margin-bottom: var(--sp-2); cursor: pointer; border: 1px solid transparent; }
+.thread-item:hover, .thread-item.active { background: rgba(120,154,255,0.08); border-color: var(--glass-border); }
+.chat-panel { display: flex; flex-direction: column; }
+.chat-scroll { flex: 1; overflow-y: auto; padding: var(--sp-4); display: flex; flex-direction: column; }
+.chat-input-row { display: flex; gap: var(--sp-3); padding: var(--sp-4); border-top: 1px solid var(--glass-border); }
+
+@media (max-width: 900px) {
+  .book-hero { grid-template-columns: 1fr; }
+  .book-hero .book-cover { width: 180px; }
+  .book-toc { position: static; flex-direction: row; overflow-x: auto; }
+  .discussion-shell { grid-template-columns: 1fr; height: auto; }
+  .thread-list { max-height: 200px; }
+}
+
+/* ---------- Admin / teacher tables ------------------------------------------ */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { text-align: left; font-size: var(--fs-tiny); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--glass-border); }
+.data-table td { padding: var(--sp-3); border-bottom: 1px solid rgba(120,154,255,0.06); font-size: var(--fs-small); vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.table-wrap { overflow-x: auto; }
