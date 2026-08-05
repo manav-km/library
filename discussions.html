@@ -20,9 +20,10 @@
     <div class="container">
       <div class="section-head">
         <div>
-          <span class="eyebrow">Public · book-by-book</span>
+          <span class="eyebrow">Public · book & community threads</span>
           <h1 style="margin:0; font-size:var(--fs-h2);">Discussions</h1>
         </div>
+        <button class="btn btn-primary" id="create-thread-btn">+ Start discussion</button>
       </div>
 
       <div class="discussion-shell card" style="padding:0; overflow:hidden;">
@@ -34,7 +35,7 @@
 
         <div class="chat-panel">
           <div style="padding:var(--sp-4); border-bottom:1px solid var(--glass-border);">
-            <h4 id="thread-title" style="margin:0;">Select a book to view its discussion</h4>
+            <h4 id="thread-title" style="margin:0;">Select a discussion thread</h4>
             <span class="text-tertiary" id="thread-subtitle" style="font-size:var(--fs-tiny);"></span>
           </div>
           <div class="chat-scroll" id="chat-scroll"></div>
@@ -46,6 +47,27 @@
       </div>
     </div>
   </main>
+
+  <!-- ============ Start Discussion Modal ============ -->
+  <div class="modal-overlay" id="create-thread-modal">
+    <div class="modal" style="max-width:500px;">
+      <h3>Start a new discussion</h3>
+      <form id="create-thread-form">
+        <div class="field">
+          <label for="thread-topic-title">Discussion Topic / Book Title</label>
+          <input type="text" id="thread-topic-title" placeholder="e.g. Character Motivations in To Kill a Mockingbird" required>
+        </div>
+        <div class="field">
+          <label for="thread-first-msg">Opening Message</label>
+          <textarea id="thread-first-msg" rows="3" placeholder="What would you like to discuss with the school community?" required></textarea>
+        </div>
+        <div class="flex gap-3" style="margin-top:var(--sp-5);">
+          <button type="button" class="btn btn-ghost btn-block" id="cancel-thread-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-block">Post discussion</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script type="module" src="js/pages/discussions.js"></script>
 </body>

@@ -1,5 +1,6 @@
 import { requireAuth } from "../firebase/auth.js";
-import { getBookById, getReviewsForBook, addReview, updateReview, deleteReview } from "../firebase/firestore.js";
+import { getBookById, updateBook, getReviewsForBook, addReview, updateReview, deleteReview } from "../firebase/firestore.js";
+import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
 import { spineColorFor, escapeHTML, starString, timeAgo, showToast, qs, qsa } from "../utils/helpers.js";
 
@@ -8,6 +9,7 @@ renderNavbar(currentProfile, "library.html");
 
 let currentBook = null;
 let selectedRating = 0;
+const canEdit = currentProfile && (currentProfile.role === "teacher" || currentProfile.role === "admin");
 
 const params = new URLSearchParams(window.location.search);
 const bookId = params.get("id");
@@ -37,6 +39,7 @@ async function init() {
   wireStarInput();
   wireReviewForm();
   wireScrollSpy();
+  if (canEdit) wireBookEditModal();
 }
 
 function renderOverview(b) {
@@ -57,9 +60,81 @@ function renderOverview(b) {
       <div class="flex gap-3" style="margin-top:var(--sp-4);">
         <a href="#sec-reviews" class="btn btn-primary btn-sm">Read reviews</a>
         <a href="discussions.html?book=${b.BK_ID}" class="btn btn-ghost btn-sm">Join the discussion</a>
+        ${canEdit ? `<button class="btn btn-ghost btn-sm" id="edit-book-details-btn">✏️ Edit book</button>` : ""}
       </div>
     </div>
   `;
+
+  if (canEdit) {
+    qs("#edit-book-details-btn")?.addEventListener("click", openEditModal);
+  }
+}
+
+function openEditModal() {
+  const modal = qs("#book-modal");
+  if (!modal || !currentBook) return;
+  qs("#book-modal-title").textContent = "Edit book";
+  qs("#book-doc-id").value = currentBook.id || currentBook.BK_ID;
+  qs("#f-bkid").value = currentBook.BK_ID;
+  qs("#f-name").value = currentBook.bookName || "";
+  qs("#f-author").value = currentBook.author || "";
+  qs("#f-year").value = currentBook.year || "";
+  qs("#f-genre").value = currentBook.genre || "Fiction";
+  qs("#f-mainidea").value = currentBook.mainIdea || "";
+  qs("#f-themes").value = (currentBook.themes || []).join(", ");
+  qs("#f-characters").value = (currentBook.characters || []).map((c) => `${c.name} | ${c.role} | ${c.note || ""}`).join("\n");
+  qs("#f-setting").value = currentBook.setting || "";
+  qs("#f-plot").value = currentBook.plot || "";
+  qs("#f-conflict").value = currentBook.conflict || "";
+  qs("#f-resolution").value = currentBook.resolution || "";
+  qs("#f-moral").value = currentBook.moral || "";
+  qs("#f-summary").value = currentBook.summary || "";
+  modal.classList.add("open");
+}
+
+function wireBookEditModal() {
+  const modal = qs("#book-modal");
+  qs("#cancel-book-modal")?.addEventListener("click", () => modal.classList.remove("open"));
+
+  qs("#book-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const characters = qs("#f-characters").value.split("\n").filter(Boolean).map((line) => {
+      const [name, role, note] = line.split("|").map((s) => (s || "").trim());
+      return { name, role, note };
+    });
+
+    const parsedYear = parseInt(qs("#f-year").value, 10);
+    const bookData = {
+      BK_ID: qs("#f-bkid").value,
+      bookName: qs("#f-name").value,
+      author: qs("#f-author").value,
+      year: isNaN(parsedYear) ? new Date().getFullYear() : parsedYear,
+      genre: qs("#f-genre").value,
+      mainIdea: qs("#f-mainidea").value,
+      themes: qs("#f-themes").value.split(",").map((t) => t.trim()).filter(Boolean),
+      characters,
+      setting: qs("#f-setting").value,
+      plot: qs("#f-plot").value,
+      conflict: qs("#f-conflict").value,
+      resolution: qs("#f-resolution").value,
+      moral: qs("#f-moral").value,
+      summary: qs("#f-summary").value
+    };
+
+    const coverFile = qs("#f-cover").files[0];
+    if (coverFile) bookData.coverImage = await uploadImage(coverFile, "covers", bookData.BK_ID);
+
+    const docId = qs("#book-doc-id").value;
+    await updateBook(docId, bookData);
+    showToast("Book updated.");
+    modal.classList.remove("open");
+
+    // Re-fetch & update UI
+    currentBook = await getBookById(bookId);
+    renderOverview(currentBook);
+    renderSections(currentBook);
+  });
 }
 
 function renderSections(b) {

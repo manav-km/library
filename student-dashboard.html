@@ -25,7 +25,7 @@
           <div class="card profile-card" id="profile">
             <div class="avatar avatar-lg" id="profile-avatar">S</div>
             <h3 id="profile-name" style="margin-bottom:2px;">—</h3>
-            <span class="badge badge-role-student">Student</span>
+            <span class="badge badge-role-student" id="profile-role">Student</span>
             <p class="text-tertiary" id="profile-class" style="margin-top:var(--sp-3); font-size:var(--fs-small);">—</p>
             <p id="profile-bio" style="font-size:var(--fs-small);">—</p>
             <div class="stat-row">
@@ -42,7 +42,7 @@
 
           <div class="card">
             <h4>Quick access</h4>
-            <div class="stack" style="margin-top:0;">
+            <div class="stack" id="quick-access-list" style="margin-top:0;">
               <a href="library.html" class="btn btn-ghost btn-block">Browse library</a>
               <a href="discussions.html" class="btn btn-ghost btn-block">Join discussions</a>
             </div>
@@ -72,13 +72,48 @@
 
   <!-- ============ Edit profile modal ============ -->
   <div class="modal-overlay" id="edit-modal">
-    <div class="modal">
+    <div class="modal" style="max-width:540px; max-height:85vh; overflow-y:auto;">
       <h3>Edit profile</h3>
       <form id="edit-profile-form">
         <div class="field">
-          <label for="edit-bio">About me</label>
-          <textarea id="edit-bio" rows="3" placeholder="Tell others what you like to read..."></textarea>
+          <label for="edit-uid">User ID (UID)</label>
+          <input type="text" id="edit-uid" class="mono" readonly disabled>
+          <div class="field-hint">Assigned automatically by Firebase Authentication — Permanent ID.</div>
         </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="edit-name">Full name</label>
+            <input type="text" id="edit-name" required>
+          </div>
+          <div class="field">
+            <label for="edit-email">Email address</label>
+            <input type="email" id="edit-email" required>
+          </div>
+        </div>
+
+        <!-- Student specific fields -->
+        <div class="field-row" id="student-edit-fields">
+          <div class="field">
+            <label for="edit-class">Class</label>
+            <input type="text" id="edit-class" placeholder="e.g. 10">
+          </div>
+          <div class="field">
+            <label for="edit-section">Section</label>
+            <input type="text" id="edit-section" placeholder="e.g. A">
+          </div>
+          <div class="field">
+            <label for="edit-roll">Roll No.</label>
+            <input type="text" id="edit-roll" placeholder="e.g. 14">
+          </div>
+        </div>
+
+        <!-- Teacher specific fields -->
+        <div class="field" id="teacher-edit-fields" style="display:none;">
+          <label for="edit-subject">Teaching subject</label>
+          <input type="text" id="edit-subject" placeholder="e.g. English Literature">
+        </div>
+
         <div class="field">
           <label for="edit-genre">Favourite genre</label>
           <select id="edit-genre">
@@ -87,10 +122,17 @@
             <option>Poetry</option><option>Classics</option>
           </select>
         </div>
+
+        <div class="field">
+          <label for="edit-bio">About me</label>
+          <textarea id="edit-bio" rows="3" placeholder="Tell others what you like to read..."></textarea>
+        </div>
+
         <div class="field">
           <label for="edit-avatar">Profile picture</label>
           <input type="file" id="edit-avatar" accept="image/*">
         </div>
+
         <div class="flex gap-3" style="margin-top:var(--sp-5);">
           <button type="button" class="btn btn-ghost btn-block" id="cancel-edit">Cancel</button>
           <button type="submit" class="btn btn-primary btn-block">Save changes</button>

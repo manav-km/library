@@ -17,30 +17,117 @@
   <div id="navbar-mount"></div>
 
   <main class="app-main">
-    <div class="container" style="max-width: 760px;">
-      <span class="eyebrow">About this platform</span>
-      <h1>The library, extended past the shelves.</h1>
-      <p style="font-size:1.05rem;">SAJS Digital Library is Seth Anandram Jaipuria School's catalogue, reading community, and discussion space in one place. Every book in the physical library gets a permanent catalogue ID — <span class="mono">SAJS-001</span> and up — along with a full breakdown of its main idea, characters, setting, plot, and themes, so students can decide what to read next without guessing from a spine.</p>
+    <div class="container" style="max-width: 960px;">
+      
+      <!-- ============ Hero Section ============ -->
+      <div style="margin-bottom: var(--sp-8);">
+        <span class="eyebrow">Seth Anandram Jaipuria School</span>
+        <h1 style="font-size: var(--fs-h1); margin-top: var(--sp-2);">The library, extended past the physical shelf.</h1>
+        <p style="font-size: 1.15rem; color: var(--text-secondary); max-width: 780px; line-height: 1.6;">
+          SAJS Digital Library is a centralized digital hub for Seth Anandram Jaipuria School's physical collection, literary community, and academic discussions. It empowers students, faculty, and administrators to discover, reflect on, and discuss literature together.
+        </p>
+      </div>
 
       <div class="divider"></div>
 
-      <h3>How accounts work</h3>
-      <p>Every account starts as a student account. Teachers are given catalogue and moderation access by a school admin — there's no self-service way to become a teacher, which keeps the reviews and discussions accountable to real staff.</p>
+      <!-- ============ Pillars / Features Grid ============ -->
+      <section style="margin-bottom: var(--sp-8);">
+        <h2 style="margin-bottom: var(--sp-5);">Platform Features & Pillars</h2>
+        <div class="grid grid-2" style="gap: var(--sp-5);">
+          
+          <div class="card">
+            <span style="font-size: 1.8rem; display: block; margin-bottom: var(--sp-2);">🏷️</span>
+            <h3>Permanent Catalogue IDs</h3>
+            <p style="font-size: var(--fs-small); color: var(--text-tertiary);">
+              Every book receives a permanent call number starting with <span class="mono">SAJS-001</span>. Along with traditional metadata, each entry details the book's main idea, key themes, character profiles, plot arc, setting, and moral lessons.
+            </p>
+          </div>
 
-      <h3>Catalogue IDs</h3>
-      <p>The <span class="mono">SAJS-</span> prefix is permanent — it's the school's own call-number system, assigned automatically and in order as new books are catalogued by a teacher.</p>
+          <div class="card">
+            <span style="font-size: 1.8rem; display: block; margin-bottom: var(--sp-2);">💬</span>
+            <h3>Reviews & Live Discussions</h3>
+            <p style="font-size: var(--fs-small); color: var(--text-tertiary);">
+              Students can rate and review books they have finished, and engage in real-time book discussions with peers. Active teacher and admin moderation maintains a respectful environment.
+            </p>
+          </div>
+
+          <div class="card">
+            <span style="font-size: 1.8rem; display: block; margin-bottom: var(--sp-2);">📊</span>
+            <h3>Personalized Reading Dashboard</h3>
+            <p style="font-size: var(--fs-small); color: var(--text-tertiary);">
+              Students, teachers, and admins have access to a personal dashboard tracking their recently viewed books, submitted reviews, favourite genres, and customizable profile settings.
+            </p>
+          </div>
+
+          <div class="card">
+            <span style="font-size: 1.8rem; display: block; margin-bottom: var(--sp-2);">🛡️</span>
+            <h3>Accountable Role System</h3>
+            <p style="font-size: var(--fs-small); color: var(--text-tertiary);">
+              Users are assigned Student, Teacher, or Admin roles. Privileged management features (catalogue CRUD, review moderation, and role promotion) are organized under a secure **Manage** section.
+            </p>
+          </div>
+
+        </div>
+      </section>
 
       <div class="divider"></div>
 
-      <a href="library.html" class="btn btn-primary">Browse the library →</a>
+      <!-- ============ Profile & System Governance ============ -->
+      <section style="margin-bottom: var(--sp-8);">
+        <h2>Account Governance & Customization</h2>
+        <div class="card" style="padding: var(--sp-6);">
+          <p style="margin-top: 0;">
+            Users have total control over their personal profile information. Students, teachers, and admins can edit their <strong>Name, Email, Class, Section, Roll Number, Subject, Favourite Genre, Bio, and Profile Picture</strong> at any time directly from their dashboard edit modal.
+          </p>
+          <div class="field-hint" style="background: rgba(120,154,255,0.08); padding: var(--sp-3); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); margin-top: var(--sp-4);">
+            <strong style="color: var(--text-primary);">Security Note:</strong> The User ID (<span class="mono">UID</span>) is permanently assigned by Firebase Authentication to guarantee data integrity across reviews and activity logs.
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ FAQ Section ============ -->
+      <section style="margin-bottom: var(--sp-8);">
+        <h2>Frequently Asked Questions</h2>
+        <div class="stack" style="gap: var(--sp-4);">
+          <div class="card">
+            <h4 style="margin: 0 0 var(--sp-2) 0;">How do I request a new book to be added?</h4>
+            <p style="margin: 0; font-size: var(--fs-small); color: var(--text-tertiary);">
+              Speak with your English or Literature teacher. Faculty members can add new titles directly using the Catalogue management tools in the <strong>Manage</strong> portal.
+            </p>
+          </div>
+          <div class="card">
+            <h4 style="margin: 0 0 var(--sp-2) 0;">How are reviews moderated?</h4>
+            <p style="margin: 0; font-size: var(--fs-small); color: var(--text-tertiary);">
+              All reviews are visible immediately. Teachers and admins review submissions in the Review Moderation tab and can remove inappropriate content if necessary.
+            </p>
+          </div>
+          <div class="card">
+            <h4 style="margin: 0 0 var(--sp-2) 0;">Can I update my profile picture and reading bio?</h4>
+            <p style="margin: 0; font-size: var(--fs-small); color: var(--text-tertiary);">
+              Yes! Click on <strong>Dashboard</strong>, then select <strong>Edit profile</strong>. You can update your name, email, avatar, bio, academic details, and favourite genre.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ============ Call to Action ============ -->
+      <div class="flex gap-4" style="flex-wrap: wrap;">
+        <a href="library.html" class="btn btn-primary">Browse the library →</a>
+        <a href="discussions.html" class="btn btn-ghost">Join discussions →</a>
+        <a href="student-dashboard.html" class="btn btn-ghost">Go to Dashboard →</a>
+      </div>
+
     </div>
   </main>
 
   <script type="module">
-    import { requireAuth } from "./js/firebase/auth.js";
+    import { watchAuthState } from "./js/firebase/auth.js";
     import { renderNavbar } from "./js/components/navbar.js";
-    const profile = await requireAuth();
-    renderNavbar(profile, "about.html");
+    watchAuthState((profile) => {
+      renderNavbar(profile, "about.html");
+    });
   </script>
 </body>
 </html>

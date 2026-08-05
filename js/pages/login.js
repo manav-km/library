@@ -2,9 +2,7 @@ import { signUp, logIn, signInWithGoogle, watchAuthState } from "../firebase/aut
 import { showToast, qs, qsa } from "../utils/helpers.js";
 
 function redirectByRole(profile) {
-  if (profile.role === "teacher") window.location.href = "teacher-dashboard.html";
-  else if (profile.role === "admin") window.location.href = "admin-panel.html";
-  else window.location.href = "student-dashboard.html";
+  window.location.href = "student-dashboard.html";
 }
 
 // ---- Tab switching & form elements ----

@@ -1,11 +1,22 @@
-import { requireAuth } from "../firebase/auth.js";
+import { watchAuthState } from "../firebase/auth.js";
 import { getAllBooks } from "../firebase/firestore.js";
 import { renderNavbar } from "../components/navbar.js";
 import { renderBookGrid } from "../components/bookCard.js";
 import { spineColorFor } from "../utils/helpers.js";
 
-const profile = await requireAuth();
-renderNavbar(profile, "index.html");
+watchAuthState((profile) => {
+  renderNavbar(profile, "index.html");
+  const authBtn = document.getElementById("hero-auth-btn");
+  if (authBtn) {
+    if (profile) {
+      authBtn.href = "about.html";
+      authBtn.textContent = "About";
+    } else {
+      authBtn.href = "login.html";
+      authBtn.textContent = "Sign in";
+    }
+  }
+});
 
 async function init() {
   const books = await getAllBooks();

@@ -7,14 +7,12 @@ import { logOut } from "../firebase/auth.js";
 
 const NAV_LINKS = [
   { href: "index.html", label: "Home" },
+  { href: "about.html", label: "About" },
   { href: "library.html", label: "Library" },
-  { href: "discussions.html", label: "Discussions" },
-  { href: "about.html", label: "About" }
+  { href: "discussions.html", label: "Discussions" }
 ];
 
 function roleHome(role) {
-  if (role === "teacher") return "teacher-dashboard.html";
-  if (role === "admin") return "admin-panel.html";
   return "student-dashboard.html";
 }
 
@@ -27,6 +25,8 @@ export function renderNavbar(profile, activePage = "") {
   ).join("");
 
   const dashboardHref = profile ? roleHome(profile.role) : "login.html";
+  const canManage = profile && (profile.role === "teacher" || profile.role === "admin");
+  const manageHref = "manage.html";
 
   mount.innerHTML = `
     <nav class="navbar">
@@ -39,6 +39,7 @@ export function renderNavbar(profile, activePage = "") {
         <div class="nav-links">
           ${links}
           <a href="${dashboardHref}" class="${activePage === dashboardHref ? "active" : ""}">Dashboard</a>
+          ${canManage ? `<a href="${manageHref}" class="${activePage === manageHref ? "active" : ""}">Manage</a>` : ""}
         </div>
 
         <div class="nav-right">
@@ -49,6 +50,7 @@ export function renderNavbar(profile, activePage = "") {
               </button>
               <div class="dropdown-menu">
                 <a href="${dashboardHref}">Dashboard</a>
+                ${canManage ? `<a href="${manageHref}">Manage</a>` : ""}
                 <a href="${dashboardHref}#profile">My profile</a>
                 <button id="logout-btn">Sign out</button>
               </div>
@@ -66,6 +68,7 @@ export function renderNavbar(profile, activePage = "") {
     <div class="mobile-nav" id="mobile-nav">
       ${links}
       <a href="${dashboardHref}">Dashboard</a>
+      ${canManage ? `<a href="${manageHref}">Manage</a>` : ""}
       ${profile ? `<a href="#" id="mobile-logout">Sign out</a>` : `<a href="login.html">Sign in</a>`}
     </div>
   `;

@@ -114,6 +114,51 @@
     </div>
   </main>
 
+  <!-- ============ Edit Book Modal ============ -->
+  <div class="modal-overlay" id="book-modal">
+    <div class="modal" style="max-width:640px; max-height:85vh; overflow-y:auto;">
+      <h3 id="book-modal-title">Edit book</h3>
+      <form id="book-form">
+        <input type="hidden" id="book-doc-id">
+        <div class="field">
+          <label>Catalogue ID</label>
+          <input type="text" id="f-bkid" class="mono" readonly>
+          <div class="field-hint">Assigned automatically — SAJS is the permanent school prefix.</div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="f-name">Book name</label><input type="text" id="f-name" required></div>
+          <div class="field"><label for="f-author">Author</label><input type="text" id="f-author" required></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="f-year">Publication year</label><input type="number" id="f-year" required></div>
+          <div class="field">
+            <label for="f-genre">Genre</label>
+            <select id="f-genre">
+              <option>Fiction</option><option>Non-Fiction</option><option>Science Fiction</option>
+              <option>History</option><option>Biography</option><option>Mystery</option>
+              <option>Poetry</option><option>Classics</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label for="f-cover">Cover image</label><input type="file" id="f-cover" accept="image/*"></div>
+        <div class="field"><label for="f-mainidea">Main idea</label><textarea id="f-mainidea" rows="2" required></textarea></div>
+        <div class="field"><label for="f-themes">Themes (comma-separated)</label><input type="text" id="f-themes" placeholder="Memory, Isolation, Truth"></div>
+        <div class="field"><label for="f-characters">Characters (one per line: Name | Role | Note)</label><textarea id="f-characters" rows="3" placeholder="Elias Kade | Lighthouse keeper | Meticulous and guarded"></textarea></div>
+        <div class="field"><label for="f-setting">Setting</label><textarea id="f-setting" rows="2"></textarea></div>
+        <div class="field"><label for="f-plot">Plot</label><textarea id="f-plot" rows="3"></textarea></div>
+        <div class="field"><label for="f-conflict">Conflict</label><textarea id="f-conflict" rows="2"></textarea></div>
+        <div class="field"><label for="f-resolution">Resolution</label><textarea id="f-resolution" rows="2"></textarea></div>
+        <div class="field"><label for="f-moral">Moral / Lesson</label><textarea id="f-moral" rows="2"></textarea></div>
+        <div class="field"><label for="f-summary">Summary</label><textarea id="f-summary" rows="3" required></textarea></div>
+
+        <div class="flex gap-3" style="margin-top:var(--sp-5);">
+          <button type="button" class="btn btn-ghost btn-block" id="cancel-book-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-block">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script type="module" src="js/pages/book-details.js"></script>
 </body>
 </html>
