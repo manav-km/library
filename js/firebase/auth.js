@@ -16,6 +16,8 @@ import {
   doc, setDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import { logAuditAction } from "./firestore.js";
+
 const ADMIN_EMAILS = ["manavgmishra@gmail.com"];
 
 export async function signInWithGoogle() {
@@ -44,6 +46,15 @@ export async function signUp({ email, password, name, className, section, rollNu
     createdAt: Date.now()
   };
   await setDoc(doc(db, "users", cred.user.uid), profile);
+
+  logAuditAction({
+    action: "USER_SIGNUP",
+    category: "Users",
+    details: `New account created: ${name} (${email}) registered as student.`,
+    performedBy: profile,
+    targetId: cred.user.uid
+  });
+
   return isAdminEmail ? { ...profile, role: "admin" } : profile;
 }
 
@@ -83,6 +94,15 @@ export async function getUserProfile(uid) {
       createdAt: Date.now()
     };
     await setDoc(userDocRef, profile);
+
+    logAuditAction({
+      action: "USER_SIGNUP",
+      category: "Users",
+      details: `New account created via Google: ${profile.name} (${profile.email}).`,
+      performedBy: profile,
+      targetId: profile.uid
+    });
+
     return isAdminEmail ? { ...profile, role: "admin" } : profile;
   }
   return null;

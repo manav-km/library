@@ -1,5 +1,5 @@
 import { requireAuth } from "../firebase/auth.js";
-import { getAllBooks, getReviewsForBook, updateUserProfile } from "../firebase/firestore.js";
+import { getAllBooks, getReviewsForBook, updateUserProfile, logAuditAction } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
 import { spineColorFor, initials, showToast, qs, starString, timeAgo } from "../utils/helpers.js";
@@ -124,6 +124,13 @@ qs("#edit-profile-form").addEventListener("submit", async (e) => {
   if (file) changes.profilePicture = await uploadImage(file, "avatars", profile.uid);
 
   await updateUserProfile(profile.uid, changes);
+  logAuditAction({
+    action: "PROFILE_UPDATE",
+    category: "Profile",
+    details: `${profile.name} (${profile.role}) updated their profile details.`,
+    performedBy: profile,
+    targetId: profile.uid
+  });
   showToast("Profile updated.");
   modal.classList.remove("open");
   setTimeout(() => window.location.reload(), 600);

@@ -1,5 +1,5 @@
 import { requireAuth } from "../firebase/auth.js";
-import { getBookById, updateBook, deleteBook, getReviewsForBook, addReview, updateReview, deleteReview } from "../firebase/firestore.js";
+import { getBookById, updateBook, deleteBook, getReviewsForBook, addReview, updateReview, deleteReview, logAuditAction } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
 import { spineColorFor, escapeHTML, starString, timeAgo, showToast, qs, qsa } from "../utils/helpers.js";
@@ -102,9 +102,17 @@ function wireBookEditModal() {
   if (delBtn) {
     delBtn.addEventListener("click", async () => {
       const docId = qs("#book-doc-id").value;
+      const bkId = qs("#f-bkid").value;
       if (!docId) return;
       if (!confirm("Delete this book from the library? This action cannot be undone.")) return;
       await deleteBook(docId);
+      logAuditAction({
+        action: "BOOK_DELETE",
+        category: "Books",
+        details: `${currentProfile.name} (${currentProfile.role}) deleted book '${bkId}'.`,
+        performedBy: currentProfile,
+        targetId: bkId
+      });
       showToast("Book deleted.");
       window.location.href = "library.html";
     });
@@ -141,6 +149,13 @@ function wireBookEditModal() {
 
     const docId = qs("#book-doc-id").value;
     await updateBook(docId, bookData);
+    logAuditAction({
+      action: "BOOK_EDIT",
+      category: "Books",
+      details: `${currentProfile.name} (${currentProfile.role}) edited book '${bookData.bookName}' (${bookData.BK_ID}).`,
+      performedBy: currentProfile,
+      targetId: bookData.BK_ID
+    });
     showToast("Book updated.");
     modal.classList.remove("open");
 

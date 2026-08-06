@@ -30,6 +30,7 @@
         <div class="tab active" data-tab="catalogue">Catalogue</div>
         <div class="tab" data-tab="reviews">Review moderation</div>
         <div class="tab" data-tab="students">Student management</div>
+        <div class="tab" data-tab="audit">Audit logs</div>
         <div class="tab" data-tab="users" id="tab-users-nav" style="display:none;">User management</div>
       </div>
 
@@ -65,6 +66,25 @@
               <tr><th>Name</th><th>Email</th><th>Class & Section</th><th>Roll No.</th><th>Fav Genre</th></tr>
             </thead>
             <tbody id="students-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ Audit logs ============ -->
+      <section id="tab-audit" style="display:none;">
+        <div class="library-toolbar">
+          <div class="search-field">
+            <span class="icon">🔎</span>
+            <input type="text" id="audit-search" placeholder="Search audit logs by action, user, or details...">
+          </div>
+        </div>
+
+        <div class="card table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>Timestamp</th><th>Category</th><th>Action Details</th><th>Performed By</th></tr>
+            </thead>
+            <tbody id="audit-table-body"></tbody>
           </table>
         </div>
       </section>

@@ -1,7 +1,8 @@
 import { requireAuth } from "../firebase/auth.js";
 import {
   getAllBooks, getNextBookId, addBook, updateBook, deleteBook,
-  getReviewsForBook, deleteReview, getAllUsers, setUserRole
+  getReviewsForBook, deleteReview, getAllUsers, setUserRole,
+  logAuditAction, getAuditLogs
 } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
@@ -38,6 +39,7 @@ qsa(".tab").forEach((tab) => {
     qs("#tab-catalogue").style.display = currentTab === "catalogue" ? "block" : "none";
     qs("#tab-reviews").style.display = currentTab === "reviews" ? "block" : "none";
     qs("#tab-students").style.display = currentTab === "students" ? "block" : "none";
+    qs("#tab-audit").style.display = currentTab === "audit" ? "block" : "none";
     qs("#tab-users").style.display = currentTab === "users" ? "block" : "none";
 
     if (addBtn) {
@@ -46,6 +48,7 @@ qsa(".tab").forEach((tab) => {
 
     if (currentTab === "reviews") loadModerationList();
     if (currentTab === "students") loadStudents();
+    if (currentTab === "audit") loadAuditLogs();
     if (currentTab === "users" && profile.role === "admin") loadUsers();
   });
 });
@@ -84,7 +87,16 @@ function renderBooksTable() {
 
 async function handleDeleteBook(row) {
   if (!confirm("Remove this book from the catalogue? This cannot be undone.")) return;
-  await deleteBook(row.dataset.docid);
+  const docId = row.dataset.docid;
+  const bkId = row.dataset.id;
+  await deleteBook(docId);
+  logAuditAction({
+    action: "BOOK_DELETE",
+    category: "Books",
+    details: `${profile.name} (${profile.role}) removed book '${bkId}' from the catalogue.`,
+    performedBy: profile,
+    targetId: bkId
+  });
   showToast("Book removed from catalogue.");
   loadBooks();
 }
@@ -128,9 +140,17 @@ function openEditModal(bkId) {
 if (deleteModalBtn) {
   deleteModalBtn.addEventListener("click", async () => {
     const docId = qs("#book-doc-id").value;
+    const bkId = qs("#f-bkid").value;
     if (!docId) return;
     if (!confirm("Delete this book from the catalogue? This action cannot be undone.")) return;
     await deleteBook(docId);
+    logAuditAction({
+      action: "BOOK_DELETE",
+      category: "Books",
+      details: `${profile.name} (${profile.role}) deleted book '${bkId}'.`,
+      performedBy: profile,
+      targetId: bkId
+    });
     showToast("Book deleted.");
     modal.classList.remove("open");
     loadBooks();
@@ -173,9 +193,23 @@ qs("#book-form")?.addEventListener("submit", async (e) => {
   const docId = qs("#book-doc-id").value;
   if (docId) {
     await updateBook(docId, bookData);
+    logAuditAction({
+      action: "BOOK_EDIT",
+      category: "Books",
+      details: `${profile.name} (${profile.role}) edited book '${bookData.bookName}' (${bookData.BK_ID}).`,
+      performedBy: profile,
+      targetId: bookData.BK_ID
+    });
     showToast("Book updated.");
   } else {
     await addBook(bookData);
+    logAuditAction({
+      action: "BOOK_ADD",
+      category: "Books",
+      details: `${profile.name} (${profile.role}) added new book '${bookData.bookName}' (${bookData.BK_ID}) to catalogue.`,
+      performedBy: profile,
+      targetId: bookData.BK_ID
+    });
     showToast("Book added to catalogue.");
   }
   modal.classList.remove("open");
@@ -213,6 +247,13 @@ async function loadModerationList() {
     btn.addEventListener("click", async () => {
       const item = btn.closest(".review-item");
       await deleteReview(item.dataset.id, null, profile.uid, true);
+      logAuditAction({
+        action: "REVIEW_DELETE",
+        category: "Reviews",
+        details: `${profile.name} (${profile.role}) removed a review on book '${item.dataset.book}'.`,
+        performedBy: profile,
+        targetId: item.dataset.book
+      });
       showToast("Review removed.");
       loadModerationList();
     });
@@ -254,8 +295,24 @@ function renderUsersTable(list) {
 }
 
 async function changeRole(uid, role) {
+  const targetUser = users.find((u) => u.uid === uid || u.id === uid);
+  const userName = targetUser ? targetUser.name : uid;
+  const userEmail = targetUser?.email ? ` (${targetUser.email})` : "";
+  const isPromote = role === "teacher";
+
   await setUserRole(uid, role);
-  showToast(role === "teacher" ? "Teacher access granted." : "Teacher access revoked.");
+
+  logAuditAction({
+    action: isPromote ? "USER_PROMOTE" : "USER_DEMOTE",
+    category: "Users",
+    details: isPromote
+      ? `Admin ${profile.name} promoted ${userName}${userEmail} to Teacher.`
+      : `Admin ${profile.name} revoked Teacher access for ${userName}${userEmail} (demoted to Student).`,
+    performedBy: profile,
+    targetId: uid
+  });
+
+  showToast(isPromote ? "Teacher access granted." : "Teacher access revoked.");
   users = users.map((u) => (u.uid === uid || u.id === uid ? { ...u, role } : u));
   renderUsersTable(users);
 }
@@ -263,6 +320,14 @@ async function changeRole(uid, role) {
 async function loadUsers() {
   users = await getAllUsers();
   renderUsersTable(users);
+}
+
+const userSearch = qs("#user-search");
+if (userSearch) {
+  userSearch.addEventListener("input", (e) => {
+    const term = e.target.value.toLowerCase();
+    renderUsersTable(users.filter((u) => u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)));
+  });
 }
 
 /* ==========================================================================
@@ -303,6 +368,59 @@ if (studentSearch) {
       return nameMatch || emailMatch || classMatch || secMatch || rollMatch;
     });
     renderStudentsTable(filtered);
+  });
+}
+
+/* ==========================================================================
+   Audit Logs
+   ========================================================================== */
+let auditLogs = [];
+
+function categoryBadge(category) {
+  const cat = (category || "General").toLowerCase();
+  if (cat === "books") return `<span class="badge" style="background:rgba(124,140,248,0.15); color:var(--spine-fiction); border:1px solid rgba(124,140,248,0.3);">Books</span>`;
+  if (cat === "reviews") return `<span class="badge" style="background:rgba(251,191,36,0.15); color:var(--warning); border:1px solid rgba(251,191,36,0.3);">Reviews</span>`;
+  if (cat === "profile") return `<span class="badge" style="background:rgba(34,211,238,0.15); color:var(--cyan-400); border:1px solid rgba(34,211,238,0.3);">Profile</span>`;
+  if (cat === "users") return `<span class="badge" style="background:rgba(167,139,250,0.15); color:var(--spine-scifi); border:1px solid rgba(167,139,250,0.3);">Users</span>`;
+  return `<span class="badge">${escapeHTML(category)}</span>`;
+}
+
+function renderAuditLogsTable(list) {
+  const tbody = qs("#audit-table-body");
+  if (!tbody) return;
+  tbody.innerHTML = list.length ? list.map((l) => `
+    <tr>
+      <td class="text-tertiary mono" style="font-size:var(--fs-tiny); white-space:nowrap;">${timeAgo(l.timestamp)}</td>
+      <td>${categoryBadge(l.category)}</td>
+      <td>${escapeHTML(l.details)}</td>
+      <td>
+        <strong style="font-size:var(--fs-small);">${escapeHTML(l.performedBy?.name || 'System')}</strong>
+        <div class="text-tertiary" style="font-size:var(--fs-tiny);">${escapeHTML(l.performedBy?.email || '')} · ${escapeHTML(l.performedBy?.role || 'user')}</div>
+      </td>
+    </tr>
+  `).join("") : `<tr><td colspan="4" class="text-tertiary" style="text-align:center; padding:var(--sp-4);">No audit log entries recorded yet.</td></tr>`;
+}
+
+async function loadAuditLogs() {
+  const mount = qs("#audit-table-body");
+  if (mount) mount.innerHTML = `<tr><td colspan="4"><div class="skeleton" style="height:60px;"></div></td></tr>`;
+  auditLogs = await getAuditLogs();
+  renderAuditLogsTable(auditLogs);
+}
+
+const auditSearch = qs("#audit-search");
+if (auditSearch) {
+  auditSearch.addEventListener("input", (e) => {
+    const term = e.target.value.toLowerCase().trim();
+    const filtered = auditLogs.filter((l) => {
+      const detailsMatch = (l.details || "").toLowerCase().includes(term);
+      const categoryMatch = (l.category || "").toLowerCase().includes(term);
+      const userMatch = (l.performedBy?.name || "").toLowerCase().includes(term);
+      const emailMatch = (l.performedBy?.email || "").toLowerCase().includes(term);
+      const actionMatch = (l.action || "").toLowerCase().includes(term);
+      return detailsMatch || categoryMatch || userMatch || emailMatch || actionMatch;
+    });
+    renderAuditLogsTable(filtered);
   });
 }
 

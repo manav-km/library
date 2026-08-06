@@ -140,3 +140,37 @@ export async function setUserRole(uid, role) {
 export async function updateUserProfile(uid, changes) {
   await updateDoc(doc(db, "users", uid), changes);
 }
+
+/* -------------------------- Audit Logs ----------------------------------- */
+
+export async function logAuditAction({ action, category, details, performedBy, targetId = "" }) {
+  try {
+    await addDoc(collection(db, "audit_logs"), {
+      action: action || "ACTION",
+      category: category || "General",
+      details: details || "",
+      performedBy: {
+        uid: performedBy?.uid || "system",
+        name: performedBy?.name || "System User",
+        role: performedBy?.role || "student",
+        email: performedBy?.email || ""
+      },
+      targetId: targetId || "",
+      timestamp: Date.now()
+    });
+  } catch (err) {
+    console.warn("Failed to log audit action:", err);
+  }
+}
+
+export async function getAuditLogs() {
+  try {
+    const snap = await getDocs(
+      query(collection(db, "audit_logs"), orderBy("timestamp", "desc"), limit(150))
+    );
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch (err) {
+    console.warn("Failed to fetch audit logs:", err);
+    return [];
+  }
+}

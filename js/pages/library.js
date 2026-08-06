@@ -1,5 +1,5 @@
 import { requireAuth } from "../firebase/auth.js";
-import { getAllBooks, getNextBookId, addBook, updateBook, deleteBook } from "../firebase/firestore.js";
+import { getAllBooks, getNextBookId, addBook, updateBook, deleteBook, logAuditAction } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
 import { renderBookGrid } from "../components/bookCard.js";
@@ -117,9 +117,17 @@ async function init() {
   if (deleteModalBtn) {
     deleteModalBtn.addEventListener("click", async () => {
       const docId = qs("#book-doc-id").value;
+      const bkId = qs("#f-bkid").value;
       if (!docId) return;
       if (!confirm("Remove this book from the library? This action cannot be undone.")) return;
       await deleteBook(docId);
+      logAuditAction({
+        action: "BOOK_DELETE",
+        category: "Books",
+        details: `${profile.name} (${profile.role}) deleted book '${bkId}'.`,
+        performedBy: profile,
+        targetId: bkId
+      });
       showToast("Book deleted.");
       modal.classList.remove("open");
       books = await getAllBooks();
@@ -163,9 +171,23 @@ async function init() {
     const docId = qs("#book-doc-id").value;
     if (docId) {
       await updateBook(docId, bookData);
+      logAuditAction({
+        action: "BOOK_EDIT",
+        category: "Books",
+        details: `${profile.name} (${profile.role}) edited book '${bookData.bookName}' (${bookData.BK_ID}).`,
+        performedBy: profile,
+        targetId: bookData.BK_ID
+      });
       showToast("Book updated.");
     } else {
       await addBook(bookData);
+      logAuditAction({
+        action: "BOOK_ADD",
+        category: "Books",
+        details: `${profile.name} (${profile.role}) uploaded book '${bookData.bookName}' (${bookData.BK_ID}).`,
+        performedBy: profile,
+        targetId: bookData.BK_ID
+      });
       showToast("Book uploaded to library.");
     }
 

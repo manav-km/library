@@ -2,7 +2,7 @@
 // Reusable Leave Review Modal component
 // ==========================================================================
 
-import { addReview } from "../firebase/firestore.js";
+import { addReview, logAuditAction } from "../firebase/firestore.js";
 import { showToast, qs, qsa, escapeHTML } from "../utils/helpers.js";
 
 let modalInjected = false;
@@ -108,6 +108,14 @@ function wireModalInteractions(currentProfile, onSuccess) {
         whyLiked,
         whatLearnt,
         canBeImproved
+      });
+
+      logAuditAction({
+        action: "REVIEW_ADD",
+        category: "Reviews",
+        details: `${currentProfile.name} (${currentProfile.role}) submitted a ${selectedRating}-star review for book '${bookId}'.`,
+        performedBy: currentProfile,
+        targetId: bookId
       });
 
       showToast("Review submitted! Thank you for sharing.");
