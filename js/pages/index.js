@@ -2,20 +2,25 @@ import { watchAuthState } from "../firebase/auth.js";
 import { getAllBooks } from "../firebase/firestore.js";
 import { renderNavbar } from "../components/navbar.js";
 import { renderBookGrid } from "../components/bookCard.js";
+import { ensureReviewModal, wireReviewButtons } from "../components/reviewModal.js";
 import { spineColorFor } from "../utils/helpers.js";
 
+let currentProfile = null;
+
 watchAuthState((profile) => {
+  currentProfile = profile;
   renderNavbar(profile, "index.html");
   const authBtn = document.getElementById("hero-auth-btn");
   if (authBtn) {
     if (profile) {
-      authBtn.href = "about.html";
-      authBtn.textContent = "About";
+      authBtn.href = "discussions.html";
+      authBtn.textContent = "Discuss";
     } else {
       authBtn.href = "login.html";
       authBtn.textContent = "Sign in";
     }
   }
+  if (profile) ensureReviewModal(profile);
 });
 
 async function init() {
@@ -34,6 +39,8 @@ async function init() {
   const recent = document.getElementById("recent-books");
   if (featured) renderBookGrid(featured, books.slice(0, 4));
   if (recent) renderBookGrid(recent, books.slice(0, 6));
+
+  if (currentProfile) wireReviewButtons(currentProfile);
 }
 
 init();

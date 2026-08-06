@@ -2,7 +2,7 @@ import { requireAuth } from "../firebase/auth.js";
 import { getAllBooks } from "../firebase/firestore.js";
 import { listenToThread, sendMessage, deleteMessage, createCustomThread, listenToCustomThreads } from "../firebase/realtime.js";
 import { renderNavbar } from "../components/navbar.js";
-import { initials, timeAgo, escapeHTML, showToast, qs, qsa } from "../utils/helpers.js";
+import { initials, timeAgo, escapeHTML, showToast, qs, qsa, ALL_GENRES } from "../utils/helpers.js";
 
 const currentProfile = await requireAuth();
 renderNavbar(currentProfile, "discussions.html");
@@ -15,8 +15,12 @@ let customThreads = [];
 const params = new URLSearchParams(window.location.search);
 const preselectId = params.get("book");
 
+let activeGenre = "all";
+
 async function init() {
   books = await getAllBooks();
+
+  renderGenreChips();
 
   listenToCustomThreads((threads) => {
     customThreads = threads;
@@ -35,18 +39,38 @@ async function init() {
   wireCreateThreadModal();
 }
 
+function renderGenreChips() {
+  const chipRow = qs("#discussion-genre-chips");
+  if (!chipRow) return;
+  const bookGenres = books.map((b) => b.genre).filter(Boolean);
+  const genres = [...new Set([...ALL_GENRES, ...bookGenres])];
+  chipRow.innerHTML = `<button class="genre-chip ${activeGenre === 'all' ? 'active' : ''}" data-genre="all">All discussions</button>` +
+    genres.map((g) => `<button class="genre-chip ${activeGenre === g ? 'active' : ''}" data-genre="${g}">${g}</button>`).join("");
+
+  qsa(".genre-chip", chipRow).forEach((chip) => {
+    chip.addEventListener("click", () => {
+      qsa(".genre-chip", chipRow).forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      activeGenre = chip.dataset.genre;
+      renderThreadList();
+    });
+  });
+}
+
 function renderThreadList() {
   const mount = qs("#thread-list");
   if (!mount) return;
 
-  const bookItems = books.map((b) => `
-    <div class="thread-item" data-id="${b.BK_ID}" data-title="${escapeHTML(b.bookName)}" data-subtitle="${b.BK_ID} · Book Discussion">
+  const filteredBooks = books.filter((b) => activeGenre === "all" || b.genre === activeGenre);
+
+  const bookItems = filteredBooks.map((b) => `
+    <div class="thread-item" data-id="${b.BK_ID}" data-title="${escapeHTML(b.bookName)}" data-subtitle="${b.BK_ID} · ${b.genre}">
       <strong style="font-size:var(--fs-small);">${escapeHTML(b.bookName)}</strong>
-      <div class="text-tertiary mono" style="font-size:var(--fs-tiny); margin-top:2px;">${b.BK_ID} · Catalogue Book</div>
+      <div class="text-tertiary mono" style="font-size:var(--fs-tiny); margin-top:2px;">${b.BK_ID} · ${b.genre}</div>
     </div>
   `).join("");
 
-  const customItems = customThreads.map((t) => `
+  const customItems = (activeGenre === "all" ? customThreads : []).map((t) => `
     <div class="thread-item" data-id="${t.id}" data-title="${escapeHTML(t.title)}" data-subtitle="Started by ${escapeHTML(t.creatorName || 'Member')}">
       <strong style="font-size:var(--fs-small);">${escapeHTML(t.title)}</strong>
       <div class="text-tertiary" style="font-size:var(--fs-tiny); margin-top:2px;">By ${escapeHTML(t.creatorName || 'Member')} · Topic</div>
@@ -54,10 +78,12 @@ function renderThreadList() {
   `).join("");
 
   mount.innerHTML = `
-    <div style="font-size:var(--fs-tiny); text-transform:uppercase; letter-spacing:0.06em; color:var(--text-tertiary); margin-bottom:var(--sp-2);">Community Topics</div>
-    ${customItems.length ? customItems : `<p class="text-tertiary" style="font-size:var(--fs-tiny); margin-bottom:var(--sp-3);">No custom topics yet — start one!</p>`}
-    <div style="font-size:var(--fs-tiny); text-transform:uppercase; letter-spacing:0.06em; color:var(--text-tertiary); margin:var(--sp-4) 0 var(--sp-2) 0;">Book Discussions</div>
-    ${bookItems}
+    ${activeGenre === "all" ? `
+      <div style="font-size:var(--fs-tiny); text-transform:uppercase; letter-spacing:0.06em; color:var(--text-tertiary); margin-bottom:var(--sp-2);">Community Topics</div>
+      ${customItems.length ? customItems : `<p class="text-tertiary" style="font-size:var(--fs-tiny); margin-bottom:var(--sp-3);">No custom topics yet — start one!</p>`}
+    ` : ""}
+    <div style="font-size:var(--fs-tiny); text-transform:uppercase; letter-spacing:0.06em; color:var(--text-tertiary); margin:${activeGenre === "all" ? 'var(--sp-4)' : '0'} 0 var(--sp-2) 0;">Book Discussions (${filteredBooks.length})</div>
+    ${bookItems.length ? bookItems : `<p class="text-tertiary" style="font-size:var(--fs-tiny);">No books in this genre yet.</p>`}
   `;
 
   qsa(".thread-item", mount).forEach((item) => {

@@ -1,5 +1,5 @@
 import { requireAuth } from "../firebase/auth.js";
-import { getBookById, updateBook, getReviewsForBook, addReview, updateReview, deleteReview } from "../firebase/firestore.js";
+import { getBookById, updateBook, deleteBook, getReviewsForBook, addReview, updateReview, deleteReview } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
 import { spineColorFor, escapeHTML, starString, timeAgo, showToast, qs, qsa } from "../utils/helpers.js";
@@ -72,6 +72,7 @@ function renderOverview(b) {
 
 function openEditModal() {
   const modal = qs("#book-modal");
+  const delBtn = qs("#delete-book-modal-btn");
   if (!modal || !currentBook) return;
   qs("#book-modal-title").textContent = "Edit book";
   qs("#book-doc-id").value = currentBook.id || currentBook.BK_ID;
@@ -89,12 +90,25 @@ function openEditModal() {
   qs("#f-resolution").value = currentBook.resolution || "";
   qs("#f-moral").value = currentBook.moral || "";
   qs("#f-summary").value = currentBook.summary || "";
+  if (delBtn) delBtn.style.display = "inline-flex";
   modal.classList.add("open");
 }
 
 function wireBookEditModal() {
   const modal = qs("#book-modal");
+  const delBtn = qs("#delete-book-modal-btn");
   qs("#cancel-book-modal")?.addEventListener("click", () => modal.classList.remove("open"));
+
+  if (delBtn) {
+    delBtn.addEventListener("click", async () => {
+      const docId = qs("#book-doc-id").value;
+      if (!docId) return;
+      if (!confirm("Delete this book from the library? This action cannot be undone.")) return;
+      await deleteBook(docId);
+      showToast("Book deleted.");
+      window.location.href = "library.html";
+    });
+  }
 
   qs("#book-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -138,21 +152,51 @@ function wireBookEditModal() {
 }
 
 function renderSections(b) {
-  qs("#txt-mainidea").textContent = b.mainIdea || "Not documented yet.";
-  qs("#txt-setting").textContent = b.setting || "Not documented yet.";
-  qs("#txt-plot").textContent = b.plot || "Not documented yet.";
-  qs("#txt-conflict").textContent = b.conflict || "Not documented yet.";
-  qs("#txt-resolution").textContent = b.resolution || "Not documented yet.";
-  qs("#txt-moral").textContent = b.moral || "Not documented yet.";
-  qs("#txt-summary").textContent = b.summary || "Not documented yet.";
+  const fields = [
+    { key: "mainIdea", textId: "#txt-mainidea", secId: "#sec-mainidea", href: "#sec-mainidea" },
+    { key: "setting", textId: "#txt-setting", secId: "#sec-setting", href: "#sec-setting" },
+    { key: "plot", textId: "#txt-plot", secId: "#sec-plot", href: "#sec-plot" },
+    { key: "conflict", textId: "#txt-conflict", secId: "#sec-conflict", href: "#sec-conflict" },
+    { key: "resolution", textId: "#txt-resolution", secId: "#sec-resolution", href: "#sec-resolution" },
+    { key: "moral", textId: "#txt-moral", secId: "#sec-moral", href: "#sec-moral" },
+    { key: "summary", textId: "#txt-summary", secId: "#sec-summary", href: "#sec-summary" }
+  ];
 
-  const chars = b.characters || [];
-  qs("#txt-characters").innerHTML = chars.length
-    ? chars.map((c) => `<div class="character-chip"><strong>${escapeHTML(c.name)}</strong> · ${escapeHTML(c.role)}</div>`).join("") +
-      `<div class="stack" style="margin-top:var(--sp-3);">` +
-      chars.map((c) => c.note ? `<p style="font-size:var(--fs-small);"><strong>${escapeHTML(c.name)}:</strong> ${escapeHTML(c.note)}</p>` : "").join("") +
-      `</div>`
-    : `<p>Not documented yet.</p>`;
+  fields.forEach(({ key, textId, secId, href }) => {
+    const val = (b[key] || "").trim();
+    const secEl = qs(secId);
+    const tocEl = qs(`#book-toc a[href="${href}"]`);
+
+    if (val) {
+      if (secEl) secEl.style.display = "block";
+      if (tocEl) tocEl.style.display = "block";
+      const txtEl = qs(textId);
+      if (txtEl) txtEl.textContent = val;
+    } else {
+      if (secEl) secEl.style.display = "none";
+      if (tocEl) tocEl.style.display = "none";
+    }
+  });
+
+  // Characters section
+  const chars = (b.characters || []).filter((c) => c && c.name && c.name.trim());
+  const charSec = qs("#sec-characters");
+  const charToc = qs(`#book-toc a[href="#sec-characters"]`);
+
+  if (chars.length) {
+    if (charSec) charSec.style.display = "block";
+    if (charToc) charToc.style.display = "block";
+    const charTxt = qs("#txt-characters");
+    if (charTxt) {
+      charTxt.innerHTML = chars.map((c) => `<div class="character-chip"><strong>${escapeHTML(c.name)}</strong> · ${escapeHTML(c.role || "")}</div>`).join("") +
+        `<div class="stack" style="margin-top:var(--sp-3);">` +
+        chars.map((c) => c.note ? `<p style="font-size:var(--fs-small);"><strong>${escapeHTML(c.name)}:</strong> ${escapeHTML(c.note)}</p>` : "").join("") +
+        `</div>`;
+    }
+  } else {
+    if (charSec) charSec.style.display = "none";
+    if (charToc) charToc.style.display = "none";
+  }
 }
 
 async function renderReviews() {

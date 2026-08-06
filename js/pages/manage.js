@@ -37,6 +37,7 @@ qsa(".tab").forEach((tab) => {
 
     qs("#tab-catalogue").style.display = currentTab === "catalogue" ? "block" : "none";
     qs("#tab-reviews").style.display = currentTab === "reviews" ? "block" : "none";
+    qs("#tab-students").style.display = currentTab === "students" ? "block" : "none";
     qs("#tab-users").style.display = currentTab === "users" ? "block" : "none";
 
     if (addBtn) {
@@ -44,6 +45,7 @@ qsa(".tab").forEach((tab) => {
     }
 
     if (currentTab === "reviews") loadModerationList();
+    if (currentTab === "students") loadStudents();
     if (currentTab === "users" && profile.role === "admin") loadUsers();
   });
 });
@@ -89,12 +91,14 @@ async function handleDeleteBook(row) {
 
 /* ---------------------------- Modal: Add / Edit Book ---------------------------- */
 const modal = qs("#book-modal");
+const deleteModalBtn = qs("#delete-book-modal-btn");
 
 async function openAddModal() {
   qs("#book-modal-title").textContent = "Add book";
   qs("#book-form").reset();
   qs("#book-doc-id").value = "";
   qs("#f-bkid").value = await getNextBookId();
+  if (deleteModalBtn) deleteModalBtn.style.display = "none";
   modal.classList.add("open");
 }
 
@@ -117,7 +121,20 @@ function openEditModal(bkId) {
   qs("#f-resolution").value = b.resolution || "";
   qs("#f-moral").value = b.moral || "";
   qs("#f-summary").value = b.summary || "";
+  if (deleteModalBtn) deleteModalBtn.style.display = "inline-flex";
   modal.classList.add("open");
+}
+
+if (deleteModalBtn) {
+  deleteModalBtn.addEventListener("click", async () => {
+    const docId = qs("#book-doc-id").value;
+    if (!docId) return;
+    if (!confirm("Delete this book from the catalogue? This action cannot be undone.")) return;
+    await deleteBook(docId);
+    showToast("Book deleted.");
+    modal.classList.remove("open");
+    loadBooks();
+  });
 }
 
 if (addBtn) addBtn.addEventListener("click", openAddModal);
@@ -248,11 +265,44 @@ async function loadUsers() {
   renderUsersTable(users);
 }
 
-const userSearch = qs("#user-search");
-if (userSearch) {
-  userSearch.addEventListener("input", (e) => {
-    const term = e.target.value.toLowerCase();
-    renderUsersTable(users.filter((u) => u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)));
+/* ==========================================================================
+   Student Management
+   ========================================================================== */
+let students = [];
+
+function renderStudentsTable(list) {
+  const tbody = qs("#students-table-body");
+  if (!tbody) return;
+  tbody.innerHTML = list.length ? list.map((s) => `
+    <tr data-uid="${s.uid || s.id}">
+      <td><strong>${escapeHTML(s.name)}</strong></td>
+      <td>${escapeHTML(s.email)}</td>
+      <td>${s.className ? `Class ${escapeHTML(s.className)}-${escapeHTML(s.section || '—')}` : "—"}</td>
+      <td class="mono">${escapeHTML(s.rollNumber || "—")}</td>
+      <td><span class="spine-tag">${escapeHTML(s.favouriteGenre || "Fiction")}</span></td>
+    </tr>
+  `).join("") : `<tr><td colspan="5" class="text-tertiary" style="text-align:center; padding:var(--sp-4);">No matching students found.</td></tr>`;
+}
+
+async function loadStudents() {
+  const allUsers = await getAllUsers();
+  students = allUsers.filter((u) => u.role === "student");
+  renderStudentsTable(students);
+}
+
+const studentSearch = qs("#student-search");
+if (studentSearch) {
+  studentSearch.addEventListener("input", (e) => {
+    const term = e.target.value.toLowerCase().trim();
+    const filtered = students.filter((s) => {
+      const nameMatch = (s.name || "").toLowerCase().includes(term);
+      const emailMatch = (s.email || "").toLowerCase().includes(term);
+      const classMatch = (s.className || "").toLowerCase().includes(term);
+      const secMatch = (s.section || "").toLowerCase().includes(term);
+      const rollMatch = (s.rollNumber || "").toLowerCase().includes(term);
+      return nameMatch || emailMatch || classMatch || secMatch || rollMatch;
+    });
+    renderStudentsTable(filtered);
   });
 }
 

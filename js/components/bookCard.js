@@ -12,8 +12,8 @@ export function bookCardHTML(book, canEdit = false) {
        </div>`;
 
   return `
-    <div class="book-card-wrap" style="position:relative;">
-      <a href="book-details.html?id=${encodeURIComponent(book.BK_ID)}" class="book-card">
+    <div class="book-card-wrap" style="position:relative; display:flex; flex-direction:column; height:100%;">
+      <a href="book-details.html?id=${encodeURIComponent(book.BK_ID)}" class="book-card" style="flex:1;">
         ${cover}
         <div>
           <span class="bk-id mono">${book.BK_ID}</span>
@@ -22,6 +22,7 @@ export function bookCardHTML(book, canEdit = false) {
         </div>
       </a>
       ${canEdit ? `<button class="btn btn-ghost btn-sm edit-card-btn" data-bkid="${book.BK_ID}" style="position:absolute; top:8px; right:8px; z-index:5; padding:4px 8px; font-size:var(--fs-tiny); background:rgba(15,23,42,0.75); border:1px solid var(--glass-border); border-radius:var(--radius-sm); color:var(--text-primary);">✏️ Edit</button>` : ""}
+      <button class="btn btn-ghost btn-sm leave-review-btn" data-bkid="${book.BK_ID}" data-title="${escapeHTML(book.bookName)}" style="margin-top:var(--sp-2); width:100%; border:1px solid var(--glass-border); text-align:center; display:flex; align-items:center; justify-content:center; gap:6px;">⭐ Leave Review</button>
     </div>
   `;
 }

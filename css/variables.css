@@ -34,11 +34,19 @@
   --spine-fiction:      #7C8CF8;
   --spine-nonfiction:   #22D3EE;
   --spine-scifi:        #A78BFA;
+  --spine-fantasy:      #C084FC;
   --spine-history:      #FBBF24;
+  --spine-historical:   #FB923C;
   --spine-biography:    #34D399;
   --spine-mystery:      #F87171;
   --spine-poetry:       #F472B6;
   --spine-classics:     #E2B93B;
+  --spine-philosophy:   #FACC15;
+  --spine-science:      #38BDF8;
+  --spine-ya:           #F472B6;
+  --spine-graphic:      #FB7185;
+  --spine-psychology:   #4ADE80;
+  --spine-romance:      #EC4899;
 
   /* ---- Typography -------------------------------------------------------
      Display: Space Grotesk — geometric, slightly technical, reads like a

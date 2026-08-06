@@ -134,9 +134,22 @@
           <div class="field">
             <label for="f-genre">Genre</label>
             <select id="f-genre">
-              <option>Fiction</option><option>Non-Fiction</option><option>Science Fiction</option>
-              <option>History</option><option>Biography</option><option>Mystery</option>
-              <option>Poetry</option><option>Classics</option>
+              <option>Fiction</option>
+              <option>Non-Fiction</option>
+              <option>Science Fiction</option>
+              <option>Fantasy</option>
+              <option>Mystery & Thriller</option>
+              <option>Historical Fiction</option>
+              <option>Biography & Memoir</option>
+              <option>History</option>
+              <option>Poetry & Plays</option>
+              <option>Classics</option>
+              <option>Philosophy & Ethics</option>
+              <option>Science & Technology</option>
+              <option>Young Adult (YA)</option>
+              <option>Graphic Novels & Comics</option>
+              <option>Self-Help & Psychology</option>
+              <option>Drama & Romance</option>
             </select>
           </div>
         </div>
@@ -152,6 +165,7 @@
         <div class="field"><label for="f-summary">Summary</label><textarea id="f-summary" rows="3" required></textarea></div>
 
         <div class="flex gap-3" style="margin-top:var(--sp-5);">
+          <button type="button" class="btn btn-danger" id="delete-book-modal-btn" style="display:none;">Delete book</button>
           <button type="button" class="btn btn-ghost btn-block" id="cancel-book-modal">Cancel</button>
           <button type="submit" class="btn btn-primary btn-block">Save changes</button>
         </div>

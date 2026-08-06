@@ -1,16 +1,42 @@
-// ==========================================================================
-// Shared helpers used across pages
-// ==========================================================================
+export const ALL_GENRES = [
+  "Fiction",
+  "Non-Fiction",
+  "Science Fiction",
+  "Fantasy",
+  "Mystery & Thriller",
+  "Historical Fiction",
+  "Biography & Memoir",
+  "History",
+  "Poetry & Plays",
+  "Classics",
+  "Philosophy & Ethics",
+  "Science & Technology",
+  "Young Adult (YA)",
+  "Graphic Novels & Comics",
+  "Self-Help & Psychology",
+  "Drama & Romance"
+];
 
 const GENRE_SPINES = {
   "Fiction": "var(--spine-fiction)",
   "Non-Fiction": "var(--spine-nonfiction)",
   "Science Fiction": "var(--spine-scifi)",
-  "History": "var(--spine-history)",
-  "Biography": "var(--spine-biography)",
+  "Fantasy": "var(--spine-fantasy)",
+  "Mystery & Thriller": "var(--spine-mystery)",
   "Mystery": "var(--spine-mystery)",
+  "Historical Fiction": "var(--spine-historical)",
+  "Biography & Memoir": "var(--spine-biography)",
+  "Biography": "var(--spine-biography)",
+  "History": "var(--spine-history)",
+  "Poetry & Plays": "var(--spine-poetry)",
   "Poetry": "var(--spine-poetry)",
-  "Classics": "var(--spine-classics)"
+  "Classics": "var(--spine-classics)",
+  "Philosophy & Ethics": "var(--spine-philosophy)",
+  "Science & Technology": "var(--spine-science)",
+  "Young Adult (YA)": "var(--spine-ya)",
+  "Graphic Novels & Comics": "var(--spine-graphic)",
+  "Self-Help & Psychology": "var(--spine-psychology)",
+  "Drama & Romance": "var(--spine-romance)"
 };
 
 export function spineColorFor(genre) {

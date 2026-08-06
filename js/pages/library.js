@@ -1,9 +1,10 @@
 import { requireAuth } from "../firebase/auth.js";
-import { getAllBooks, getNextBookId, addBook, updateBook } from "../firebase/firestore.js";
+import { getAllBooks, getNextBookId, addBook, updateBook, deleteBook } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
 import { renderBookGrid } from "../components/bookCard.js";
-import { showToast, qs, qsa } from "../utils/helpers.js";
+import { ensureReviewModal, wireReviewButtons } from "../components/reviewModal.js";
+import { showToast, qs, qsa, ALL_GENRES } from "../utils/helpers.js";
 
 const profile = await requireAuth();
 renderNavbar(profile, "library.html");
@@ -12,8 +13,9 @@ const grid = qs("#library-grid");
 const chipRow = qs("#genre-chips");
 const searchInput = qs("#search-input");
 const countLabel = qs("#results-count");
-const uploadFab = qs("#upload-book-fab");
+const uploadBtn = qs("#upload-book-btn");
 const modal = qs("#book-modal");
+const deleteModalBtn = qs("#delete-book-modal-btn");
 
 let books = [];
 let activeGenre = "all";
@@ -35,6 +37,7 @@ function applyFilters() {
   if (grid) {
     renderBookGrid(grid, filtered, canEdit);
     wireCardEditButtons();
+    wireReviewButtons(profile);
   }
 }
 
@@ -68,12 +71,14 @@ function openEditModal(bkId) {
   qs("#f-resolution").value = b.resolution || "";
   qs("#f-moral").value = b.moral || "";
   qs("#f-summary").value = b.summary || "";
+  if (deleteModalBtn) deleteModalBtn.style.display = "inline-flex";
   modal.classList.add("open");
 }
 
 function renderGenreChips() {
   if (!chipRow) return;
-  const genres = [...new Set(books.map((b) => b.genre))];
+  const bookGenres = books.map((b) => b.genre).filter(Boolean);
+  const genres = [...new Set([...ALL_GENRES, ...bookGenres])];
   chipRow.innerHTML = `<button class="genre-chip ${activeGenre === 'all' ? 'active' : ''}" data-genre="all">All genres</button>` +
     genres.map((g) => `<button class="genre-chip ${activeGenre === g ? 'active' : ''}" data-genre="${g}">${g}</button>`).join("");
 
@@ -90,20 +95,36 @@ function renderGenreChips() {
 async function init() {
   books = await getAllBooks();
   renderGenreChips();
+  ensureReviewModal(profile);
 
   if (searchInput) {
     searchInput.addEventListener("input", applyFilters);
   }
 
-  // Teacher / Admin Upload Book FAB
-  if (canEdit && uploadFab) {
-    uploadFab.style.display = "inline-flex";
-    uploadFab.addEventListener("click", async () => {
+  // Top right Upload Book button for Teachers & Admins
+  if (canEdit && uploadBtn) {
+    uploadBtn.style.display = "inline-flex";
+    uploadBtn.addEventListener("click", async () => {
       qs("#book-modal-title").textContent = "Upload book";
       qs("#book-form").reset();
       qs("#book-doc-id").value = "";
       qs("#f-bkid").value = await getNextBookId();
+      if (deleteModalBtn) deleteModalBtn.style.display = "none";
       modal.classList.add("open");
+    });
+  }
+
+  if (deleteModalBtn) {
+    deleteModalBtn.addEventListener("click", async () => {
+      const docId = qs("#book-doc-id").value;
+      if (!docId) return;
+      if (!confirm("Remove this book from the library? This action cannot be undone.")) return;
+      await deleteBook(docId);
+      showToast("Book deleted.");
+      modal.classList.remove("open");
+      books = await getAllBooks();
+      renderGenreChips();
+      applyFilters();
     });
   }
 

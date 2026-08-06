@@ -65,8 +65,24 @@ export async function updateBook(bookDocId, changes) {
   await updateDoc(doc(db, "books", bookDocId), changes);
 }
 
-export async function deleteBook(bookDocId) {
-  await deleteDoc(doc(db, "books", bookDocId));
+export async function deleteBook(bookIdOrDocId) {
+  if (!bookIdOrDocId) return;
+  try {
+    const docRef = doc(db, "books", bookIdOrDocId);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      await deleteDoc(docRef);
+      return;
+    }
+  } catch (e) {
+    // Continue to search by BK_ID
+  }
+
+  const q = query(collection(db, "books"), where("BK_ID", "==", bookIdOrDocId));
+  const snap = await getDocs(q);
+  for (const d of snap.docs) {
+    await deleteDoc(d.ref);
+  }
 }
 
 /* --------------------------- Reviews ------------------------------------ */
@@ -78,9 +94,24 @@ export async function getReviewsForBook(bookId) {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-export async function addReview({ bookId, userId, userName, rating, reviewText }) {
+export async function addReview({ bookId, userId, userName, rating, reviewText, whyLiked, whatLearnt, canBeImproved }) {
+  const parts = [];
+  if (whyLiked) parts.push(`Why I liked it: ${whyLiked}`);
+  if (whatLearnt) parts.push(`What I learnt: ${whatLearnt}`);
+  if (canBeImproved) parts.push(`What could be improved: ${canBeImproved}`);
+
+  const mainText = reviewText || (parts.length ? parts.join("\n\n") : "");
+
   const docRef = await addDoc(collection(db, "reviews"), {
-    bookId, userId, userName, rating, reviewText, timestamp: Date.now()
+    bookId,
+    userId,
+    userName,
+    rating,
+    reviewText: mainText,
+    whyLiked: whyLiked || "",
+    whatLearnt: whatLearnt || "",
+    canBeImproved: canBeImproved || "",
+    timestamp: Date.now()
   });
   return docRef.id;
 }
