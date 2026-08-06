@@ -27,9 +27,9 @@ async function init() {
   const books = await getAllBooks();
 
   // Hero shelf: one spine per genre present in the catalogue, signature motif
-  const genres = [...new Set(books.map((b) => b.genre))].slice(0, 8);
+  const genres = [...new Set(books.map((b) => b.genre))].filter(Boolean).slice(0, 8);
   const shelf = document.getElementById("hero-shelf");
-  if (shelf) {
+  if (shelf && genres.length) {
     shelf.innerHTML = genres
       .map((g, i) => `<div class="spine" style="--spine-color:${spineColorFor(g)}; animation-delay:${i * 60}ms;">${g}</div>`)
       .join("");
