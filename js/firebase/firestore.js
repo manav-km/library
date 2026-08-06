@@ -4,7 +4,7 @@
 
 import { db } from "./firebase-config.js";
 import {
-  collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
+  collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, setDoc,
   query, where, orderBy, limit, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -134,7 +134,8 @@ export async function getAllUsers() {
 }
 
 export async function setUserRole(uid, role) {
-  await updateDoc(doc(db, "users", uid), { role });
+  if (!uid) throw new Error("Invalid User ID");
+  await setDoc(doc(db, "users", uid), { role }, { merge: true });
 }
 
 export async function updateUserProfile(uid, changes) {

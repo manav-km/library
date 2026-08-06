@@ -272,49 +272,69 @@ function roleBadge(role) {
 function renderUsersTable(list) {
   const tbody = qs("#users-table-body");
   if (!tbody) return;
-  tbody.innerHTML = list.map((u) => `
-    <tr data-uid="${u.uid || u.id}">
-      <td>${escapeHTML(u.name)}</td>
-      <td>${escapeHTML(u.email)}</td>
-      <td>${roleBadge(u.role)}</td>
-      <td>${u.className ? `${u.className}-${u.section}` : "—"}</td>
-      <td>
-        ${u.role === "admin" ? `<span class="text-tertiary" style="font-size:var(--fs-tiny);">Cannot modify</span>` : `
-          <div class="flex gap-2">
-            ${u.role === "student"
-              ? `<button class="btn btn-primary btn-sm promote-btn">Make teacher</button>`
-              : `<button class="btn btn-ghost btn-sm demote-btn">Revoke teacher</button>`}
-          </div>
-        `}
-      </td>
-    </tr>
-  `).join("");
+  tbody.innerHTML = list.map((u) => {
+    const userId = u.id || u.uid;
+    return `
+      <tr data-uid="${userId}">
+        <td>${escapeHTML(u.name || "—")}</td>
+        <td>${escapeHTML(u.email || "—")}</td>
+        <td>${roleBadge(u.role || "student")}</td>
+        <td>${u.className ? `${escapeHTML(u.className)}-${escapeHTML(u.section || "—")}` : "—"}</td>
+        <td>
+          ${u.role === "admin" ? `<span class="text-tertiary" style="font-size:var(--fs-tiny);">Cannot modify</span>` : `
+            <div class="flex gap-2">
+              ${u.role === "student"
+                ? `<button class="btn btn-primary btn-sm promote-btn" data-uid="${userId}">Make teacher</button>`
+                : `<button class="btn btn-ghost btn-sm demote-btn" data-uid="${userId}">Revoke teacher</button>`}
+            </div>
+          `}
+        </td>
+      </tr>
+    `;
+  }).join("");
 
-  qsa(".promote-btn").forEach((btn) => btn.addEventListener("click", () => changeRole(btn.closest("tr").dataset.uid, "teacher")));
-  qsa(".demote-btn").forEach((btn) => btn.addEventListener("click", () => changeRole(btn.closest("tr").dataset.uid, "student")));
+  qsa(".promote-btn", tbody).forEach((btn) => {
+    btn.addEventListener("click", () => changeRole(btn.dataset.uid, "teacher"));
+  });
+  qsa(".demote-btn", tbody).forEach((btn) => {
+    btn.addEventListener("click", () => changeRole(btn.dataset.uid, "student"));
+  });
 }
 
 async function changeRole(uid, role) {
-  const targetUser = users.find((u) => u.uid === uid || u.id === uid);
-  const userName = targetUser ? targetUser.name : uid;
-  const userEmail = targetUser?.email ? ` (${targetUser.email})` : "";
+  if (!uid) {
+    showToast("Invalid user ID.", "error");
+    return;
+  }
   const isPromote = role === "teacher";
+  try {
+    const targetUser = users.find((u) => u.id === uid || u.uid === uid) || students.find((s) => s.id === uid || s.uid === uid);
+    const userName = targetUser ? targetUser.name : uid;
+    const userEmail = targetUser?.email ? ` (${targetUser.email})` : "";
 
-  await setUserRole(uid, role);
+    await setUserRole(uid, role);
 
-  logAuditAction({
-    action: isPromote ? "USER_PROMOTE" : "USER_DEMOTE",
-    category: "Users",
-    details: isPromote
-      ? `Admin ${profile.name} promoted ${userName}${userEmail} to Teacher.`
-      : `Admin ${profile.name} revoked Teacher access for ${userName}${userEmail} (demoted to Student).`,
-    performedBy: profile,
-    targetId: uid
-  });
+    logAuditAction({
+      action: isPromote ? "USER_PROMOTE" : "USER_DEMOTE",
+      category: "Users",
+      details: isPromote
+        ? `Admin ${profile.name} promoted ${userName}${userEmail} to Teacher.`
+        : `Admin ${profile.name} revoked Teacher access for ${userName}${userEmail} (demoted to Student).`,
+      performedBy: profile,
+      targetId: uid
+    });
 
-  showToast(isPromote ? "Teacher access granted." : "Teacher access revoked.");
-  users = users.map((u) => (u.uid === uid || u.id === uid ? { ...u, role } : u));
-  renderUsersTable(users);
+    showToast(isPromote ? "Teacher access granted." : "Teacher access revoked.");
+
+    // Update state locally and re-render
+    users = users.map((u) => ((u.id === uid || u.uid === uid) ? { ...u, role } : u));
+    students = students.map((s) => ((s.id === uid || s.uid === uid) ? { ...s, role } : s));
+    renderUsersTable(users);
+    renderStudentsTable(students);
+  } catch (err) {
+    console.error("Failed to change user role:", err);
+    showToast(err.message || "Failed to update role.", "error");
+  }
 }
 
 async function loadUsers() {
@@ -338,15 +358,35 @@ let students = [];
 function renderStudentsTable(list) {
   const tbody = qs("#students-table-body");
   if (!tbody) return;
-  tbody.innerHTML = list.length ? list.map((s) => `
-    <tr data-uid="${s.uid || s.id}">
-      <td><strong>${escapeHTML(s.name)}</strong></td>
-      <td>${escapeHTML(s.email)}</td>
-      <td>${s.className ? `Class ${escapeHTML(s.className)}-${escapeHTML(s.section || '—')}` : "—"}</td>
-      <td class="mono">${escapeHTML(s.rollNumber || "—")}</td>
-      <td><span class="spine-tag">${escapeHTML(s.favouriteGenre || "Fiction")}</span></td>
-    </tr>
-  `).join("") : `<tr><td colspan="5" class="text-tertiary" style="text-align:center; padding:var(--sp-4);">No matching students found.</td></tr>`;
+  const isAdmin = profile.role === "admin";
+  tbody.innerHTML = list.length ? list.map((s) => {
+    const userId = s.id || s.uid;
+    return `
+      <tr data-uid="${userId}">
+        <td><strong>${escapeHTML(s.name)}</strong></td>
+        <td>${escapeHTML(s.email)}</td>
+        <td>${s.className ? `Class ${escapeHTML(s.className)}-${escapeHTML(s.section || '—')}` : "—"}</td>
+        <td class="mono">${escapeHTML(s.rollNumber || "—")}</td>
+        <td><span class="spine-tag">${escapeHTML(s.favouriteGenre || "Fiction")}</span></td>
+        ${isAdmin ? `
+          <td>
+            ${s.role === "teacher"
+              ? `<button class="btn btn-ghost btn-sm demote-btn" data-uid="${userId}">Revoke teacher</button>`
+              : `<button class="btn btn-primary btn-sm promote-btn" data-uid="${userId}">Make teacher</button>`}
+          </td>
+        ` : "<td></td>"}
+      </tr>
+    `;
+  }).join("") : `<tr><td colspan="6" class="text-tertiary" style="text-align:center; padding:var(--sp-4);">No matching students found.</td></tr>`;
+
+  if (isAdmin) {
+    qsa(".promote-btn", tbody).forEach((btn) => {
+      btn.addEventListener("click", () => changeRole(btn.dataset.uid, "teacher"));
+    });
+    qsa(".demote-btn", tbody).forEach((btn) => {
+      btn.addEventListener("click", () => changeRole(btn.dataset.uid, "student"));
+    });
+  }
 }
 
 async function loadStudents() {
