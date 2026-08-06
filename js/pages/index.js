@@ -3,7 +3,7 @@ import { getAllBooks } from "../firebase/firestore.js";
 import { renderNavbar } from "../components/navbar.js";
 import { renderBookGrid } from "../components/bookCard.js";
 import { ensureReviewModal, wireReviewButtons } from "../components/reviewModal.js";
-import { spineColorFor } from "../utils/helpers.js";
+import { spineColorFor, ALL_GENRES } from "../utils/helpers.js";
 
 let currentProfile = null;
 
@@ -26,10 +26,11 @@ watchAuthState((profile) => {
 async function init() {
   const books = await getAllBooks();
 
-  // Hero shelf: one spine per genre present in the catalogue, signature motif
-  const genres = [...new Set(books.map((b) => b.genre))].filter(Boolean).slice(0, 8);
+  // Hero shelf: 8 distinct spines from catalogue & master genres
+  const bookGenres = books.map((b) => b.genre).filter(Boolean);
+  const genres = [...new Set([...bookGenres, ...ALL_GENRES])].slice(0, 8);
   const shelf = document.getElementById("hero-shelf");
-  if (shelf && genres.length) {
+  if (shelf) {
     shelf.innerHTML = genres
       .map((g, i) => `<div class="spine" style="--spine-color:${spineColorFor(g)}; animation-delay:${i * 60}ms;">${g}</div>`)
       .join("");

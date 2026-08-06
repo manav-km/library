@@ -53,7 +53,7 @@
   color: rgba(8, 11, 20, 0.9);
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  animation: spine-rise var(--dur-slow) var(--ease-standard) backwards;
+  animation: spine-rise var(--dur-slow) var(--ease-standard) both;
   transition: transform var(--dur-base) ease, filter var(--dur-base) ease;
 }
 .hero-shelf .spine:hover {
