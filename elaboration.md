@@ -211,6 +211,7 @@ export function timeAgo(ts) {
 | `manage.html` / `js/pages/manage.js` | Management portal: Catalogue, Reviews, Student Directory, **Audit Logs**, Admin Roles. | Tab switching, Firestore CRUD, Audit logs |
 | `glossary.html` / `js/pages/glossary.js` | Dictionary & Literary reference for all 112 genres & site terms with definitions, 2 synonyms & 2 antonyms. | Full-text search, Category filter chips |
 | `discussions.html` / `js/pages/discussions.js` | Real-time community discussion threads & genre filters. | Firebase Realtime Database (`onValue`) |
+| `schedule.html` / `js/pages/schedule.js` | Library weekly timetable (Mon-Sat, 1st-8th period), auto-resets every Monday, Add Period modal. | Firestore schedule collection, Week calculation |
 | `discover.html` / `js/pages/discover.js` | Community directory: Name, Class, Section, Favourite Genre, Last Online, View full profile modal. | Firestore user list, timeAgo helper |
 | `student-dashboard.html` / `js/pages/student-dashboard.js` | User dashboard & profile editing (all fields except UID). | Profile state, Firebase Storage upload |
 | `book-details.html` / `js/pages/book-details.js` | Book metadata, empty field hiding, leave review, edit/delete book. | DOM manipulation, Firestore reviews |

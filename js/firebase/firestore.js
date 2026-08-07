@@ -175,3 +175,43 @@ export async function getAuditLogs() {
     return [];
   }
 }
+
+/* -------------------------- Schedules ----------------------------------- */
+
+export function getMondayDateString(d = new Date()) {
+  const dateObj = new Date(d);
+  const day = dateObj.getDay();
+  const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday (0)
+  const monday = new Date(dateObj.setDate(diff));
+  
+  const yyyy = monday.getFullYear();
+  const mm = String(monday.getMonth() + 1).padStart(2, "0");
+  const dd = String(monday.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+export async function getScheduleForCurrentWeek(targetDate = new Date()) {
+  const weekId = getMondayDateString(targetDate);
+  try {
+    const q = query(collection(db, "schedules"), where("weekId", "==", weekId));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch (err) {
+    console.warn("Failed to fetch schedule for current week:", err);
+    return [];
+  }
+}
+
+export async function addSchedulePeriod(periodData) {
+  const weekId = getMondayDateString(periodData.date ? new Date(periodData.date) : new Date());
+  const docRef = await addDoc(collection(db, "schedules"), {
+    ...periodData,
+    weekId,
+    createdAt: Date.now()
+  });
+  return docRef.id;
+}
+
+export async function deleteSchedulePeriod(scheduleId) {
+  await deleteDoc(doc(db, "schedules", scheduleId));
+}

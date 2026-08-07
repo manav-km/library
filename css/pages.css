@@ -397,3 +397,126 @@
   transform: translateY(-3px) scale(1.04);
   box-shadow: 0 12px 40px rgba(99, 102, 241, 0.65);
 }
+
+/* ---------- Schedule Timetable --------------------------------------------- */
+.schedule-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-fill);
+  backdrop-filter: blur(12px);
+  margin-top: var(--sp-4);
+}
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 950px;
+}
+.schedule-table th {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 14px 12px;
+  font-family: var(--font-display);
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--cyan-300);
+  text-align: center;
+  border-bottom: 1px solid var(--glass-border);
+  border-right: 1px solid var(--glass-border);
+}
+.schedule-table th:first-child {
+  text-align: left;
+  min-width: 110px;
+  color: var(--text-primary);
+  padding-left: 16px;
+}
+.schedule-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--glass-border);
+  border-right: 1px solid var(--glass-border);
+  vertical-align: top;
+  height: 120px;
+  min-width: 130px;
+}
+.schedule-table tr:last-child td {
+  border-bottom: none;
+}
+.schedule-table td:last-child, .schedule-table th:last-child {
+  border-right: none;
+}
+.day-header-cell {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-base);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding-left: 8px;
+}
+.schedule-cell-empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  font-size: var(--fs-tiny);
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  transition: all var(--dur-fast) ease;
+}
+.schedule-cell-empty.can-add {
+  cursor: pointer;
+}
+.schedule-cell-empty.can-add:hover {
+  background: rgba(34, 211, 238, 0.08);
+  border-color: var(--cyan-400);
+  color: var(--cyan-300);
+}
+.period-card {
+  background: var(--glass-fill-hi);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.period-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--cyan-300);
+}
+.period-badge {
+  background: linear-gradient(135deg, var(--indigo-600), var(--cyan-400));
+  color: #04141a;
+  font-weight: 700;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+.period-teacher {
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+.period-genre {
+  font-size: 0.7rem;
+  color: var(--cyan-300);
+  margin-top: 2px;
+}
+.period-activity {
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}

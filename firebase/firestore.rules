@@ -1,58 +1,182 @@
 rules_version = '2';
 
 // ==========================================================================
-// Firestore security rules
+// Firestore security rules — SAJS Digital Library
 //
-// Role model: every user document has a `role` of "student", "teacher",
-// or "admin". Signup (client-side) always writes role: "student" — these
-// rules back that up server-side so a modified client can't self-promote.
+// Role model: every /users/{uid} document has a `role` of "student",
+// "teacher", or "admin". The client always writes role: "student" on
+// signup — these rules enforce that server-side too, so a tampered client
+// can never self-promote. Only an existing admin can change a role.
+//
+// Deploy with:
+//   firebase deploy --only firestore:rules
 // ==========================================================================
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
+
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function myRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data;
     }
 
-    function isTeacherOrAdmin() {
-      return isSignedIn() && (myRole() == "teacher" || myRole() == "admin");
+    function myRole() {
+      return userDoc(request.auth.uid).role;
+    }
+
+    function isTeacher() {
+      return isSignedIn() && myRole() == "teacher";
     }
 
     function isAdmin() {
       return isSignedIn() && myRole() == "admin";
     }
 
-    // ---- users ----
+    function isTeacherOrAdmin() {
+      return isSignedIn() && (myRole() == "teacher" || myRole() == "admin");
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ------------------------------------------------------------------
+    // users/{uid}
+    //
+    // Fields: uid, name, email, role, className, section, rollNumber,
+    //         favouriteGenre, bio, profilePicture, subject, classTeacherOf,
+    //         lastOnline
+    // ------------------------------------------------------------------
     match /users/{uid} {
+
       allow read: if isSignedIn();
-      // A user may create their own profile only as a student.
-      allow create: if isSignedIn() && request.auth.uid == uid
-                    && request.resource.data.role == "student";
-      // A user may update their own profile but never their own role.
-      allow update: if isSignedIn() && request.auth.uid == uid
-                    && request.resource.data.role == resource.data.role;
-      // Only admins may change roles (via a separate elevated update).
+
+      // Account creation: only the user themself, only as "student",
+      // and only with the fields this app actually uses.
+      allow create: if isOwner(uid)
+                    && request.resource.data.role == "student"
+                    && request.resource.data.uid == uid
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.email is string;
+
+      // Self-edit: a student/teacher may update their own profile fields,
+      // but the role field must stay exactly what it already was —
+      // nobody can promote themselves through a normal profile edit.
+      allow update: if isOwner(uid)
+                    && request.resource.data.role == resource.data.role
+                    && request.resource.data.uid == resource.data.uid;
+
+      // Admin override: admins may change anyone's role (promote to
+      // teacher, revoke back to student) or edit any profile field.
       allow update: if isAdmin();
+
       allow delete: if isAdmin();
     }
 
-    // ---- books ----
-    match /books/{bookId} {
-      allow read: if true; // public catalogue
-      allow create, update, delete: if isTeacherOrAdmin();
+    // ------------------------------------------------------------------
+    // books/{docId}
+    //
+    // Fields: BK_ID, bookName, author, year, genre, coverImage, mainIdea,
+    //         themes[], characters[{name,role,note}], setting, plot,
+    //         conflict, resolution, moral, summary, createdAt
+    // ------------------------------------------------------------------
+    match /books/{docId} {
+
+      allow read: if true; // public catalogue — no sign-in required to browse
+
+      allow create: if isTeacherOrAdmin()
+                    && request.resource.data.BK_ID is string
+                    // Enforces the permanent SAJS-### catalogue ID format
+                    && request.resource.data.BK_ID.matches("^SAJS-[0-9]{3,}$")
+                    && request.resource.data.bookName is string
+                    && request.resource.data.bookName.size() > 0
+                    && request.resource.data.author is string
+                    && request.resource.data.genre is string;
+
+      // Edits may change any field except the catalogue ID itself —
+      // BK_ID is permanent once assigned.
+      allow update: if isTeacherOrAdmin()
+                    && request.resource.data.BK_ID == resource.data.BK_ID;
+
+      allow delete: if isTeacherOrAdmin();
     }
 
-    // ---- reviews ----
-    match /reviews/{reviewId} {
-      allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow delete: if isTeacherOrAdmin(); // moderation
+    // ------------------------------------------------------------------
+    // reviews/{docId}
+    //
+    // Fields: bookId, userId, userName, rating, reviewText, timestamp
+    // ------------------------------------------------------------------
+    match /reviews/{docId} {
+
+      allow read: if true; // reviews are visible to anyone browsing a book
+
+      // A signed-in user may only ever post a review as themself, with
+      // a valid 1–5 rating and non-empty text.
+      allow create: if isSignedIn()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.bookId is string
+                    && request.resource.data.rating is int
+                    && request.resource.data.rating >= 1
+                    && request.resource.data.rating <= 5
+                    && request.resource.data.reviewText is string
+                    && request.resource.data.reviewText.size() > 0
+                    && request.resource.data.reviewText.size() <= 2000;
+
+      // Owner may edit their own review (rating/text) but not reassign
+      // it to another book or another author.
+      allow update: if isSignedIn()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == resource.data.userId
+                    && request.resource.data.bookId == resource.data.bookId;
+
+      // Delete: the review's own author, OR a teacher/admin moderating.
+      allow delete: if isSignedIn()
+                    && (resource.data.userId == request.auth.uid || isTeacherOrAdmin());
     }
+
+    // ------------------------------------------------------------------
+    // schedules/{docId}
+    //
+    // Fields: weekId, date, day, period, gradeSection, teacherName,
+    //         shelfGenre, activity, createdById, createdAt
+    // ------------------------------------------------------------------
+    match /schedules/{docId} {
+
+      allow read: if isSignedIn();
+
+      allow create: if isTeacherOrAdmin()
+                    && request.resource.data.day is string
+                    && request.resource.data.period is string
+                    && request.resource.data.teacherName is string;
+
+      allow update, delete: if isTeacherOrAdmin();
+    }
+
+    // ------------------------------------------------------------------
+    // audit_logs/{docId}
+    //
+    // Fields: action, category, details, performedBy, targetId, timestamp
+    // ------------------------------------------------------------------
+    match /audit_logs/{docId} {
+
+      allow read: if isTeacherOrAdmin();
+
+      allow create: if isSignedIn()
+                    && request.resource.data.action is string
+                    && request.resource.data.category is string;
+    }
+
+    // ------------------------------------------------------------------
+    // Deny everything else by default (implicit — Firestore rules are
+    // closed unless a match block above grants access).
+    // ------------------------------------------------------------------
   }
 }
