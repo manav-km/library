@@ -68,7 +68,7 @@ function renderGlossary(list) {
   mount.innerHTML = list.map((item) => `
     <div class="glossary-card">
       <div>
-        <div class="flex items-center justify-between gap-2" style="margin-bottom:var(--sp-2);">
+        <div class="glossary-card-header">
           <h3 class="glossary-word">${escapeHTML(item.word)}</h3>
           ${categoryBadge(item.category)}
         </div>
@@ -76,13 +76,17 @@ function renderGlossary(list) {
       </div>
 
       <div class="glossary-meta-row">
-        <div class="flex items-center gap-2 flex-wrap">
-          <strong style="color:var(--text-tertiary);">Synonyms:</strong>
-          ${(item.synonyms || []).map((s) => `<span class="syn-ant-tag">${escapeHTML(s)}</span>`).join("")}
+        <div class="glossary-meta-group">
+          <span class="glossary-meta-label">Synonyms</span>
+          <div class="flex items-center gap-2 flex-wrap">
+            ${(item.synonyms || []).map((s) => `<span class="syn-tag">${escapeHTML(s)}</span>`).join("")}
+          </div>
         </div>
-        <div class="flex items-center gap-2 flex-wrap" style="margin-top:2px;">
-          <strong style="color:var(--text-tertiary);">Antonyms:</strong>
-          ${(item.antonyms || []).map((a) => `<span class="syn-ant-tag">${escapeHTML(a)}</span>`).join("")}
+        <div class="glossary-meta-group">
+          <span class="glossary-meta-label">Antonyms</span>
+          <div class="flex items-center gap-2 flex-wrap">
+            ${(item.antonyms || []).map((a) => `<span class="ant-tag">${escapeHTML(a)}</span>`).join("")}
+          </div>
         </div>
       </div>
     </div>
@@ -99,27 +103,34 @@ async function fetchFromEnglishDictionary(term) {
     const data = await res.json();
     if (!Array.isArray(data) || !data.length) return [];
 
-    const results = [];
-    data.forEach((entry) => {
-      (entry.meanings || []).forEach((m) => {
-        (m.definitions || []).slice(0, 2).forEach((def) => {
-          const rawSyn = [...(def.synonyms || []), ...(m.synonyms || [])];
-          const rawAnt = [...(def.antonyms || []), ...(m.antonyms || [])];
+    const entry = data[0];
+    const primaryMeaning = (entry.meanings && entry.meanings[0]) || {};
+    const primaryDef = (primaryMeaning.definitions && primaryMeaning.definitions[0]) || {};
 
-          const synonyms = [...new Set(rawSyn)].slice(0, 2);
-          const antonyms = [...new Set(rawAnt)].slice(0, 2);
+    if (!primaryDef.definition) return [];
 
-          results.push({
-            word: entry.word ? entry.word.charAt(0).toUpperCase() + entry.word.slice(1) : term,
-            category: `English (${m.partOfSpeech || "dictionary"})`,
-            definition: def.definition,
-            synonyms: synonyms.length ? synonyms : ["Similar term", "Equivalent"],
-            antonyms: antonyms.length ? antonyms : ["Opposite term", "Inverse"]
-          });
-        });
+    const allSynonyms = [];
+    const allAntonyms = [];
+
+    (entry.meanings || []).forEach((m) => {
+      if (m.synonyms) allSynonyms.push(...m.synonyms);
+      if (m.antonyms) allAntonyms.push(...m.antonyms);
+      (m.definitions || []).forEach((d) => {
+        if (d.synonyms) allSynonyms.push(...d.synonyms);
+        if (d.antonyms) allAntonyms.push(...d.antonyms);
       });
     });
-    return results.slice(0, 4);
+
+    const synonyms = [...new Set(allSynonyms)].slice(0, 2);
+    const antonyms = [...new Set(allAntonyms)].slice(0, 2);
+
+    return [{
+      word: entry.word ? entry.word.charAt(0).toUpperCase() + entry.word.slice(1) : term,
+      category: `English (${primaryMeaning.partOfSpeech || "dictionary"})`,
+      definition: primaryDef.definition,
+      synonyms: synonyms.length ? synonyms : ["Similar term", "Equivalent"],
+      antonyms: antonyms.length ? antonyms : ["Opposite term", "Inverse"]
+    }];
   } catch (err) {
     console.warn("English Dictionary API fetch failed:", err);
     return [];
@@ -158,8 +169,8 @@ function applyFilters() {
     fetchDebounceTimer = setTimeout(async () => {
       const apiResults = await fetchFromEnglishDictionary(term);
       if (apiResults.length && searchTerm.toLowerCase().trim() === term) {
-        const existingWords = new Set(filtered.map((f) => f.word.toLowerCase() + f.definition.toLowerCase()));
-        const uniqueApi = apiResults.filter((api) => !existingWords.has(api.word.toLowerCase() + api.definition.toLowerCase()));
+        const existingWords = new Set(filtered.map((f) => f.word.toLowerCase()));
+        const uniqueApi = apiResults.filter((api) => !existingWords.has(api.word.toLowerCase()));
 
         if (uniqueApi.length) {
           filtered = [...filtered, ...uniqueApi].sort((a, b) => a.word.localeCompare(b.word));
