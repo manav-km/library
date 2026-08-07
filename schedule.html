@@ -57,13 +57,20 @@
   </main>
 
   <!-- Add Period Modal -->
-  <div class="modal-overlay hidden" id="schedule-modal">
-    <div class="modal-card" style="max-width: 540px;">
-      <div class="modal-header">
-        <h2>Add Library Period</h2>
-        <button class="icon-btn close-modal">&times;</button>
+  <div class="modal-overlay" id="schedule-modal" style="display:none; z-index:1000;">
+    <div class="modal-card" style="max-width: 540px; background:var(--bg-elevated); border:1px solid var(--glass-border-hi); border-radius:var(--radius-lg); padding:var(--sp-6);">
+      <div class="modal-header flex items-center justify-between" style="margin-bottom:var(--sp-4);">
+        <h2 style="margin:0; font-size:var(--fs-h3);">Add Library Period</h2>
+        <button type="button" class="icon-btn close-modal" style="background:none; border:none; color:var(--text-secondary); font-size:1.5rem; cursor:pointer;">&times;</button>
       </div>
       <form id="schedule-form">
+        <div class="form-group" style="margin-bottom:var(--sp-4); background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:var(--radius-md); padding:10px 14px;">
+          <label class="flex items-center gap-2" style="cursor:pointer; margin:0; font-weight:600; color:#f59e0b;">
+            <input type="checkbox" id="p-is-holiday" style="width:18px; height:18px; accent-color:#f59e0b;">
+            <span>🌴 Mark this day / period as a Holiday</span>
+          </label>
+        </div>
+
         <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4);">
           <div class="form-group">
             <label for="p-date">Date</label>
@@ -86,6 +93,7 @@
           <div class="form-group">
             <label for="p-period">Period</label>
             <select id="p-period" required>
+              <option value="All Periods">All Periods (Full Day)</option>
               <option value="1st Period">1st Period</option>
               <option value="2nd Period">2nd Period</option>
               <option value="3rd Period">3rd Period</option>
@@ -96,9 +104,9 @@
               <option value="8th Period">8th Period</option>
             </select>
           </div>
-          <div class="form-group">
+          <div class="form-group" id="group-grade-box">
             <label for="p-grade">Grade</label>
-            <select id="p-grade" required>
+            <select id="p-grade">
               <option value="Grade 1">Grade 1</option>
               <option value="Grade 2">Grade 2</option>
               <option value="Grade 3">Grade 3</option>
@@ -113,9 +121,9 @@
               <option value="Grade 12">Grade 12</option>
             </select>
           </div>
-          <div class="form-group">
+          <div class="form-group" id="group-section-box">
             <label for="p-section">Section</label>
-            <select id="p-section" required>
+            <select id="p-section">
               <option value="A">Section A</option>
               <option value="B">Section B</option>
               <option value="C">Section C</option>
@@ -126,21 +134,21 @@
           </div>
         </div>
 
-        <div class="form-group" style="margin-top:var(--sp-3);">
+        <div class="form-group" id="group-teacher-box" style="margin-top:var(--sp-3);">
           <label for="p-teacher">Teacher Taking Class</label>
-          <input type="text" id="p-teacher" placeholder="e.g. Mrs. Ananya Sharma" required>
+          <input type="text" id="p-teacher" placeholder="e.g. Mrs. Ananya Sharma">
         </div>
 
-        <div class="form-group" style="margin-top:var(--sp-3);">
+        <div class="form-group" id="group-genre-box" style="margin-top:var(--sp-3);">
           <label for="p-genre">Shelf / Genre to Read</label>
-          <select id="p-genre" required>
+          <select id="p-genre">
             <!-- Populated dynamically with ALL_GENRES -->
           </select>
         </div>
 
         <div class="form-group" style="margin-top:var(--sp-3);">
-          <label for="p-activity">Assignments / Activities</label>
-          <textarea id="p-activity" rows="3" placeholder="e.g. Chapter 4 reading, book review notes, group discussion..."></textarea>
+          <label for="p-activity">Assignments / Activities / Holiday Note</label>
+          <textarea id="p-activity" rows="3" placeholder="e.g. Chapter 4 reading, book review notes, or School Holiday reason..."></textarea>
         </div>
 
         <div class="modal-actions" style="margin-top:var(--sp-5); justify-content:flex-end;">

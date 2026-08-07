@@ -16,10 +16,12 @@ const canEdit = profile.role === "teacher" || profile.role === "admin";
 const addBtn = qs("#open-schedule-modal-btn");
 if (canEdit && addBtn) {
   addBtn.classList.remove("hidden");
+  addBtn.style.display = "inline-flex";
 }
 
 const modal = qs("#schedule-modal");
 const form = qs("#schedule-form");
+const isHolidayCheckbox = qs("#p-is-holiday");
 
 // Populate Genre dropdown in form
 const genreSelect = qs("#p-genre");
@@ -32,6 +34,18 @@ const dateInput = qs("#p-date");
 if (dateInput) {
   const today = new Date().toISOString().split("T")[0];
   dateInput.value = today;
+}
+
+// Toggle form inputs when "Mark as Holiday" is checked
+if (isHolidayCheckbox) {
+  isHolidayCheckbox.addEventListener("change", (e) => {
+    const isChecked = e.target.checked;
+    const hideGroupIds = ["group-grade-box", "group-section-box", "group-teacher-box", "group-genre-box"];
+    hideGroupIds.forEach((id) => {
+      const el = qs(`#${id}`);
+      if (el) el.style.opacity = isChecked ? "0.4" : "1";
+    });
+  });
 }
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -71,8 +85,31 @@ async function loadAndRenderSchedule() {
         <div class="day-header-cell">${escapeHTML(day)}</div>
       </td>
       ${PERIODS.map((period) => {
-        const item = currentSchedules.find((s) => s.day === day && s.period === period);
+        // Check if there is an entry for this specific period or a full-day holiday for this day
+        const item = currentSchedules.find(
+          (s) => s.day === day && (s.period === period || s.period === "All Periods")
+        );
+
         if (item) {
+          if (item.isHoliday) {
+            return `
+              <td>
+                <div class="period-card" style="background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.4);">
+                  <div>
+                    <div class="flex items-center justify-between gap-1">
+                      <span class="badge" style="background:rgba(245,158,11,0.25); color:#f59e0b; border:1px solid rgba(245,158,11,0.5); font-weight:700;">🌴 HOLIDAY</span>
+                      ${canEdit ? `
+                        <button class="delete-period-btn" data-id="${item.id}" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:0.85rem;" title="Delete Holiday">&times;</button>
+                      ` : ''}
+                    </div>
+                    <div class="period-teacher" style="color:#fbbf24; margin-top:6px; font-weight:700;">No Library Classes</div>
+                  </div>
+                  ${item.activity ? `<div class="period-activity" style="color:var(--text-secondary); margin-top:4px;">📝 ${escapeHTML(item.activity)}</div>` : ''}
+                </div>
+              </td>
+            `;
+          }
+
           return `
             <td>
               <div class="period-card">
@@ -80,7 +117,7 @@ async function loadAndRenderSchedule() {
                   <div class="flex items-center justify-between gap-1">
                     <span class="period-badge">${escapeHTML(item.gradeSection || item.grade || '')}</span>
                     ${canEdit ? `
-                      <button class="delete-period-btn" data-id="${item.id}" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:0.75rem;" title="Delete Period">&times;</button>
+                      <button class="delete-period-btn" data-id="${item.id}" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:0.85rem;" title="Delete Period">&times;</button>
                     ` : ''}
                   </div>
                   <div class="period-teacher">👤 ${escapeHTML(item.teacherName || '')}</div>
@@ -91,10 +128,11 @@ async function loadAndRenderSchedule() {
             </td>
           `;
         }
+
         return `
           <td>
             <div class="schedule-cell-empty ${canEdit ? 'can-add' : ''}" data-day="${day}" data-period="${period}">
-              ${canEdit ? '+ Add' : '—'}
+              Empty
             </div>
           </td>
         `;
@@ -116,7 +154,7 @@ async function loadAndRenderSchedule() {
       btn.addEventListener("click", async (e) => {
         e.stopPropagation();
         const id = btn.dataset.id;
-        if (confirm("Are you sure you want to delete this scheduled library period?")) {
+        if (confirm("Are you sure you want to delete this scheduled item?")) {
           await deleteSchedulePeriod(id);
           await loadAndRenderSchedule();
         }
@@ -131,11 +169,24 @@ function openModalWith(day = "Monday", period = "1st Period") {
   const periodSelect = qs("#p-period");
   if (daySelect) daySelect.value = day;
   if (periodSelect) periodSelect.value = period;
-  modal.classList.remove("hidden");
+
+  if (isHolidayCheckbox) {
+    isHolidayCheckbox.checked = false;
+    const hideGroupIds = ["group-grade-box", "group-section-box", "group-teacher-box", "group-genre-box"];
+    hideGroupIds.forEach((id) => {
+      const el = qs(`#${id}`);
+      if (el) el.style.opacity = "1";
+    });
+  }
+
+  modal.classList.add("open");
+  modal.style.display = "flex";
 }
 
 function closeModal() {
-  if (modal) modal.classList.add("hidden");
+  if (!modal) return;
+  modal.classList.remove("open");
+  modal.style.display = "none";
 }
 
 if (canEdit) {
@@ -145,10 +196,16 @@ if (canEdit) {
 
   qsa(".close-modal", modal).forEach((b) => b.addEventListener("click", closeModal));
 
+  // Close modal when clicking dark backdrop outside modal card
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
+      const isHoliday = isHolidayCheckbox ? isHolidayCheckbox.checked : false;
       const dateVal = qs("#p-date").value;
       const dayVal = qs("#p-day").value;
       const periodVal = qs("#p-period").value;
@@ -162,10 +219,11 @@ if (canEdit) {
         date: dateVal,
         day: dayVal,
         period: periodVal,
-        gradeSection: `${gradeVal}-${sectionVal}`,
-        teacherName: teacherVal,
-        shelfGenre: genreVal,
-        activity: activityVal,
+        isHoliday: isHoliday,
+        gradeSection: isHoliday ? "HOLIDAY" : `${gradeVal}-${sectionVal}`,
+        teacherName: isHoliday ? "None (Holiday)" : (teacherVal || "Teacher"),
+        shelfGenre: isHoliday ? "N/A" : genreVal,
+        activity: activityVal || (isHoliday ? "School Holiday — No Classes" : ""),
         createdById: profile.uid
       };
 
@@ -174,7 +232,9 @@ if (canEdit) {
         await logAuditAction({
           action: "ADD_SCHEDULE_PERIOD",
           category: "Schedule",
-          details: `Scheduled ${periodData.gradeSection} for ${periodVal} on ${dayVal} with ${teacherVal}`,
+          details: isHoliday
+            ? `Marked ${dayVal} (${periodVal}) as Holiday`
+            : `Scheduled ${periodData.gradeSection} for ${periodVal} on ${dayVal} with ${teacherVal}`,
           performedBy: profile
         });
 
