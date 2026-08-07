@@ -38,27 +38,29 @@
 }
 .hero-shelf .spine {
   flex: 1;
-  border-radius: 6px 6px 2px 2px;
-  background: var(--spine-color, var(--indigo-500));
-  box-shadow: inset -6px 0 12px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.25);
+  border-radius: 8px 8px 3px 3px;
+  background: linear-gradient(180deg, var(--spine-color, var(--indigo-500)) 0%, var(--spine-color, var(--indigo-500)) 75%, rgba(0,0,0,0.3) 100%);
+  box-shadow: inset -5px 0 10px rgba(0,0,0,0.35), inset 2px 0 4px rgba(255,255,255,0.25), 0 6px 16px rgba(0,0,0,0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--sp-3) var(--sp-1);
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.72rem;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(8, 11, 20, 0.9);
+  color: #080B14;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.3);
   writing-mode: vertical-rl;
   text-orientation: mixed;
   animation: spine-rise var(--dur-slow) var(--ease-standard) both;
-  transition: transform var(--dur-base) ease, filter var(--dur-base) ease;
+  transition: transform var(--dur-base) ease, filter var(--dur-base) ease, box-shadow var(--dur-base) ease;
 }
 .hero-shelf .spine:hover {
-  transform: translateY(-8px);
-  filter: brightness(1.15);
+  transform: translateY(-10px) scale(1.02);
+  filter: brightness(1.18);
+  box-shadow: inset -4px 0 8px rgba(0,0,0,0.25), inset 2px 0 6px rgba(255,255,255,0.4), 0 12px 24px rgba(0,0,0,0.4), 0 0 20px var(--spine-color);
 }
 @keyframes spine-rise { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
