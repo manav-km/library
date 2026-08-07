@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discover People — SAJS Digital Library</title>
+  <link rel="icon" type="image/jpeg" href="assets/image.jpeg">
+  <link rel="shortcut icon" href="assets/image.jpeg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <div id="navbar-mount"></div>
+
+  <main class="app-main">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">School Community</span>
+          <h1 style="margin:0; font-size:var(--fs-h2);">Discover People</h1>
+        </div>
+      </div>
+
+      <div class="library-toolbar">
+        <div class="search-field">
+          <span class="icon">🔎</span>
+          <input type="text" id="people-search" placeholder="Search people by name, class, section, role, or favourite genre...">
+        </div>
+      </div>
+
+      <div id="people-count" class="text-tertiary" style="font-size:var(--fs-small); margin-bottom:var(--sp-4);"></div>
+
+      <div class="card table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Class</th>
+              <th>Section</th>
+              <th>Favourite Genre</th>
+              <th>Last Online</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="people-table-body">
+            <tr><td colspan="6"><div class="skeleton" style="height:60px;"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============ View User Profile Modal ============ -->
+  <div class="modal-overlay" id="user-profile-modal">
+    <div class="modal" style="max-width:440px;">
+      <div class="flex items-center justify-between" style="margin-bottom:var(--sp-4);">
+        <h3 style="margin:0; font-size:var(--fs-h3);">User Profile</h3>
+        <button class="btn btn-ghost btn-sm" id="close-user-profile-x" style="padding:2px 8px; font-size:1.2rem; line-height:1;">&times;</button>
+      </div>
+      <div id="user-profile-content">
+        <!-- Filled dynamically -->
+      </div>
+      <div class="flex justify-end" style="margin-top:var(--sp-5);">
+        <button class="btn btn-ghost btn-block" id="close-user-profile-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/discover.js"></script>
+</body>
+</html>

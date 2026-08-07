@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glossary — SAJS Digital Library</title>
+  <link rel="icon" type="image/jpeg" href="assets/image.jpeg">
+  <link rel="shortcut icon" href="assets/image.jpeg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <div id="navbar-mount"></div>
+
+  <main class="app-main">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Dictionary &amp; Literary Reference</span>
+          <h1 style="margin:0; font-size:var(--fs-h2);">Glossary</h1>
+        </div>
+      </div>
+
+      <div class="library-toolbar">
+        <div class="search-field">
+          <span class="icon">🔎</span>
+          <input type="text" id="glossary-search" placeholder="Search by word, definition, synonym, or category (e.g. Cyberpunk, Plot, Dystopian)...">
+        </div>
+      </div>
+
+      <div class="genre-chip-row" id="category-chips" style="margin-bottom:var(--sp-3);">
+        <button class="genre-chip active" data-cat="all">All terms</button>
+        <button class="genre-chip" data-cat="Genre">Genres</button>
+        <button class="genre-chip" data-cat="Literary Term">Literary Terms</button>
+        <button class="genre-chip" data-cat="Library Term">Library Terms</button>
+        <button class="genre-chip" data-cat="English Dictionary">English Dictionary</button>
+      </div>
+
+      <div class="alphabet-bar" id="alphabet-bar" style="margin-bottom:var(--sp-4);">
+        <!-- Populated dynamically A-Z -->
+      </div>
+
+      <div id="glossary-count" class="text-tertiary" style="font-size:var(--fs-small); margin-bottom:var(--sp-4);"></div>
+
+      <div class="glossary-grid" id="glossary-grid">
+        <div class="skeleton" style="height:180px;"></div>
+        <div class="skeleton" style="height:180px;"></div>
+        <div class="skeleton" style="height:180px;"></div>
+        <div class="skeleton" style="height:180px;"></div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/pages/glossary.js"></script>
+</body>
+</html>

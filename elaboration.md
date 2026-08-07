@@ -209,7 +209,9 @@ export function timeAgo(ts) {
 | `index.html` / `js/pages/index.js` | Home hero, featured books, quick links, genre shelf animation. | HTML5, CSS Grid, ES Modules |
 | `library.html` / `js/pages/library.js` | Full catalogue, 16 genre filter chips, upload book (teachers/admins). | Async JS, Firestore query |
 | `manage.html` / `js/pages/manage.js` | Management portal: Catalogue, Reviews, Student Directory, **Audit Logs**, Admin Roles. | Tab switching, Firestore CRUD, Audit logs |
+| `glossary.html` / `js/pages/glossary.js` | Dictionary & Literary reference for all 112 genres & site terms with definitions, 2 synonyms & 2 antonyms. | Full-text search, Category filter chips |
 | `discussions.html` / `js/pages/discussions.js` | Real-time community discussion threads & genre filters. | Firebase Realtime Database (`onValue`) |
+| `discover.html` / `js/pages/discover.js` | Community directory: Name, Class, Section, Favourite Genre, Last Online, View full profile modal. | Firestore user list, timeAgo helper |
 | `student-dashboard.html` / `js/pages/student-dashboard.js` | User dashboard & profile editing (all fields except UID). | Profile state, Firebase Storage upload |
 | `book-details.html` / `js/pages/book-details.js` | Book metadata, empty field hiding, leave review, edit/delete book. | DOM manipulation, Firestore reviews |
 | `js/components/reviewModal.js` | Global Leave Review modal overlay (1–5 stars + structured feedback). | Event delegation, Audit logging |

@@ -22,26 +22,18 @@ function renderTable(list) {
       <td>${roleBadge(u.role)}</td>
       <td>${u.className ? `${u.className}-${u.section}` : "—"}</td>
       <td>
-        ${u.role === "admin" ? `<span class="text-tertiary" style="font-size:var(--fs-tiny);">Cannot modify</span>` : `
-          <div class="flex gap-2">
-            ${u.role === "student"
-              ? `<button class="btn btn-primary btn-sm promote-btn">Make teacher</button>`
-              : `<button class="btn btn-ghost btn-sm demote-btn">Revoke teacher</button>`}
-          </div>
-        `}
+        <button class="btn btn-ghost btn-sm view-profile-btn" data-uid="${u.uid || u.id}">View profile</button>
       </td>
     </tr>
   `).join("");
 
-  qsa(".promote-btn").forEach((btn) => btn.addEventListener("click", () => changeRole(btn.closest("tr").dataset.uid, "teacher")));
-  qsa(".demote-btn").forEach((btn) => btn.addEventListener("click", () => changeRole(btn.closest("tr").dataset.uid, "student")));
-}
-
-async function changeRole(uid, role) {
-  await setUserRole(uid, role);
-  showToast(role === "teacher" ? "Teacher access granted." : "Teacher access revoked.");
-  users = users.map((u) => (u.uid === uid || u.id === uid ? { ...u, role } : u));
-  renderTable(users);
+  qsa(".view-profile-btn").forEach((btn) => btn.addEventListener("click", () => {
+    const uid = btn.dataset.uid;
+    const targetUser = users.find((u) => u.uid === uid || u.id === uid);
+    if (targetUser) {
+      alert(`User Profile:\nName: ${targetUser.name}\nEmail: ${targetUser.email}\nRole: ${targetUser.role}\nClass: ${targetUser.className || "N/A"}-${targetUser.section || "N/A"}`);
+    }
+  }));
 }
 
 const userSearch = qs("#user-search");

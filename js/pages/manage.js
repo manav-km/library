@@ -6,7 +6,7 @@ import {
 } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
-import { escapeHTML, starString, timeAgo, showToast, qs, qsa } from "../utils/helpers.js";
+import { escapeHTML, starString, timeAgo, showToast, initials, qs, qsa } from "../utils/helpers.js";
 
 const profile = await requireAuth(["teacher", "admin"]);
 renderNavbar(profile, "manage.html");
@@ -281,60 +281,15 @@ function renderUsersTable(list) {
         <td>${roleBadge(u.role || "student")}</td>
         <td>${u.className ? `${escapeHTML(u.className)}-${escapeHTML(u.section || "—")}` : "—"}</td>
         <td>
-          ${u.role === "admin" ? `<span class="text-tertiary" style="font-size:var(--fs-tiny);">Cannot modify</span>` : `
-            <div class="flex gap-2">
-              ${u.role === "student"
-                ? `<button class="btn btn-primary btn-sm promote-btn" data-uid="${userId}">Make teacher</button>`
-                : `<button class="btn btn-ghost btn-sm demote-btn" data-uid="${userId}">Revoke teacher</button>`}
-            </div>
-          `}
+          <button class="btn btn-ghost btn-sm view-profile-btn" data-uid="${userId}">View profile</button>
         </td>
       </tr>
     `;
   }).join("");
 
-  qsa(".promote-btn", tbody).forEach((btn) => {
-    btn.addEventListener("click", () => changeRole(btn.dataset.uid, "teacher"));
+  qsa(".view-profile-btn", tbody).forEach((btn) => {
+    btn.addEventListener("click", () => openProfileModal(btn.dataset.uid));
   });
-  qsa(".demote-btn", tbody).forEach((btn) => {
-    btn.addEventListener("click", () => changeRole(btn.dataset.uid, "student"));
-  });
-}
-
-async function changeRole(uid, role) {
-  if (!uid) {
-    showToast("Invalid user ID.", "error");
-    return;
-  }
-  const isPromote = role === "teacher";
-  try {
-    const targetUser = users.find((u) => u.id === uid || u.uid === uid) || students.find((s) => s.id === uid || s.uid === uid);
-    const userName = targetUser ? targetUser.name : uid;
-    const userEmail = targetUser?.email ? ` (${targetUser.email})` : "";
-
-    await setUserRole(uid, role);
-
-    logAuditAction({
-      action: isPromote ? "USER_PROMOTE" : "USER_DEMOTE",
-      category: "Users",
-      details: isPromote
-        ? `Admin ${profile.name} promoted ${userName}${userEmail} to Teacher.`
-        : `Admin ${profile.name} revoked Teacher access for ${userName}${userEmail} (demoted to Student).`,
-      performedBy: profile,
-      targetId: uid
-    });
-
-    showToast(isPromote ? "Teacher access granted." : "Teacher access revoked.");
-
-    // Update state locally and re-render
-    users = users.map((u) => ((u.id === uid || u.uid === uid) ? { ...u, role } : u));
-    students = students.map((s) => ((s.id === uid || s.uid === uid) ? { ...s, role } : s));
-    renderUsersTable(users);
-    renderStudentsTable(students);
-  } catch (err) {
-    console.error("Failed to change user role:", err);
-    showToast(err.message || "Failed to update role.", "error");
-  }
 }
 
 async function loadUsers() {
@@ -358,7 +313,6 @@ let students = [];
 function renderStudentsTable(list) {
   const tbody = qs("#students-table-body");
   if (!tbody) return;
-  const isAdmin = profile.role === "admin";
   tbody.innerHTML = list.length ? list.map((s) => {
     const userId = s.id || s.uid;
     return `
@@ -368,25 +322,16 @@ function renderStudentsTable(list) {
         <td>${s.className ? `Class ${escapeHTML(s.className)}-${escapeHTML(s.section || '—')}` : "—"}</td>
         <td class="mono">${escapeHTML(s.rollNumber || "—")}</td>
         <td><span class="spine-tag">${escapeHTML(s.favouriteGenre || "Fiction")}</span></td>
-        ${isAdmin ? `
-          <td>
-            ${s.role === "teacher"
-              ? `<button class="btn btn-ghost btn-sm demote-btn" data-uid="${userId}">Revoke teacher</button>`
-              : `<button class="btn btn-primary btn-sm promote-btn" data-uid="${userId}">Make teacher</button>`}
-          </td>
-        ` : "<td></td>"}
+        <td>
+          <button class="btn btn-ghost btn-sm view-profile-btn" data-uid="${userId}">View profile</button>
+        </td>
       </tr>
     `;
   }).join("") : `<tr><td colspan="6" class="text-tertiary" style="text-align:center; padding:var(--sp-4);">No matching students found.</td></tr>`;
 
-  if (isAdmin) {
-    qsa(".promote-btn", tbody).forEach((btn) => {
-      btn.addEventListener("click", () => changeRole(btn.dataset.uid, "teacher"));
-    });
-    qsa(".demote-btn", tbody).forEach((btn) => {
-      btn.addEventListener("click", () => changeRole(btn.dataset.uid, "student"));
-    });
-  }
+  qsa(".view-profile-btn", tbody).forEach((btn) => {
+    btn.addEventListener("click", () => openProfileModal(btn.dataset.uid));
+  });
 }
 
 async function loadStudents() {
@@ -463,6 +408,91 @@ if (auditSearch) {
     renderAuditLogsTable(filtered);
   });
 }
+
+/* ==========================================================================
+   User Profile Modal
+   ========================================================================== */
+function openProfileModal(uid) {
+  const targetUser = users.find((u) => (u.id === uid || u.uid === uid))
+                  || students.find((s) => (s.id === uid || s.uid === uid));
+  if (!targetUser) {
+    showToast("User profile not found.", "error");
+    return;
+  }
+
+  const container = qs("#user-profile-content");
+  if (!container) return;
+
+  const role = targetUser.role || "student";
+  const userInitials = initials(targetUser.name || "U");
+  const avatarHTML = targetUser.profilePicture
+    ? `<img src="${escapeHTML(targetUser.profilePicture)}" class="avatar avatar-lg" alt="${escapeHTML(targetUser.name)}">`
+    : `<div class="avatar avatar-lg">${escapeHTML(userInitials)}</div>`;
+
+  const formattedDate = targetUser.createdAt
+    ? new Date(targetUser.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+    : null;
+
+  container.innerHTML = `
+    <div style="text-align: center; margin-bottom: var(--sp-4);">
+      <div style="display: flex; justify-content: center; margin-bottom: var(--sp-3);">
+        ${avatarHTML}
+      </div>
+      <h3 style="margin: 0 0 4px 0; font-size: var(--fs-h3);">${escapeHTML(targetUser.name || "Unnamed User")}</h3>
+      <div style="margin-bottom: var(--sp-2);">${roleBadge(role)}</div>
+      <p class="text-tertiary" style="margin: 0; font-size: var(--fs-small);">${escapeHTML(targetUser.email || "No email")}</p>
+    </div>
+
+    <div class="card" style="background: rgba(255,255,255,0.02); padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3);">
+      ${targetUser.className ? `
+        <div class="flex justify-between items-center" style="font-size: var(--fs-small);">
+          <span class="text-tertiary">Class & Section</span>
+          <strong>Class ${escapeHTML(targetUser.className)}-${escapeHTML(targetUser.section || "—")}</strong>
+        </div>
+      ` : ""}
+      ${targetUser.rollNumber ? `
+        <div class="flex justify-between items-center" style="font-size: var(--fs-small);">
+          <span class="text-tertiary">Roll Number</span>
+          <strong class="mono">${escapeHTML(targetUser.rollNumber)}</strong>
+        </div>
+      ` : ""}
+      ${targetUser.favouriteGenre ? `
+        <div class="flex justify-between items-center" style="font-size: var(--fs-small);">
+          <span class="text-tertiary">Favourite Genre</span>
+          <span class="spine-tag">${escapeHTML(targetUser.favouriteGenre)}</span>
+        </div>
+      ` : ""}
+      ${targetUser.subject ? `
+        <div class="flex justify-between items-center" style="font-size: var(--fs-small);">
+          <span class="text-tertiary">Subject</span>
+          <strong>${escapeHTML(targetUser.subject)}</strong>
+        </div>
+      ` : ""}
+      ${targetUser.bio ? `
+        <div style="font-size: var(--fs-small); border-top: 1px solid var(--glass-border); padding-top: var(--sp-2); margin-top: var(--sp-1);">
+          <span class="text-tertiary" style="display:block; margin-bottom: 4px;">Bio</span>
+          <p style="margin:0; font-style: italic;">"${escapeHTML(targetUser.bio)}"</p>
+        </div>
+      ` : ""}
+      ${formattedDate ? `
+        <div class="flex justify-between items-center" style="font-size: var(--fs-tiny); color: var(--text-tertiary); border-top: 1px solid var(--glass-border); padding-top: var(--sp-2); margin-top: var(--sp-1);">
+          <span>Joined</span>
+          <span>${formattedDate}</span>
+        </div>
+      ` : ""}
+    </div>
+  `;
+
+  qs("#user-profile-modal").classList.add("open");
+}
+
+qs("#close-user-profile-x")?.addEventListener("click", () => qs("#user-profile-modal").classList.remove("open"));
+qs("#close-user-profile-btn")?.addEventListener("click", () => qs("#user-profile-modal").classList.remove("open"));
+qs("#user-profile-modal")?.addEventListener("click", (e) => {
+  if (e.target === qs("#user-profile-modal")) {
+    qs("#user-profile-modal").classList.remove("open");
+  }
+});
 
 // Initial load
 loadBooks();

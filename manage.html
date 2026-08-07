@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage — SAJS Digital Library</title>
+  <link rel="icon" type="image/jpeg" href="assets/image.jpeg">
+  <link rel="shortcut icon" href="assets/image.jpeg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css">
@@ -130,22 +132,124 @@
           <div class="field">
             <label for="f-genre">Genre</label>
             <select id="f-genre">
-              <option>Fiction</option>
-              <option>Non-Fiction</option>
-              <option>Science Fiction</option>
-              <option>Fantasy</option>
-              <option>Mystery & Thriller</option>
-              <option>Historical Fiction</option>
-              <option>Biography & Memoir</option>
-              <option>History</option>
-              <option>Poetry & Plays</option>
+              <option>Action</option>
+              <option>Adventure</option>
+              <option>Alternate History</option>
+              <option>Anthology</option>
+              <option>Art</option>
+              <option>Biography</option>
+              <option>Biography &amp; Memoir</option>
+              <option>Business</option>
+              <option>Chick Lit</option>
+              <option>Children's</option>
               <option>Classics</option>
-              <option>Philosophy & Ethics</option>
-              <option>Science & Technology</option>
+              <option>Comedy</option>
+              <option>Coming-of-Age</option>
+              <option>Comics</option>
+              <option>Contemporary</option>
+              <option>Cookbook</option>
+              <option>Crafts &amp; DIY</option>
+              <option>Crime</option>
+              <option>Cyberpunk</option>
+              <option>Dark Fiction</option>
+              <option>Drama</option>
+              <option>Drama &amp; Romance</option>
+              <option>Dystopian</option>
+              <option>Education</option>
+              <option>Espionage</option>
+              <option>Essays</option>
+              <option>Fairy Tales</option>
+              <option>Family</option>
+              <option>Fantasy</option>
+              <option>Fashion</option>
+              <option>Fiction</option>
+              <option>Finance</option>
+              <option>Folklore</option>
+              <option>Food &amp; Drink</option>
+              <option>Games &amp; Gaming</option>
+              <option>Gardening</option>
+              <option>Gay &amp; Lesbian (LGBTQ+)</option>
+              <option>General Non-Fiction</option>
+              <option>Gothic</option>
+              <option>Graphic Novels</option>
+              <option>Graphic Novels &amp; Comics</option>
+              <option>Guidebooks</option>
+              <option>Hard Science</option>
+              <option>Health &amp; Wellness</option>
+              <option>Historical Fiction</option>
+              <option>History</option>
+              <option>Holiday</option>
+              <option>Horror</option>
+              <option>Humor</option>
+              <option>Inspirational</option>
+              <option>Journalism</option>
+              <option>Juvenile Fiction</option>
+              <option>Language Learning</option>
+              <option>Legal</option>
+              <option>Literary Fiction</option>
+              <option>Manga</option>
+              <option>Martial Arts</option>
+              <option>Mathematics</option>
+              <option>Medical</option>
+              <option>Memoir</option>
+              <option>Middle Grade</option>
+              <option>Military</option>
+              <option>Music</option>
+              <option>Mystery</option>
+              <option>Mystery &amp; Thriller</option>
+              <option>Mythology</option>
+              <option>Nature</option>
+              <option>New Adult</option>
+              <option>Noir</option>
+              <option>Non-Fiction</option>
+              <option>Occult</option>
+              <option>Paranormal</option>
+              <option>Parenting</option>
+              <option>Performing Arts</option>
+              <option>Pets</option>
+              <option>Philosophy</option>
+              <option>Philosophy &amp; Ethics</option>
+              <option>Photography</option>
+              <option>Plays</option>
+              <option>Poetry</option>
+              <option>Poetry &amp; Plays</option>
+              <option>Political</option>
+              <option>Psychology</option>
+              <option>Realistic Fiction</option>
+              <option>Reference</option>
+              <option>Religion</option>
+              <option>Romance</option>
+              <option>Satire</option>
+              <option>School Life</option>
+              <option>Science</option>
+              <option>Science &amp; Technology</option>
+              <option>Science Fiction</option>
+              <option>Screenplays</option>
+              <option>Self-Help</option>
+              <option>Self-Help &amp; Psychology</option>
+              <option>Short Stories</option>
+              <option>Slice of Life</option>
+              <option>Social Science</option>
+              <option>Sociology</option>
+              <option>Space</option>
+              <option>Spirituality</option>
+              <option>Sports</option>
+              <option>Steampunk</option>
+              <option>Survival</option>
+              <option>Suspense</option>
+              <option>Technology</option>
+              <option>Textbooks</option>
+              <option>Theatre</option>
+              <option>Thriller</option>
+              <option>Time Travel</option>
+              <option>Travel</option>
+              <option>True Crime</option>
+              <option>Urban Fiction</option>
+              <option>War</option>
+              <option>Western</option>
+              <option>Wildlife</option>
+              <option>Women's Fiction</option>
               <option>Young Adult (YA)</option>
-              <option>Graphic Novels & Comics</option>
-              <option>Self-Help & Psychology</option>
-              <option>Drama & Romance</option>
             </select>
           </div>
         </div>
@@ -166,6 +270,22 @@
           <button type="submit" class="btn btn-primary btn-block">Save book</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ============ View User Profile modal ============ -->
+  <div class="modal-overlay" id="user-profile-modal">
+    <div class="modal" style="max-width:440px;">
+      <div class="flex items-center justify-between" style="margin-bottom:var(--sp-4);">
+        <h3 style="margin:0; font-size:var(--fs-h3);">User Profile</h3>
+        <button class="btn btn-ghost btn-sm" id="close-user-profile-x" style="padding:2px 8px; font-size:1.2rem; line-height:1;">&times;</button>
+      </div>
+      <div id="user-profile-content">
+        <!-- Filled dynamically -->
+      </div>
+      <div class="flex justify-end" style="margin-top:var(--sp-5);">
+        <button class="btn btn-ghost btn-block" id="close-user-profile-btn">Close</button>
+      </div>
     </div>
   </div>
 

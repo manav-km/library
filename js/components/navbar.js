@@ -8,7 +8,9 @@ import { logOut } from "../firebase/auth.js";
 const NAV_LINKS = [
   { href: "index.html", label: "Home" },
   { href: "library.html", label: "Library" },
-  { href: "discussions.html", label: "Discussions" }
+  { href: "glossary.html", label: "Glossary" },
+  { href: "discussions.html", label: "Discussions" },
+  { href: "discover.html", label: "Discover People" }
 ];
 
 function roleHome(role) {
@@ -31,7 +33,7 @@ export function renderNavbar(profile, activePage = "") {
     <nav class="navbar">
       <div class="navbar-inner">
         <a href="index.html" class="nav-brand">
-          <span class="crest">S</span>
+          <img src="assets/image.jpeg" class="brand-logo" alt="SAJS Logo" style="width:34px;height:34px;border-radius:8px;object-fit:cover;">
           SAJS Digital Library
         </a>
 

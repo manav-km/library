@@ -13,7 +13,7 @@ import {
   updateProfile
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  doc, setDoc, getDoc
+  doc, setDoc, getDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { logAuditAction } from "./firestore.js";
@@ -43,7 +43,8 @@ export async function signUp({ email, password, name, className, section, rollNu
     favouriteGenre: favouriteGenre || "",
     bio: "",
     profilePicture: "",
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    lastOnline: Date.now()
   };
   await setDoc(doc(db, "users", cred.user.uid), profile);
 
@@ -91,7 +92,8 @@ export async function getUserProfile(uid) {
       favouriteGenre: "Fiction",
       bio: "",
       profilePicture: user.photoURL || "",
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      lastOnline: Date.now()
     };
     await setDoc(userDocRef, profile);
 
@@ -113,6 +115,7 @@ export function watchAuthState(callback) {
   return onAuthStateChanged(auth, async (user) => {
     if (!user) return callback(null);
     try {
+      updateDoc(doc(db, "users", user.uid), { lastOnline: Date.now() }).catch(() => {});
       const profile = await getUserProfile(user.uid);
       callback(profile);
     } catch (err) {

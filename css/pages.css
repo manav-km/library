@@ -161,6 +161,52 @@
   border: 1px solid var(--glass-border); font-size: var(--fs-small); color: var(--text-secondary);
 }
 .genre-chip.active { background: linear-gradient(135deg, var(--indigo-600), var(--cyan-400)); color: #04141a; border-color: transparent; font-weight: 600; }
+.show-more-chip {
+  background: rgba(34,211,238,0.1);
+  color: var(--cyan-300);
+  border: 1px dashed rgba(34,211,238,0.4);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-standard);
+}
+.show-more-chip:hover {
+  background: rgba(34,211,238,0.22);
+  color: #fff;
+  border-color: var(--cyan-300);
+}
+
+.alphabet-bar {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.letter-chip {
+  min-width: 32px;
+  height: 30px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-fill);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-standard);
+}
+.letter-chip:hover {
+  background: var(--glass-fill-hi);
+  color: var(--text-primary);
+  border-color: var(--glass-border-hi);
+}
+.letter-chip.active {
+  background: linear-gradient(135deg, var(--indigo-500), var(--cyan-400));
+  color: #060911;
+  border-color: transparent;
+}
 
 /* ---------- Book details --------------------------------------------------- */
 .book-hero { display: grid; grid-template-columns: 260px 1fr; gap: var(--sp-7); margin-bottom: var(--sp-7); }

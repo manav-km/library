@@ -2,7 +2,7 @@ import { requireAuth } from "../firebase/auth.js";
 import { getAllBooks } from "../firebase/firestore.js";
 import { listenToThread, sendMessage, deleteMessage, createCustomThread, listenToCustomThreads } from "../firebase/realtime.js";
 import { renderNavbar } from "../components/navbar.js";
-import { initials, timeAgo, escapeHTML, showToast, qs, qsa, ALL_GENRES } from "../utils/helpers.js";
+import { initials, timeAgo, escapeHTML, showToast, qs, qsa, ALL_GENRES, MAIN_FILTER_GENRES } from "../utils/helpers.js";
 
 const currentProfile = await requireAuth();
 renderNavbar(currentProfile, "discussions.html");
@@ -39,15 +39,31 @@ async function init() {
   wireCreateThreadModal();
 }
 
+let isExpandedGenres = false;
+
 function renderGenreChips() {
   const chipRow = qs("#discussion-genre-chips");
   if (!chipRow) return;
   const bookGenres = books.map((b) => b.genre).filter(Boolean);
-  const genres = [...new Set([...ALL_GENRES, ...bookGenres])];
-  chipRow.innerHTML = `<button class="genre-chip ${activeGenre === 'all' ? 'active' : ''}" data-genre="all">All discussions</button>` +
-    genres.map((g) => `<button class="genre-chip ${activeGenre === g ? 'active' : ''}" data-genre="${g}">${g}</button>`).join("");
+  const extraGenres = bookGenres.filter((g) => !MAIN_FILTER_GENRES.includes(g));
 
-  qsa(".genre-chip", chipRow).forEach((chip) => {
+  const allAvailableGenres = [...new Set([...ALL_GENRES, ...extraGenres])];
+  const otherGenres = allAvailableGenres.filter((g) => !MAIN_FILTER_GENRES.includes(g));
+
+  const visibleGenres = isExpandedGenres ? [...MAIN_FILTER_GENRES, ...otherGenres] : MAIN_FILTER_GENRES;
+
+  let html = `<button class="genre-chip ${activeGenre === 'all' ? 'active' : ''}" data-genre="all">All discussions</button>`;
+  html += visibleGenres.map((g) => `<button class="genre-chip ${activeGenre === g ? 'active' : ''}" data-genre="${g}">${g}</button>`).join("");
+
+  if (isExpandedGenres) {
+    html += `<button class="genre-chip show-more-chip" id="toggle-show-more-disc">Show Less ∧</button>`;
+  } else {
+    html += `<button class="genre-chip show-more-chip" id="toggle-show-more-disc">Show More ∨</button>`;
+  }
+
+  chipRow.innerHTML = html;
+
+  qsa(".genre-chip:not(.show-more-chip)", chipRow).forEach((chip) => {
     chip.addEventListener("click", () => {
       qsa(".genre-chip", chipRow).forEach((c) => c.classList.remove("active"));
       chip.classList.add("active");
@@ -55,6 +71,14 @@ function renderGenreChips() {
       renderThreadList();
     });
   });
+
+  const toggleBtn = qs("#toggle-show-more-disc", chipRow);
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      isExpandedGenres = !isExpandedGenres;
+      renderGenreChips();
+    });
+  }
 }
 
 function renderThreadList() {
