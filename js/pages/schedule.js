@@ -23,17 +23,50 @@ const modal = qs("#schedule-modal");
 const form = qs("#schedule-form");
 const isHolidayCheckbox = qs("#p-is-holiday");
 
+function getDayNameFromDateStr(dateStr) {
+  if (!dateStr) return "Monday";
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dateObj = new Date(y, m - 1, d);
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  return dayNames[dateObj.getDay()];
+}
+
+function getDateStrForDayInCurrentWeek(dayName) {
+  const mondayStr = getMondayDateString();
+  const [y, m, d] = mondayStr.split("-").map(Number);
+  const dayIndexMap = { "Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6 };
+  const offset = dayIndexMap[dayName] ?? 0;
+  const targetDate = new Date(y, m - 1, d + offset);
+  const yyyy = targetDate.getFullYear();
+  const mm = String(targetDate.getMonth() + 1).padStart(2, "0");
+  const dd = String(targetDate.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 // Populate Genre dropdown in form
 const genreSelect = qs("#p-genre");
 if (genreSelect) {
   genreSelect.innerHTML = ALL_GENRES.map((g) => `<option value="${escapeHTML(g)}">${escapeHTML(g)}</option>`).join("");
 }
 
-// Set default date in form to today
+// Set default date in form to today and sync day
 const dateInput = qs("#p-date");
+const daySelect = qs("#p-day");
+
+function syncDayFromDate() {
+  if (dateInput && daySelect && dateInput.value) {
+    const dayName = getDayNameFromDateStr(dateInput.value);
+    daySelect.value = dayName;
+  }
+}
+
 if (dateInput) {
   const today = new Date().toISOString().split("T")[0];
   dateInput.value = today;
+  syncDayFromDate();
+
+  dateInput.addEventListener("input", syncDayFromDate);
+  dateInput.addEventListener("change", syncDayFromDate);
 }
 
 // Toggle form inputs when "Mark as Holiday" is checked
@@ -167,6 +200,11 @@ function openModalWith(day = "Monday", period = "1st Period") {
   if (!modal) return;
   const daySelect = qs("#p-day");
   const periodSelect = qs("#p-period");
+  const dateInput = qs("#p-date");
+
+  if (dateInput) {
+    dateInput.value = getDateStrForDayInCurrentWeek(day);
+  }
   if (daySelect) daySelect.value = day;
   if (periodSelect) periodSelect.value = period;
 
