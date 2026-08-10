@@ -1,4 +1,4 @@
-import { requireAuth } from "../firebase/auth.js";
+import { requireAuth, changeUserPassword, deleteUserProfile } from "../firebase/auth.js";
 import { getAllBooks, getReviewsForBook, updateUserProfile, logAuditAction } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
@@ -134,4 +134,73 @@ qs("#edit-profile-form").addEventListener("submit", async (e) => {
   showToast("Profile updated.");
   modal.classList.remove("open");
   setTimeout(() => window.location.reload(), 600);
+});
+
+// ==========================================
+// Account Settings Logic
+// ==========================================
+
+const cpModal = qs("#change-password-modal");
+const dpModal = qs("#delete-profile-modal");
+
+qs("#open-change-password-btn")?.addEventListener("click", () => {
+  if (cpModal) {
+    qs("#change-password-form").reset();
+    cpModal.style.display = "flex";
+  }
+});
+
+qs("#cancel-change-password")?.addEventListener("click", () => {
+  if (cpModal) cpModal.style.display = "none";
+});
+
+qs("#change-password-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const oldPass = qs("#cp-old").value;
+  const newPass = qs("#cp-new").value;
+  const confirm = qs("#cp-confirm").value;
+
+  if (newPass !== confirm) {
+    showToast("New passwords do not match.", "error");
+    return;
+  }
+
+  try {
+    await changeUserPassword(oldPass, newPass);
+    showToast("Password updated successfully.");
+    if (cpModal) cpModal.style.display = "none";
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "Failed to update password. Check your current password.", "error");
+  }
+});
+
+qs("#open-delete-profile-btn")?.addEventListener("click", () => {
+  if (dpModal) {
+    qs("#delete-profile-form").reset();
+    dpModal.style.display = "flex";
+  }
+});
+
+qs("#cancel-delete-profile")?.addEventListener("click", () => {
+  if (dpModal) dpModal.style.display = "none";
+});
+
+qs("#delete-profile-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const username = qs("#dp-username").value;
+  const password = qs("#dp-password").value;
+
+  if (!confirm("Are you absolutely sure you want to delete your profile? This cannot be undone.")) {
+    return;
+  }
+
+  try {
+    await deleteUserProfile(username, password);
+    showToast("Profile deleted.");
+    window.location.href = "login.html";
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "Failed to delete profile. Please check username and password.", "error");
+  }
 });

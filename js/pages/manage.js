@@ -2,8 +2,7 @@ import { requireAuth } from "../firebase/auth.js";
 import {
   getAllBooks, getNextBookId, addBook, updateBook, deleteBook,
   getReviewsForBook, deleteReview, getAllUsers, setUserRole,
-  logAuditAction, getAuditLogs, getAllAnnouncements, addAnnouncement,
-  updateAnnouncement, deleteAnnouncement
+  logAuditAction, getAuditLogs
 } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
@@ -41,7 +40,6 @@ qsa(".tab").forEach((tab) => {
     qs("#tab-reviews").style.display = currentTab === "reviews" ? "block" : "none";
     qs("#tab-students").style.display = currentTab === "students" ? "block" : "none";
     qs("#tab-audit").style.display = currentTab === "audit" ? "block" : "none";
-    qs("#tab-announcements").style.display = currentTab === "announcements" ? "block" : "none";
     qs("#tab-users").style.display = currentTab === "users" ? "block" : "none";
 
     if (addBtn) {
@@ -51,7 +49,6 @@ qsa(".tab").forEach((tab) => {
     if (currentTab === "reviews") loadModerationList();
     if (currentTab === "students") loadStudents();
     if (currentTab === "audit") loadAuditLogs();
-    if (currentTab === "announcements") loadAnnouncements();
     if (currentTab === "users" && profile.role === "admin") loadUsers();
   });
 });
@@ -192,8 +189,7 @@ qs("#book-form")?.addEventListener("submit", async (e) => {
 
   const coverFile = qs("#f-cover").files[0];
   if (coverFile) bookData.coverImage = await uploadImage(coverFile, "covers", bookData.BK_ID);
-  const pdfFile = qs("#f-pdf").files[0];
-  if (pdfFile) bookData.pdfUrl = await uploadImage(pdfFile, "pdfs", bookData.BK_ID);
+
   const docId = qs("#book-doc-id").value;
   if (docId) {
     await updateBook(docId, bookData);
@@ -500,107 +496,3 @@ qs("#user-profile-modal")?.addEventListener("click", (e) => {
 
 // Initial load
 loadBooks();
-
-/* ==========================================================================
-   Announcements Management
-   ========================================================================== */
-let announcements = [];
-
-async function loadAnnouncements() {
-  const tbody = qs("#announcements-table-body");
-  if (tbody) tbody.innerHTML = `<tr><td colspan="5"><div class="skeleton" style="height:60px;"></div></td></tr>`;
-  announcements = await getAllAnnouncements();
-  renderAnnouncementsTable();
-}
-
-function renderAnnouncementsTable() {
-  const tbody = qs("#announcements-table-body");
-  if (!tbody) return;
-  tbody.innerHTML = announcements.length ? announcements.map((a) => `
-    <tr data-id="${a.id}">
-      <td class="text-tertiary mono" style="font-size:var(--fs-tiny); white-space:nowrap;">${timeAgo(a.timestamp)}</td>
-      <td><strong>${escapeHTML(a.heading)}</strong></td>
-      <td><span style="display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHTML(a.content)}</span></td>
-      <td>${escapeHTML(a.createdBy?.name || 'Unknown')}</td>
-      <td>
-        <div class="flex gap-2">
-          <button class="btn btn-ghost btn-sm edit-ann-btn">Edit</button>
-          <button class="btn btn-danger btn-sm delete-ann-btn">Delete</button>
-        </div>
-      </td>
-    </tr>
-  `).join("") : `<tr><td colspan="5" class="text-tertiary" style="text-align:center; padding:var(--sp-4);">No announcements.</td></tr>`;
-
-  qsa(".edit-ann-btn").forEach((btn) => btn.addEventListener("click", (e) => openEditAnnModal(e.target.closest("tr").dataset.id)));
-  qsa(".delete-ann-btn").forEach((btn) => btn.addEventListener("click", (e) => handleDeleteAnnouncement(e.target.closest("tr").dataset.id)));
-}
-
-async function handleDeleteAnnouncement(id) {
-  if (!confirm("Are you sure you want to delete this announcement?")) return;
-  const ann = announcements.find((a) => a.id === id);
-  await deleteAnnouncement(id);
-  logAuditAction({
-    action: "ANNOUNCEMENT_DELETE",
-    category: "Announcements",
-    details: `${profile.name} (${profile.role}) deleted announcement '${ann?.heading}'.`,
-    performedBy: profile,
-    targetId: id
-  });
-  showToast("Announcement deleted.");
-  loadAnnouncements();
-}
-
-const annModal = qs("#announcement-modal");
-qs("#add-announcement-btn")?.addEventListener("click", () => {
-  qs("#announcement-modal-title").textContent = "New Announcement";
-  qs("#announcement-form").reset();
-  qs("#announcement-doc-id").value = "";
-  annModal.classList.add("open");
-});
-
-function openEditAnnModal(id) {
-  const a = announcements.find((x) => x.id === id);
-  if (!a) return;
-  qs("#announcement-modal-title").textContent = "Edit Announcement";
-  qs("#announcement-doc-id").value = a.id;
-  qs("#ann-heading").value = a.heading;
-  qs("#ann-content").value = a.content;
-  annModal.classList.add("open");
-}
-
-qs("#cancel-announcement-modal")?.addEventListener("click", () => annModal.classList.remove("open"));
-
-qs("#announcement-form")?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const id = qs("#announcement-doc-id").value;
-  const heading = qs("#ann-heading").value;
-  const content = qs("#ann-content").value;
-
-  if (id) {
-    await updateAnnouncement(id, { heading, content });
-    logAuditAction({
-      action: "ANNOUNCEMENT_EDIT",
-      category: "Announcements",
-      details: `${profile.name} (${profile.role}) edited announcement '${heading}'.`,
-      performedBy: profile,
-      targetId: id
-    });
-    showToast("Announcement updated.");
-  } else {
-    const newId = await addAnnouncement({
-      heading,
-      content,
-      createdBy: { name: profile.name, email: profile.email, uid: profile.uid }
-    });
-    logAuditAction({
-      action: "ANNOUNCEMENT_ADD",
-      category: "Announcements",
-      details: `${profile.name} (${profile.role}) created announcement '${heading}'.`,
-      performedBy: profile,
-      targetId: newId
-    });
-    showToast("Announcement added.");
-  }
-  annModal.classList.remove("open");
-  loadAnnouncements();
-});

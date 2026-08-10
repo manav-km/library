@@ -88,6 +88,7 @@ export const GLOSSARY_DATA = [
   { word: "Chaos", category: "English Word", definition: "Complete disorder, confusion, and unpredictability.", synonyms: ["Disorder", "Turmoil"], antonyms: ["Order", "Harmony"] },
   { word: "Character", category: "Literary Term", definition: "A person, animal, or figure depicted in a narrative work.", synonyms: ["Persona", "Figure"], antonyms: ["Background", "Prop"] },
   { word: "Charity", category: "English Word", definition: "Generosity and helpfulness toward those in need.", synonyms: ["Generosity", "Altruism"], antonyms: ["Selfishness", "Greed"] },
+  { word: "Chick Lit", category: "Genre", definition: "Lighthearted fiction addressing modern womanhood, relationships, personal career, and humorous social situations.", synonyms: ["Modern Women's Fiction", "Rom-Com Literature"], antonyms: ["Dark Tragedy", "Gritty Realism"] },
   { word: "Children's", category: "Genre", definition: "Literature crafted specifically for young readers, featuring engaging themes, illustrations, and clear storytelling.", synonyms: ["Juvenile Books", "Kids' Literature"], antonyms: ["Adult Fiction", "Mature Content"] },
   { word: "Clarity", category: "English Word", definition: "The quality of being clear, easily understood, and coherent.", synonyms: ["Clearness", "Lucidity"], antonyms: ["Confusion", "Obscurity"] },
   { word: "Classics", category: "Genre", definition: "Timeless literary works recognized for artistic excellence, enduring historical importance, and universal influence.", synonyms: ["Masterpieces", "Canon"], antonyms: ["Pulp Fiction", "Ephemeral Pop"] },
@@ -165,15 +166,18 @@ export const GLOSSARY_DATA = [
   // --- G ---
   { word: "Games & Gaming", category: "Genre", definition: "Books covering video game development, tabletop RPG rules, strategic gaming theory, and esports culture.", synonyms: ["Gaming Culture", "Ludology"], antonyms: ["Work Routine", "Chore"] },
   { word: "Gardening", category: "Genre", definition: "Horticultural guides on plant cultivation, landscaping, botany, agriculture, and floral care.", synonyms: ["Horticulture", "Plant Care"], antonyms: ["Deforestation", "Desertification"] },
+  { word: "Gay & Lesbian (LGBTQ+)", category: "Genre", definition: "Literature celebrating queer identities, relationships, gender expressions, and LGBTQ+ community histories.", synonyms: ["Queer Literature", "LGBTQ+ Fiction"], antonyms: ["Heteronormative Canon", "Conventional Norms"] },
+  { word: "General Non-Fiction", category: "Genre", definition: "Informative prose grounded in real-world facts, real events, and factual explanations.", synonyms: ["Factual Writing", "Real-World Prose"], antonyms: ["Fantasy Fiction", "Mythology"] },
   { word: "Generosity", category: "English Word", definition: "The quality of being kind and willing to share freely.", synonyms: ["Altruism", "Munificence"], antonyms: ["Stinginess", "Greed"] },
   { word: "Gothic", category: "Genre", definition: "Dark fiction combining eerie atmosphere, haunted castles, mystery, gloom, and romantic undertones.", synonyms: ["Gothic Horror", "Macabre Romance"], antonyms: ["Sunlit Comedy", "Optimistic Pastoral"] },
+  { word: "Graphic Novels", category: "Genre", definition: "Full-length narrative stories presented in comic strip format with continuous artwork.", synonyms: ["Comic Book Novel", "Illustrated Story"], antonyms: ["Plain Text Novel", "Audiobook"] },
   { word: "Graphic Novels & Comics", category: "Genre", definition: "Visual narratives using sequential illustrations and text balloons to convey story arcs.", synonyms: ["Sequential Art", "Comics"], antonyms: ["Text-Only Volume", "Essays"] },
   { word: "Guidebooks", category: "Genre", definition: "Handbooks providing practical directions, travel information, tips, and local insights for destinations.", synonyms: ["Travel Manual", "Handbook"], antonyms: ["Unmapped Territory", "Mystery"] },
+
   // --- H ---
   { word: "Hard Science", category: "Genre", definition: "Science fiction adhering strictly to real scientific laws, physics, chemistry, and astronomical accuracy.", synonyms: ["Scientific Sci-Fi", "Realistic Science Fiction"], antonyms: ["Soft Fantasy", "Magic Realism"] },
   { word: "Harmony", category: "English Word", definition: "Agreement, concord, or pleasing combination of elements in music or life.", synonyms: ["Concord", "Peace"], antonyms: ["Discord", "Conflict"] },
   { word: "Health & Wellness", category: "Genre", definition: "Books covering physical fitness, nutrition, mental health practices, and holistic well-being.", synonyms: ["Fitness", "Wellness Guide"], antonyms: ["Sickness", "Ill Health"] },
-  { word: "Hindi", category: "Genre", definition: "Literature, poetry, drama, and prose written in or translated into the Hindi language.", synonyms: ["Hindi Sahitya", "Hindi Literature"], antonyms: ["Foreign Language", "English Classic"] },
   { word: "Historical Fiction", category: "Genre", definition: "Fictional narratives set in recognizable past eras with period-accurate details and settings.", synonyms: ["Period Drama", "Historical Novel"], antonyms: ["Futuristic Sci-Fi", "Modern Contemporary"] },
   { word: "History", category: "Genre", definition: "Factual non-fiction recording past human events, civilizations, wars, and historical shifts.", synonyms: ["Historical Chronicle", "Annals"], antonyms: ["Futurism", "Speculative Fiction"] },
   { word: "Holiday", category: "Genre", definition: "Seasonal stories set during festive occasions like Christmas, Thanksgiving, or New Year celebrations.", synonyms: ["Festive Fiction", "Seasonal Story"], antonyms: ["Everyday Routine", "Ordinary Workday"] },
@@ -189,6 +193,7 @@ export const GLOSSARY_DATA = [
 
   // --- J ---
   { word: "Journalism", category: "Genre", definition: "Investigative non-fiction reporting on current events, news analysis, and real-world public affairs.", synonyms: ["Reportage", "News Writing"], antonyms: ["Fake News", "Pure Fabrication"] },
+  { word: "Juvenile Fiction", category: "Genre", definition: "Stories tailored for middle-grade children dealing with young adventures and friendship.", synonyms: ["Middle-Grade Books", "Kids' Fiction"], antonyms: ["Adult Thriller", "Mature Romance"] },
   { word: "Juxtapose", category: "English Word", definition: "To place two contrasting elements close together for comparison.", synonyms: ["Contrast", "Collocate"], antonyms: ["Separate", "Isolate"] },
 
   // --- K ---
@@ -198,6 +203,8 @@ export const GLOSSARY_DATA = [
   // --- L ---
   { word: "Language Learning", category: "Genre", definition: "Educational guides, vocabulary books, and grammar manuals for acquiring new spoken or written languages.", synonyms: ["Linguistics", "Language Manual"], antonyms: ["Gibberish", "Unintelligible Noise"] },
   { word: "Legacy", category: "English Word", definition: "An enduring impact, inheritance, or accomplishment handed down from the past.", synonyms: ["Heritage", "Inheritance"], antonyms: ["Oblivion", "Erasure"] },
+  { word: "Legal", category: "Genre", definition: "Thrillers or non-fiction centered on courtroom trials, legal practice, jurisprudence, and lawyers.", synonyms: ["Courtroom Drama", "Legal Thriller"], antonyms: ["Lawlessness", "Anarchy"] },
+  { word: "Literary Fiction", category: "Genre", definition: "Fiction emphasizing artistic quality, stylistic prose, character depth, and thematic nuance over plot mechanics.", synonyms: ["High Literature", "Prose Art"], antonyms: ["Commercial Formula", "Pulp Fiction"] },
   { word: "Lucid", category: "English Word", definition: "Expressed clearly and easy to understand.", synonyms: ["Clear", "Coherent"], antonyms: ["Confused", "Obscure"] },
 
   // --- M ---
@@ -218,6 +225,8 @@ export const GLOSSARY_DATA = [
   // --- N ---
   { word: "Narrative", category: "English Word", definition: "A spoken or written account of connected events; a story.", synonyms: ["Story", "Account"], antonyms: ["Fact-Sheet", "Statistics"] },
   { word: "Nature", category: "Genre", definition: "Non-fiction exploring wildlife, ecosystems, environmental conservation, natural landscapes, and biology.", synonyms: ["Natural World", "Ecology"], antonyms: ["Urban Concrete", "Artificiality"] },
+  { word: "New Adult", category: "Genre", definition: "Fiction centered on young adults aged 18 to 30 navigating university life, first careers, and independence.", synonyms: ["NA Fiction", "Early Adulthood Tale"], antonyms: ["Children's Fable", "Senior Memoirs"] },
+  { word: "Noir", category: "Genre", definition: "Dark, gritty crime fiction featuring morally ambiguous characters, cynical investigators, and urban underworlds.", synonyms: ["Gritty Crime", "Hardboiled Drama"], antonyms: ["Bright Comedy", "Utopian Vision"] },
   { word: "Non-Fiction", category: "Genre", definition: "Factual prose writing about real events, actual people, factual history, and verified knowledge.", synonyms: ["Factual Prose", "Documentary Text"], antonyms: ["Fiction", "Fantasy"] },
 
   // --- O ---
@@ -226,6 +235,7 @@ export const GLOSSARY_DATA = [
 
   // --- P ---
   { word: "Paranormal", category: "Genre", definition: "Fiction involving phenomena beyond scientific understanding, such as ghosts, psychics, and shapeshifters.", synonyms: ["Supernatural", "Ghostly Fiction"], antonyms: ["Natural Law", "Empirical Science"] },
+  { word: "Parenting", category: "Genre", definition: "Guides offering advice on child upbringing, family care, child psychology, and parental guidance.", synonyms: ["Childcare", "Child Rearing"], antonyms: ["Child Neglect", "Childlessness"] },
   { word: "Performing Arts", category: "Genre", definition: "Books covering theater, dance, acting, cinema, stagecraft, and live artistic performances.", synonyms: ["Stagecraft", "Theatre Arts"], antonyms: ["Static Craft", "Silent Reading"] },
   { word: "Pets", category: "Genre", definition: "Guides and stories celebrating domestic animals, pet training, animal care, and companion pets.", synonyms: ["Animal Care", "Companion Animals"], antonyms: ["Wild Beasts", "Pest Control"] },
   { word: "Philosophy", category: "Genre", definition: "Intellectual inquiries into fundamental questions about existence, knowledge, ethics, logic, and truth.", synonyms: ["Ethics & Metaphysics", "Intellectual Thought"], antonyms: ["Mindlessness", "Superficiality"] },
@@ -254,9 +264,11 @@ export const GLOSSARY_DATA = [
   // --- S ---
   { word: "Satire", category: "Genre", definition: "Witty works using irony, exaggeration, or humor to criticize and expose human vices or societal flaws.", synonyms: ["Parody", "Social Lampoon"], antonyms: ["Earnest Praise", "Literal Truth"] },
   { word: "School Life", category: "Genre", definition: "Stories centered on student experiences, school campus dynamics, teachers, and classroom life.", synonyms: ["Campus Life", "Academic Story"], antonyms: ["Wilderness Survival", "Space Voyage"] },
+  { word: "Science", category: "Genre", definition: "Non-fiction exploring the natural and physical world through empirical observation and experimentation.", synonyms: ["Empirical Science", "Natural Research"], antonyms: ["Superstition", "Pseudoscience"] },
   { word: "Science & Technology", category: "Genre", definition: "Non-fiction covering scientific breakthroughs, engineering marvels, digital innovation, and computing.", synonyms: ["Tech Innovation", "STEM Literature"], antonyms: ["Ancient Myths", "Superstition"] },
   { word: "Science Fiction", category: "Genre", definition: "Speculative fiction dealing with imaginative concepts such as space exploration, time travel, and futuristic tech.", synonyms: ["Sci-Fi", "Futuristic Fiction"], antonyms: ["Historical Realism", "High Fantasy"] },
   { word: "Screenplays", category: "Genre", definition: "Film and television scripts specifying scenes, camera shots, character dialogue, and cinematic action.", synonyms: ["Film Scripts", "Cinematic Scripts"], antonyms: ["Prose Novel", "Poetry"] },
+  { word: "Self-Help", category: "Genre", definition: "Instructional literature giving readers practical advice for self-improvement and personal success.", synonyms: ["Personal Growth", "Self-Improvement"], antonyms: ["Self-Destruction", "Stagnation"] },
   { word: "Self-Help & Psychology", category: "Genre", definition: "Works combining psychological principles with practical tools for personal development and emotional growth.", synonyms: ["Mindset & Wellness", "Self-Care"], antonyms: ["Apathy", "Neglect"] },
   { word: "Setting", category: "Literary Term", definition: "The specific time, geographical location, environment, and social context in which a story takes place.", synonyms: ["Backdrop", "Milieu"], antonyms: ["Vacuum", "Abstraction"] },
   { word: "Short Stories", category: "Genre", definition: "Brief fictional narratives that can be read in a single sitting and focus on a single plot incident.", synonyms: ["Flash Fiction", "Novelette"], antonyms: ["Multi-Volume Series", "Epic Novel"] },
@@ -271,11 +283,14 @@ export const GLOSSARY_DATA = [
   { word: "Suspense", category: "Genre", definition: "Stories keeping readers in a state of anxious excitement, uncertainty, and anticipation.", synonyms: ["Tension", "Thrill"], antonyms: ["Predictability", "Calm Serenity"] },
 
   // --- T ---
+  { word: "Technology", category: "Genre", definition: "Non-fiction exploring machinery, software, artificial intelligence, electronics, and digital engineering.", synonyms: ["Tech & Computing", "Engineering"], antonyms: ["Primitive Living", "Luddism"] },
   { word: "Textbooks", category: "Genre", definition: "Comprehensive academic manuals designed for classroom learning and course study.", synonyms: ["Academic Manual", "Coursebook"], antonyms: ["Leisure Fiction", "Comics"] },
   { word: "Theatre", category: "Genre", definition: "Literature celebrating stage performances, dramatic arts, acting, and theatrical production.", synonyms: ["Stagecraft", "Dramatic Arts"], antonyms: ["Silent Film", "Unperformed Script"] },
   { word: "Theme", category: "Literary Term", definition: "The underlying central idea, message, or deeper moral exploration within a written work.", synonyms: ["Core Message", "Motive"], antonyms: ["Surface Event", "Literal Text"] },
   { word: "Thriller", category: "Genre", definition: "Fast-paced fiction featuring constant suspense, high stakes, action, and suspenseful twists.", synonyms: ["Suspense Novel", "Page-Turner"], antonyms: ["Slow Pastoral", "Gentle Comedy"] },
+  { word: "Time Travel", category: "Genre", definition: "Science fiction where characters travel backward or forward through time via machinery or anomalies.", synonyms: ["Temporal Voyage", "Chrono-Fiction"], antonyms: ["Linear Time", "Static Timeline"] },
   { word: "Travel", category: "Genre", definition: "Narratives chronicling journeys, foreign cultures, exploration memoirs, and destination discoveries.", synonyms: ["Travelogue", "Exploration"], antonyms: ["Homebody Life", "Confinement"] },
+  { word: "True Crime", category: "Genre", definition: "Factual non-fiction examining actual real-world crimes, criminal minds, and police investigations.", synonyms: ["Real-Crime Documentary", "Crime Non-Fiction"], antonyms: ["Fictional Cozy Mystery", "Fairy Tale"] },
 
   // --- U ---
   { word: "Urban Fiction", category: "Genre", definition: "Gritty fiction set in contemporary city environments reflecting street culture and urban life.", synonyms: ["Street Lit", "City Realism"], antonyms: ["Country Pastoral", "Rural Fantasy"] },

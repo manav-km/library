@@ -1,9 +1,9 @@
 import { watchAuthState } from "../firebase/auth.js";
-import { getAllBooks, getAllAnnouncements } from "../firebase/firestore.js";
+import { getAllBooks } from "../firebase/firestore.js";
 import { renderNavbar } from "../components/navbar.js";
 import { renderBookGrid } from "../components/bookCard.js";
 import { ensureReviewModal, wireReviewButtons } from "../components/reviewModal.js";
-import { spineColorFor, ALL_GENRES, escapeHTML } from "../utils/helpers.js";
+import { spineColorFor, ALL_GENRES } from "../utils/helpers.js";
 
 let currentProfile = null;
 
@@ -40,24 +40,6 @@ async function init() {
   const recent = document.getElementById("recent-books");
   if (featured) renderBookGrid(featured, books.slice(0, 4));
   if (recent) renderBookGrid(recent, books.slice(0, 6));
-
-  const annContainer = document.getElementById("announcements-container");
-  if (annContainer) {
-    const announcements = await getAllAnnouncements();
-    if (announcements.length) {
-      annContainer.innerHTML = announcements.map(a => `
-        <div class="announcement" style="margin-bottom:var(--sp-3);">
-          <span class="dot"></span>
-          <div>
-            <strong style="font-size:var(--fs-small);">${escapeHTML(a.heading)}</strong>
-            <p style="margin:2px 0 0; font-size:var(--fs-small);">${escapeHTML(a.content)}</p>
-          </div>
-        </div>
-      `).join("");
-    } else {
-      annContainer.innerHTML = `<p class="text-tertiary" style="font-size:var(--fs-small);">No recent announcements.</p>`;
-    }
-  }
 
   if (currentProfile) wireReviewButtons(currentProfile);
 }

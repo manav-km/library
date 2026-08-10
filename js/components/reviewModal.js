@@ -4,7 +4,6 @@
 
 import { addReview, logAuditAction } from "../firebase/firestore.js";
 import { showToast, qs, qsa, escapeHTML } from "../utils/helpers.js";
-import { containsBadWords } from "../utils/profanityFilter.js";
 
 let modalInjected = false;
 let selectedRating = 0;

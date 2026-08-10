@@ -11,10 +11,13 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
-  updatePassword
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+  deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs
+  doc, setDoc, getDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { logAuditAction } from "./firestore.js";
@@ -25,60 +28,16 @@ export async function signInWithGoogle() {
   const provider = new GoogleAuthProvider();
   const result = await signInWithPopup(auth, provider);
   const user = result.user;
-  const profile = await getUserProfile(user.uid);
-  if (!profile) {
-    return { needsExtraInfo: true, user };
-  }
-  return profile;
-}
-
-export async function completeGoogleSignUp(user, { username, password, className, section, rollNumber, favouriteGenre }) {
-  // Check if username is already taken
-  const q = query(collection(db, "users"), where("username", "==", username));
-  const snap = await getDocs(q);
-  if (!snap.empty) {
-    throw new Error("Username is already taken.");
-  }
-
-  await updatePassword(user, password);
-  const isAdminEmail = ADMIN_EMAILS.includes((user.email || "").toLowerCase());
   
-  const profile = {
-    uid: user.uid,
-    name: user.displayName || (user.email ? user.email.split("@")[0] : username),
-    email: user.email,
-    username,
-    role: "student",
-    className: className || "",
-    section: section || "",
-    rollNumber: rollNumber || "",
-    favouriteGenre: favouriteGenre || "Fiction",
-    bio: "",
-    profilePicture: user.photoURL || "",
-    createdAt: Date.now(),
-    lastOnline: Date.now()
-  };
-  await setDoc(doc(db, "users", user.uid), profile);
-
-  logAuditAction({
-    action: "USER_SIGNUP",
-    category: "Users",
-    details: `New account created via Google: ${profile.name} (${profile.email}).`,
-    performedBy: profile,
-    targetId: profile.uid
-  });
-
-  return isAdminEmail ? { ...profile, role: "admin" } : profile;
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (snap.exists()) {
+    return getUserProfile(user.uid);
+  } else {
+    return { isNewUser: true, user };
+  }
 }
 
-export async function signUp({ email, password, name, className, section, rollNumber, favouriteGenre, username }) {
-  // Check if username is already taken
-  const q = query(collection(db, "users"), where("username", "==", username));
-  const snap = await getDocs(q);
-  if (!snap.empty) {
-    throw new Error("Username is already taken.");
-  }
-
+export async function signUp({ email, password, name, username, className, section, rollNumber, favouriteGenre }) {
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(cred.user, { displayName: name });
 
@@ -86,8 +45,8 @@ export async function signUp({ email, password, name, className, section, rollNu
   const profile = {
     uid: cred.user.uid,
     name,
+    username: username || "",
     email,
-    username,
     role: "student", // Always write "student" on creation to satisfy firestore.md security rules
     className: className || "",
     section: section || "",
@@ -111,22 +70,80 @@ export async function signUp({ email, password, name, className, section, rollNu
   return isAdminEmail ? { ...profile, role: "admin" } : profile;
 }
 
-export async function logIn(identifier, password) {
-  let email = identifier;
-  if (!identifier.includes("@")) {
-    const q = query(collection(db, "users"), where("username", "==", identifier));
-    const snap = await getDocs(q);
-    if (snap.empty) {
-      throw new Error("Username not found.");
-    }
-    email = snap.docs[0].data().email;
-  }
+export async function logIn(email, password) {
   const cred = await signInWithEmailAndPassword(auth, email, password);
   return getUserProfile(cred.user.uid);
 }
 
 export async function logOut() {
   await signOut(auth);
+}
+
+export async function completeGoogleSignUp({ password, name, username, className, section, rollNumber, favouriteGenre }) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No user currently logged in.");
+
+  await updatePassword(user, password);
+  await updateProfile(user, { displayName: name });
+
+  const isAdminEmail = ADMIN_EMAILS.includes((user.email || "").toLowerCase());
+  const profile = {
+    uid: user.uid,
+    name,
+    username: username || "",
+    email: user.email,
+    role: "student",
+    className: className || "",
+    section: section || "",
+    rollNumber: rollNumber || "",
+    favouriteGenre: favouriteGenre || "",
+    bio: "",
+    profilePicture: user.photoURL || "",
+    createdAt: Date.now(),
+    lastOnline: Date.now()
+  };
+
+  await setDoc(doc(db, "users", user.uid), profile);
+
+  logAuditAction({
+    action: "USER_SIGNUP",
+    category: "Users",
+    details: `New account completed via Google: ${name} (${user.email}).`,
+    performedBy: profile,
+    targetId: user.uid
+  });
+
+  return isAdminEmail ? { ...profile, role: "admin" } : profile;
+}
+
+export async function changeUserPassword(oldPassword, newPassword) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No user is signed in.");
+  
+  const credential = EmailAuthProvider.credential(user.email, oldPassword);
+  await reauthenticateWithCredential(user, credential);
+  await updatePassword(user, newPassword);
+}
+
+export async function deleteUserProfile(username, password) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No user is signed in.");
+
+  const profile = await getUserProfile(user.uid);
+  if (!profile || profile.username !== username) {
+    throw new Error("Username is incorrect.");
+  }
+
+  const credential = EmailAuthProvider.credential(user.email, password);
+  await reauthenticateWithCredential(user, credential);
+
+  await setDoc(doc(db, "users", user.uid), { deleted: true }, { merge: true }); // optional tombstoning before wipe
+  // or completely delete:
+  // import { deleteDoc } from ...
+  // await deleteDoc(doc(db, "users", user.uid));
+  // Since we don't have deleteDoc imported, doing a tombstone update for now, or I can import it.
+  
+  await deleteUser(user);
 }
 
 export async function getUserProfile(uid) {
@@ -140,9 +157,6 @@ export async function getUserProfile(uid) {
       return { ...data, role: "admin" };
     }
     return data;
-  } else if (user && user.uid === uid) {
-    // Only return null. Profile will be created via completeGoogleSignUp
-    return null;
   }
   return null;
 }

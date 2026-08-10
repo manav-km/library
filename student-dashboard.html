@@ -49,6 +49,15 @@
               <a href="discussions.html" class="btn btn-ghost btn-block">Join discussions</a>
             </div>
           </div>
+
+          <div class="card" style="margin-top:var(--sp-5); padding:var(--sp-5);">
+            <h3 style="font-size:var(--fs-h4); margin-bottom:var(--sp-4);">Account Settings</h3>
+            <div class="flex gap-3" style="flex-wrap: wrap;">
+              <button class="btn btn-secondary" id="open-change-password-btn">Change Password</button>
+              <a href="mailto:manavgmishra@gmail.com" class="btn btn-ghost">Contact Support</a>
+              <button class="btn btn-danger" id="open-delete-profile-btn" style="margin-left:auto;">Delete Profile</button>
+            </div>
+          </div>
         </div>
 
         <!-- ============ Main column ============ -->
@@ -121,60 +130,121 @@
           <select id="edit-genre">
             <option>Action</option>
             <option>Adventure</option>
+            <option>Alternate History</option>
+            <option>Anthology</option>
             <option>Art</option>
+            <option>Biography</option>
             <option>Biography &amp; Memoir</option>
             <option>Business</option>
+            <option>Chick Lit</option>
             <option>Children's</option>
             <option>Classics</option>
             <option>Comedy</option>
+            <option>Coming-of-Age</option>
+            <option>Comics</option>
+            <option>Contemporary</option>
+            <option>Cookbook</option>
             <option>Crafts &amp; DIY</option>
             <option>Crime</option>
+            <option>Cyberpunk</option>
+            <option>Dark Fiction</option>
+            <option>Drama</option>
             <option>Drama &amp; Romance</option>
             <option>Dystopian</option>
+            <option>Education</option>
+            <option>Espionage</option>
+            <option>Essays</option>
             <option>Fairy Tales</option>
+            <option>Family</option>
             <option>Fantasy</option>
+            <option>Fashion</option>
             <option>Fiction</option>
             <option>Finance</option>
             <option>Folklore</option>
+            <option>Food &amp; Drink</option>
             <option>Games &amp; Gaming</option>
+            <option>Gardening</option>
+            <option>Gay &amp; Lesbian (LGBTQ+)</option>
+            <option>General Non-Fiction</option>
+            <option>Gothic</option>
+            <option>Graphic Novels</option>
             <option>Graphic Novels &amp; Comics</option>
+            <option>Guidebooks</option>
+            <option>Hard Science</option>
             <option>Health &amp; Wellness</option>
-            <option>Hindi</option>
             <option>Historical Fiction</option>
             <option>History</option>
+            <option>Holiday</option>
             <option>Horror</option>
             <option>Humor</option>
             <option>Inspirational</option>
             <option>Journalism</option>
+            <option>Juvenile Fiction</option>
             <option>Language Learning</option>
+            <option>Legal</option>
+            <option>Literary Fiction</option>
             <option>Manga</option>
+            <option>Martial Arts</option>
             <option>Mathematics</option>
+            <option>Medical</option>
+            <option>Memoir</option>
+            <option>Middle Grade</option>
+            <option>Military</option>
             <option>Music</option>
+            <option>Mystery</option>
             <option>Mystery &amp; Thriller</option>
             <option>Mythology</option>
             <option>Nature</option>
+            <option>New Adult</option>
+            <option>Noir</option>
             <option>Non-Fiction</option>
+            <option>Occult</option>
+            <option>Paranormal</option>
+            <option>Parenting</option>
             <option>Performing Arts</option>
+            <option>Pets</option>
+            <option>Philosophy</option>
             <option>Philosophy &amp; Ethics</option>
             <option>Photography</option>
+            <option>Plays</option>
+            <option>Poetry</option>
             <option>Poetry &amp; Plays</option>
+            <option>Political</option>
+            <option>Psychology</option>
+            <option>Realistic Fiction</option>
             <option>Reference</option>
             <option>Religion</option>
+            <option>Romance</option>
+            <option>Satire</option>
             <option>School Life</option>
+            <option>Science</option>
             <option>Science &amp; Technology</option>
             <option>Science Fiction</option>
+            <option>Screenplays</option>
+            <option>Self-Help</option>
             <option>Self-Help &amp; Psychology</option>
             <option>Short Stories</option>
+            <option>Slice of Life</option>
             <option>Social Science</option>
+            <option>Sociology</option>
             <option>Space</option>
             <option>Spirituality</option>
             <option>Sports</option>
+            <option>Steampunk</option>
             <option>Survival</option>
+            <option>Suspense</option>
+            <option>Technology</option>
             <option>Textbooks</option>
+            <option>Theatre</option>
+            <option>Thriller</option>
+            <option>Time Travel</option>
             <option>Travel</option>
+            <option>True Crime</option>
+            <option>Urban Fiction</option>
             <option>War</option>
             <option>Western</option>
             <option>Wildlife</option>
+            <option>Women's Fiction</option>
             <option>Young Adult (YA)</option>
           </select>
         </div>
@@ -192,6 +262,53 @@
         <div class="flex gap-3" style="margin-top:var(--sp-5);">
           <button type="button" class="btn btn-ghost btn-block" id="cancel-edit">Cancel</button>
           <button type="submit" class="btn btn-primary btn-block">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Change Password Modal ============ -->
+  <div class="modal-overlay" id="change-password-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;">
+    <div class="modal" style="max-width:400px; background:var(--bg-card); padding:var(--sp-6); border-radius:12px;">
+      <h3 style="margin-bottom:var(--sp-4);">Change Password</h3>
+      <form id="change-password-form">
+        <div class="field">
+          <label for="cp-old">Current Password</label>
+          <input type="password" id="cp-old" required>
+        </div>
+        <div class="field">
+          <label for="cp-new">New Password</label>
+          <input type="password" id="cp-new" required minlength="8">
+        </div>
+        <div class="field">
+          <label for="cp-confirm">Confirm New Password</label>
+          <input type="password" id="cp-confirm" required minlength="8">
+        </div>
+        <div class="flex gap-3" style="margin-top:var(--sp-5);">
+          <button type="button" class="btn btn-ghost btn-block" id="cancel-change-password">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-block">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Delete Profile Modal ============ -->
+  <div class="modal-overlay" id="delete-profile-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;">
+    <div class="modal" style="max-width:400px; background:var(--bg-card); padding:var(--sp-6); border-radius:12px;">
+      <h3 style="margin-bottom:var(--sp-3); color:var(--danger);">Delete Profile</h3>
+      <p class="text-tertiary" style="margin-bottom:var(--sp-5); font-size:var(--fs-small);">This action is permanent and will wipe all your data.</p>
+      <form id="delete-profile-form">
+        <div class="field">
+          <label for="dp-username">Username</label>
+          <input type="text" id="dp-username" placeholder="Enter your username to confirm" required>
+        </div>
+        <div class="field">
+          <label for="dp-password">Password</label>
+          <input type="password" id="dp-password" required>
+        </div>
+        <div class="flex gap-3" style="margin-top:var(--sp-5);">
+          <button type="button" class="btn btn-ghost btn-block" id="cancel-delete-profile">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-block">Delete Forever</button>
         </div>
       </form>
     </div>

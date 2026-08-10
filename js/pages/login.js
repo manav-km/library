@@ -1,8 +1,5 @@
-import { signUp, logIn, signInWithGoogle, completeGoogleSignUp, watchAuthState } from "../firebase/auth.js";
-import { showToast, populateGenreSelects, qs, qsa } from "../utils/helpers.js";
-
-// Populate genre dropdowns on load
-document.addEventListener("DOMContentLoaded", () => populateGenreSelects());
+import { signUp, logIn, signInWithGoogle, watchAuthState, completeGoogleSignUp } from "../firebase/auth.js";
+import { showToast, qs, qsa } from "../utils/helpers.js";
 
 function redirectByRole(profile) {
   window.location.href = "student-dashboard.html";
@@ -43,13 +40,15 @@ function formatAuthError(err) {
 qsa(".google-signin-btn").forEach((btn) => {
   btn.addEventListener("click", async () => {
     try {
-      const res = await signInWithGoogle();
-      if (res && res.needsExtraInfo) {
-        window.tempGoogleUser = res.user;
-        qs("#google-signup-modal").classList.add("open");
-      } else if (res) {
-        showToast(`Signed in with Google — welcome back, ${(res.name || "User").split(" ")[0]}.`);
-        setTimeout(() => redirectByRole(res), 500);
+      const result = await signInWithGoogle();
+      if (result.isNewUser) {
+        // Show modal and prefill name
+        qs("#google-signup-modal").style.display = "flex";
+        qs("#gs-name").value = result.user.displayName || "";
+      } else {
+        const profile = result;
+        showToast(`Signed in with Google — welcome back, ${profile.name.split(" ")[0]}.`);
+        setTimeout(() => redirectByRole(profile), 500);
       }
     } catch (err) {
       console.error(err);
@@ -61,11 +60,11 @@ qsa(".google-signin-btn").forEach((btn) => {
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const identifier = qs("#login-identifier").value.trim();
+    const email = qs("#login-email").value;
     const password = qs("#login-password").value;
     try {
-      const profile = await logIn(identifier, password);
-      showToast(`Welcome back, ${(profile.name || "User").split(" ")[0]}.`);
+      const profile = await logIn(email, password);
+      showToast(`Welcome back, ${profile.name.split(" ")[0]}.`);
       setTimeout(() => redirectByRole(profile), 500);
     } catch (err) {
       console.error(err);
@@ -79,7 +78,7 @@ if (signupForm) {
     e.preventDefault();
     const payload = {
       name: qs("#signup-name").value,
-      username: qs("#signup-username").value.trim().toLowerCase(),
+      username: qs("#signup-username").value,
       className: qs("#signup-class").value,
       section: qs("#signup-section").value,
       rollNumber: qs("#signup-roll").value,
@@ -98,26 +97,32 @@ if (signupForm) {
   });
 }
 
-const gsForm = qs("#google-signup-form");
-if (gsForm) {
-  gsForm.addEventListener("submit", async (e) => {
+const googleSignupForm = qs("#google-signup-form");
+if (googleSignupForm) {
+  googleSignupForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!window.tempGoogleUser) return;
-    
+    const password = qs("#gs-password").value;
+    const confirm = qs("#gs-password-confirm").value;
+
+    if (password !== confirm) {
+      showToast("Passwords do not match.", "error");
+      return;
+    }
+
     const payload = {
-      username: qs("#gs-username").value.trim().toLowerCase(),
-      password: qs("#gs-password").value,
+      name: qs("#gs-name").value,
+      username: qs("#gs-username").value,
       className: qs("#gs-class").value,
       section: qs("#gs-section").value,
       rollNumber: qs("#gs-roll").value,
-      favouriteGenre: qs("#gs-genre").value
+      favouriteGenre: qs("#gs-genre").value,
+      password: password
     };
-    
+
     try {
-      const profile = await completeGoogleSignUp(window.tempGoogleUser, payload);
-      showToast("Profile completed — welcome to the library.");
-      qs("#google-signup-modal").classList.remove("open");
-      window.tempGoogleUser = null;
+      const profile = await completeGoogleSignUp(payload);
+      qs("#google-signup-modal").style.display = "none";
+      showToast("Account created — welcome to the library.");
       setTimeout(() => redirectByRole(profile), 500);
     } catch (err) {
       console.error(err);
@@ -125,8 +130,3 @@ if (gsForm) {
     }
   });
 }
-
-qs("#gs-cancel-btn")?.addEventListener("click", () => {
-  qs("#google-signup-modal").classList.remove("open");
-  window.tempGoogleUser = null;
-});

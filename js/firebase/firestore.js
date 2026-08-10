@@ -166,83 +166,12 @@ export async function logAuditAction({ action, category, details, performedBy, t
 
 export async function getAuditLogs() {
   try {
-    const snap = await getDocs(collection(db, "audit_logs"));
-    const logs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    // Sort locally to bypass Firestore index/schema issues
-    logs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-    return logs.slice(0, 150);
+    const snap = await getDocs(
+      query(collection(db, "audit_logs"), orderBy("timestamp", "desc"), limit(150))
+    );
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   } catch (err) {
     console.warn("Failed to fetch audit logs:", err);
     return [];
   }
-}
-
-/* -------------------------- Schedules ----------------------------------- */
-
-export function getMondayDateString(d = new Date()) {
-  const dateObj = new Date(d);
-  const day = dateObj.getDay();
-  const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday (0)
-  const monday = new Date(dateObj.setDate(diff));
-  
-  const yyyy = monday.getFullYear();
-  const mm = String(monday.getMonth() + 1).padStart(2, "0");
-  const dd = String(monday.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-export async function getScheduleForCurrentWeek(targetDate = new Date()) {
-  const weekId = getMondayDateString(targetDate);
-  try {
-    const q = query(collection(db, "schedules"), where("weekId", "==", weekId));
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  } catch (err) {
-    console.warn("Failed to fetch schedule for current week:", err);
-    return [];
-  }
-}
-
-export async function addSchedulePeriod(periodData) {
-  const weekId = getMondayDateString(periodData.date ? new Date(periodData.date) : new Date());
-  const docRef = await addDoc(collection(db, "schedules"), {
-    ...periodData,
-    weekId,
-    createdAt: Date.now()
-  });
-  return docRef.id;
-}
-
-export async function deleteSchedulePeriod(scheduleId) {
-  await deleteDoc(doc(db, "schedules", scheduleId));
-}
-
-/* -------------------------- Announcements ----------------------------------- */
-
-export async function getAllAnnouncements() {
-  try {
-    const snap = await getDocs(
-      query(collection(db, "announcements"), orderBy("timestamp", "desc"))
-    );
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  } catch (err) {
-    console.warn("Failed to fetch announcements:", err);
-    return [];
-  }
-}
-
-export async function addAnnouncement(announcementData) {
-  const docRef = await addDoc(collection(db, "announcements"), {
-    ...announcementData,
-    timestamp: Date.now()
-  });
-  return docRef.id;
-}
-
-export async function updateAnnouncement(announcementId, changes) {
-  await updateDoc(doc(db, "announcements", announcementId), changes);
-}
-
-export async function deleteAnnouncement(announcementId) {
-  await deleteDoc(doc(db, "announcements", announcementId));
 }
