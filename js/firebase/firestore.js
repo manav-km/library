@@ -216,3 +216,33 @@ export async function addSchedulePeriod(periodData) {
 export async function deleteSchedulePeriod(scheduleId) {
   await deleteDoc(doc(db, "schedules", scheduleId));
 }
+
+/* -------------------------- Announcements ----------------------------------- */
+
+export async function getAllAnnouncements() {
+  try {
+    const snap = await getDocs(
+      query(collection(db, "announcements"), orderBy("timestamp", "desc"))
+    );
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch (err) {
+    console.warn("Failed to fetch announcements:", err);
+    return [];
+  }
+}
+
+export async function addAnnouncement(announcementData) {
+  const docRef = await addDoc(collection(db, "announcements"), {
+    ...announcementData,
+    timestamp: Date.now()
+  });
+  return docRef.id;
+}
+
+export async function updateAnnouncement(announcementId, changes) {
+  await updateDoc(doc(db, "announcements", announcementId), changes);
+}
+
+export async function deleteAnnouncement(announcementId) {
+  await deleteDoc(doc(db, "announcements", announcementId));
+}

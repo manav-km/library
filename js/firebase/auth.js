@@ -45,7 +45,7 @@ export async function completeGoogleSignUp(user, { username, password, className
   
   const profile = {
     uid: user.uid,
-    name: user.displayName || user.email.split("@")[0],
+    name: user.displayName || (user.email ? user.email.split("@")[0] : username),
     email: user.email,
     username,
     role: "student",

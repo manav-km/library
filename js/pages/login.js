@@ -48,7 +48,7 @@ qsa(".google-signin-btn").forEach((btn) => {
         window.tempGoogleUser = res.user;
         qs("#google-signup-modal").classList.add("open");
       } else if (res) {
-        showToast(`Signed in with Google — welcome back, ${res.name.split(" ")[0]}.`);
+        showToast(`Signed in with Google — welcome back, ${(res.name || "User").split(" ")[0]}.`);
         setTimeout(() => redirectByRole(res), 500);
       }
     } catch (err) {
@@ -65,7 +65,7 @@ if (loginForm) {
     const password = qs("#login-password").value;
     try {
       const profile = await logIn(identifier, password);
-      showToast(`Welcome back, ${profile.name.split(" ")[0]}.`);
+      showToast(`Welcome back, ${(profile.name || "User").split(" ")[0]}.`);
       setTimeout(() => redirectByRole(profile), 500);
     } catch (err) {
       console.error(err);

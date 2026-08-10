@@ -167,6 +167,16 @@ service cloud.firestore {
     }
 
     // ------------------------------------------------------------------
+    // announcements/{docId}
+    //
+    // Fields: heading, content, timestamp, createdBy
+    // ------------------------------------------------------------------
+    match /announcements/{docId} {
+      allow read: if true;
+      allow write: if isTeacherOrAdmin();
+    }
+
+    // ------------------------------------------------------------------
     // audit_logs/{docId}
     //
     // Fields: action, category, details, performedBy, targetId, timestamp

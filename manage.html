@@ -33,6 +33,7 @@
         <div class="tab" data-tab="reviews">Review moderation</div>
         <div class="tab" data-tab="students">Student management</div>
         <div class="tab" data-tab="audit">Audit logs</div>
+        <div class="tab" data-tab="announcements">Announcements</div>
         <div class="tab" data-tab="users" id="tab-users-nav" style="display:none;">User management</div>
       </div>
 
@@ -87,6 +88,22 @@
               <tr><th>Timestamp</th><th>Category</th><th>Action Details</th><th>Performed By</th></tr>
             </thead>
             <tbody id="audit-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ Announcements ============ -->
+      <section id="tab-announcements" style="display:none;">
+        <div class="library-toolbar">
+          <button class="btn btn-primary" id="add-announcement-btn">+ New Announcement</button>
+        </div>
+
+        <div class="card table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>Timestamp</th><th>Heading</th><th>Content</th><th>Created By</th><th></th></tr>
+            </thead>
+            <tbody id="announcements-table-body"></tbody>
           </table>
         </div>
       </section>
@@ -226,6 +243,28 @@
       <div class="flex justify-end" style="margin-top:var(--sp-5);">
         <button class="btn btn-ghost btn-block" id="close-user-profile-btn">Close</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ Announcement Modal ============ -->
+  <div class="modal-overlay" id="announcement-modal">
+    <div class="modal" style="max-width:500px;">
+      <h3 id="announcement-modal-title">New Announcement</h3>
+      <form id="announcement-form">
+        <input type="hidden" id="announcement-doc-id">
+        <div class="field">
+          <label for="ann-heading">Heading</label>
+          <input type="text" id="ann-heading" required maxlength="100" placeholder="E.g. Reading week starts Monday">
+        </div>
+        <div class="field">
+          <label for="ann-content">Content</label>
+          <textarea id="ann-content" rows="4" required maxlength="500" placeholder="Details of the announcement..."></textarea>
+        </div>
+        <div class="flex gap-3" style="margin-top:var(--sp-5);">
+          <button type="button" class="btn btn-ghost btn-block" id="cancel-announcement-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-block">Save</button>
+        </div>
+      </form>
     </div>
   </div>
 
