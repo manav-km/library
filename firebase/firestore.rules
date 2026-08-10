@@ -56,7 +56,7 @@ service cloud.firestore {
     // ------------------------------------------------------------------
     match /users/{uid} {
 
-      allow read: if isSignedIn();
+      allow read: if true; // allow public read for username lookup during login
 
       // Account creation: only the user themself, only as "student",
       // and only with the fields this app actually uses.
@@ -70,9 +70,15 @@ service cloud.firestore {
       // Self-edit: a student/teacher may update their own profile fields,
       // but the role field must stay exactly what it already was —
       // nobody can promote themselves through a normal profile edit.
+      // Also, username cannot be edited.
       allow update: if isOwner(uid)
                     && request.resource.data.role == resource.data.role
-                    && request.resource.data.uid == resource.data.uid;
+                    && request.resource.data.uid == resource.data.uid
+                    && (
+                      !('username' in request.resource.data)
+                      || !('username' in resource.data)
+                      || request.resource.data.username == resource.data.username
+                    );
 
       // Admin override: admins may change anyone's role (promote to
       // teacher, revoke back to student) or edit any profile field.

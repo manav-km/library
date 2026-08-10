@@ -47,8 +47,8 @@
         <!-- ============ Login form ============ -->
         <form id="login-form">
           <div class="field">
-            <label for="login-email">Email</label>
-            <input type="email" id="login-email" placeholder="you@sajs.edu" required>
+            <label for="login-identifier">Username or Email</label>
+            <input type="text" id="login-identifier" placeholder="username or you@sajs.edu" required>
           </div>
           <div class="field">
             <label for="login-password">Password</label>
@@ -63,6 +63,10 @@
           <div class="field">
             <label for="signup-name">Full name</label>
             <input type="text" id="signup-name" placeholder="Ananya Sharma" required>
+          </div>
+          <div class="field">
+            <label for="signup-username">Username</label>
+            <input type="text" id="signup-username" placeholder="ananya_sharma" required pattern="^[a-zA-Z0-9_]+$" title="Only letters, numbers, and underscores are allowed.">
           </div>
           <div class="field-row">
             <div class="field">
@@ -154,6 +158,46 @@
 
         <p style="text-align:center; margin-top:var(--sp-6);"><a href="index.html">← Back to home</a></p>
       </div>
+    </div>
+  </div>
+  <div class="modal-overlay" id="google-signup-modal">
+    <div class="modal" style="max-width:480px;">
+      <h3 style="margin-top:0; font-size:var(--fs-h3);">Complete your profile</h3>
+      <p style="color:var(--text-tertiary); font-size:var(--fs-small); margin-bottom:var(--sp-4);">
+        Since this is your first time signing in with Google, please choose a password and fill out the following details. You can use this password to sign in without Google in the future.
+      </p>
+      <form id="google-signup-form">
+        <div class="field">
+          <label for="gs-username">Username</label>
+          <input type="text" id="gs-username" placeholder="student_name" required pattern="^[a-zA-Z0-9_]+$" title="Only letters, numbers, and underscores are allowed.">
+        </div>
+        <div class="field">
+          <label for="gs-password">Password</label>
+          <input type="password" id="gs-password" placeholder="At least 8 characters" required minlength="8">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="gs-class">Class</label>
+            <input type="text" id="gs-class" placeholder="9" required>
+          </div>
+          <div class="field">
+            <label for="gs-section">Section</label>
+            <input type="text" id="gs-section" placeholder="B" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="gs-roll">Roll number</label>
+          <input type="text" id="gs-roll" placeholder="24" required>
+        </div>
+        <div class="field">
+          <label for="gs-genre">Favourite genre</label>
+          <select id="gs-genre"></select>
+        </div>
+        <div class="flex justify-end gap-3" style="margin-top:var(--sp-5);">
+          <button type="button" class="btn btn-ghost" id="gs-cancel-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Complete Signup</button>
+        </div>
+      </form>
     </div>
   </div>
 

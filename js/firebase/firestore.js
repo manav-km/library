@@ -166,10 +166,11 @@ export async function logAuditAction({ action, category, details, performedBy, t
 
 export async function getAuditLogs() {
   try {
-    const snap = await getDocs(
-      query(collection(db, "audit_logs"), orderBy("timestamp", "desc"), limit(150))
-    );
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const snap = await getDocs(collection(db, "audit_logs"));
+    const logs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    // Sort locally to bypass Firestore index/schema issues
+    logs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    return logs.slice(0, 150);
   } catch (err) {
     console.warn("Failed to fetch audit logs:", err);
     return [];

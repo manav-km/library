@@ -10,10 +10,11 @@ import {
   signInWithPopup,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  updatePassword
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  doc, setDoc, getDoc, updateDoc
+  doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { logAuditAction } from "./firestore.js";
@@ -24,10 +25,60 @@ export async function signInWithGoogle() {
   const provider = new GoogleAuthProvider();
   const result = await signInWithPopup(auth, provider);
   const user = result.user;
-  return getUserProfile(user.uid);
+  const profile = await getUserProfile(user.uid);
+  if (!profile) {
+    return { needsExtraInfo: true, user };
+  }
+  return profile;
 }
 
-export async function signUp({ email, password, name, className, section, rollNumber, favouriteGenre }) {
+export async function completeGoogleSignUp(user, { username, password, className, section, rollNumber, favouriteGenre }) {
+  // Check if username is already taken
+  const q = query(collection(db, "users"), where("username", "==", username));
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    throw new Error("Username is already taken.");
+  }
+
+  await updatePassword(user, password);
+  const isAdminEmail = ADMIN_EMAILS.includes((user.email || "").toLowerCase());
+  
+  const profile = {
+    uid: user.uid,
+    name: user.displayName || user.email.split("@")[0],
+    email: user.email,
+    username,
+    role: "student",
+    className: className || "",
+    section: section || "",
+    rollNumber: rollNumber || "",
+    favouriteGenre: favouriteGenre || "Fiction",
+    bio: "",
+    profilePicture: user.photoURL || "",
+    createdAt: Date.now(),
+    lastOnline: Date.now()
+  };
+  await setDoc(doc(db, "users", user.uid), profile);
+
+  logAuditAction({
+    action: "USER_SIGNUP",
+    category: "Users",
+    details: `New account created via Google: ${profile.name} (${profile.email}).`,
+    performedBy: profile,
+    targetId: profile.uid
+  });
+
+  return isAdminEmail ? { ...profile, role: "admin" } : profile;
+}
+
+export async function signUp({ email, password, name, className, section, rollNumber, favouriteGenre, username }) {
+  // Check if username is already taken
+  const q = query(collection(db, "users"), where("username", "==", username));
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    throw new Error("Username is already taken.");
+  }
+
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(cred.user, { displayName: name });
 
@@ -36,6 +87,7 @@ export async function signUp({ email, password, name, className, section, rollNu
     uid: cred.user.uid,
     name,
     email,
+    username,
     role: "student", // Always write "student" on creation to satisfy firestore.md security rules
     className: className || "",
     section: section || "",
@@ -59,7 +111,16 @@ export async function signUp({ email, password, name, className, section, rollNu
   return isAdminEmail ? { ...profile, role: "admin" } : profile;
 }
 
-export async function logIn(email, password) {
+export async function logIn(identifier, password) {
+  let email = identifier;
+  if (!identifier.includes("@")) {
+    const q = query(collection(db, "users"), where("username", "==", identifier));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      throw new Error("Username not found.");
+    }
+    email = snap.docs[0].data().email;
+  }
   const cred = await signInWithEmailAndPassword(auth, email, password);
   return getUserProfile(cred.user.uid);
 }
@@ -80,32 +141,8 @@ export async function getUserProfile(uid) {
     }
     return data;
   } else if (user && user.uid === uid) {
-    const isAdminEmail = ADMIN_EMAILS.includes((user.email || "").toLowerCase());
-    const profile = {
-      uid: user.uid,
-      name: user.displayName || user.email.split("@")[0],
-      email: user.email,
-      role: "student", // Always write "student" on creation to satisfy firestore.md security rules
-      className: "",
-      section: "",
-      rollNumber: "",
-      favouriteGenre: "Fiction",
-      bio: "",
-      profilePicture: user.photoURL || "",
-      createdAt: Date.now(),
-      lastOnline: Date.now()
-    };
-    await setDoc(userDocRef, profile);
-
-    logAuditAction({
-      action: "USER_SIGNUP",
-      category: "Users",
-      details: `New account created via Google: ${profile.name} (${profile.email}).`,
-      performedBy: profile,
-      targetId: profile.uid
-    });
-
-    return isAdminEmail ? { ...profile, role: "admin" } : profile;
+    // Only return null. Profile will be created via completeGoogleSignUp
+    return null;
   }
   return null;
 }
