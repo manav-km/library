@@ -31,6 +31,40 @@ if (profile.role === "admin") {
 let currentTab = "catalogue";
 
 const addAnnouncementBtn = qs("#add-announcement-btn");
+const deleteAllBtn = qs("#delete-all-books-btn");
+
+if (deleteAllBtn) {
+  deleteAllBtn.addEventListener("click", async () => {
+    if (!books.length) {
+      showToast("Catalogue is already empty.");
+      return;
+    }
+    if (!confirm(`Are you sure you want to delete ALL ${books.length} books from Firebase? This CANNOT be undone!`)) {
+      return;
+    }
+    deleteAllBtn.disabled = true;
+    deleteAllBtn.textContent = "Deleting...";
+    try {
+      for (const b of books) {
+        await deleteBook(b.id || b.BK_ID);
+      }
+      logAuditAction({
+        action: "ALL_BOOKS_DELETE",
+        category: "Books",
+        details: `${profile.name} (${profile.role}) purged all ${books.length} books from the catalogue.`,
+        performedBy: profile
+      });
+      showToast("All books deleted successfully.");
+      await loadBooks();
+    } catch (err) {
+      console.error(err);
+      showToast("Error deleting books: " + err.message);
+    } finally {
+      deleteAllBtn.disabled = false;
+      deleteAllBtn.textContent = "🗑️ Delete All Books";
+    }
+  });
+}
 
 qsa(".tab").forEach((tab) => {
   tab.addEventListener("click", () => {
@@ -52,6 +86,9 @@ qsa(".tab").forEach((tab) => {
     }
     if (addAnnouncementBtn) {
       addAnnouncementBtn.style.display = currentTab === "catalogue" ? "inline-flex" : "none";
+    }
+    if (deleteAllBtn) {
+      deleteAllBtn.style.display = currentTab === "catalogue" ? "inline-flex" : "none";
     }
 
     if (currentTab === "reviews") loadModerationList();
