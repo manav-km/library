@@ -83,8 +83,8 @@
             <input type="text" id="signup-roll" placeholder="24" required>
           </div>
           <div class="field">
-            <label for="signup-genre">Favourite genre</label>
-            <select id="signup-genre">
+            <label for="signup-genre">Favourite genre (Ctrl/Cmd+Click to select multiple)</label>
+            <select id="signup-genre" multiple style="min-height: 120px;">
               <option>Action</option>
               <option>Adventure</option>
               <option>Alternate History</option>
@@ -223,8 +223,8 @@
   </div>
 
   <!-- ============ Google Signup Modal ============ -->
-  <div class="modal-overlay" id="google-signup-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;">
-    <div class="modal" style="max-width:500px; background:var(--bg-card); padding:var(--sp-6); border-radius:12px; max-height: 90vh; overflow-y: auto;">
+  <div class="modal-overlay" id="google-signup-modal">
+    <div class="modal">
       <h3 style="margin-bottom:var(--sp-4);">Complete your profile</h3>
       <p class="text-tertiary" style="margin-bottom:var(--sp-5);">Just a few more details to set up your library account.</p>
       
@@ -255,8 +255,8 @@
         </div>
         
         <div class="field">
-          <label for="gs-genre">Favourite genre</label>
-          <select id="gs-genre">
+          <label for="gs-genre">Favourite genre (Ctrl/Cmd+Click to select multiple)</label>
+          <select id="gs-genre" multiple style="min-height: 120px;">
             <option>Fiction</option>
             <option>Non-Fiction</option>
             <option>Science Fiction</option>

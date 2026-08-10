@@ -29,7 +29,10 @@ if (profile.role === "teacher") {
 }
 
 qs("#profile-bio").textContent = profile.bio || "No bio yet — tell others what you like to read.";
-qs("#fav-genre-tag").innerHTML = `<span style="--spine-color:${spineColorFor(profile.favouriteGenre)};display:inline-block;width:3px;height:14px;border-radius:2px;background:${spineColorFor(profile.favouriteGenre)};margin-right:7px;"></span>${profile.favouriteGenre || "Not set"}`;
+const favGenres = Array.isArray(profile.favouriteGenre) ? profile.favouriteGenre : (profile.favouriteGenre ? [profile.favouriteGenre] : []);
+const displayGenre = favGenres.length > 0 ? favGenres.join(", ") : "Not set";
+const firstGenre = favGenres.length > 0 ? favGenres[0] : null;
+qs("#fav-genre-tag").innerHTML = `<span style="--spine-color:${spineColorFor(firstGenre)};display:inline-block;width:3px;height:14px;border-radius:2px;background:${spineColorFor(firstGenre)};margin-right:7px;"></span>${displayGenre}`;
 
 if (profile.role === "teacher" || profile.role === "admin") {
   const quickAccessList = qs("#quick-access-list");
@@ -89,7 +92,8 @@ qs("#edit-profile-btn").addEventListener("click", () => {
   qs("#edit-name").value = profile.name || "";
   qs("#edit-email").value = profile.email || "";
   qs("#edit-bio").value = profile.bio || "";
-  qs("#edit-genre").value = profile.favouriteGenre || "Fiction";
+  const userGenres = Array.isArray(profile.favouriteGenre) ? profile.favouriteGenre : [profile.favouriteGenre || "Fiction"];
+  Array.from(qs("#edit-genre").options).forEach(opt => opt.selected = userGenres.includes(opt.value));
   qs("#edit-class").value = profile.className || "";
   qs("#edit-section").value = profile.section || "";
   qs("#edit-roll").value = profile.rollNumber || "";
@@ -112,7 +116,7 @@ qs("#edit-profile-form").addEventListener("submit", async (e) => {
     name: qs("#edit-name").value,
     email: qs("#edit-email").value,
     bio: qs("#edit-bio").value,
-    favouriteGenre: qs("#edit-genre").value
+    favouriteGenre: Array.from(qs("#edit-genre").selectedOptions).map(opt => opt.value)
   };
 
   if (qs("#edit-class")) changes.className = qs("#edit-class").value;

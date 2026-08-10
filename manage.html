@@ -24,12 +24,15 @@
 
   <main class="app-main">
     <div class="container">
-      <div class="section-head">
+      <div class="section-head" style="align-items: center; flex-wrap: wrap;">
         <div>
           <span class="eyebrow" id="manage-eyebrow">Management tools</span>
           <h1 style="margin:0; font-size:var(--fs-h2);" id="manage-title">Library Management</h1>
         </div>
-        <button class="btn btn-primary" id="add-book-btn">+ Add book</button>
+        <div class="flex flex-col gap-3">
+          <button class="btn btn-primary" id="add-book-btn">+ Add book</button>
+          <button class="btn btn-secondary" id="add-announcement-btn">+ Add Announcement</button>
+        </div>
       </div>
 
       <div class="tabs" id="manage-tabs">

@@ -43,7 +43,7 @@ qsa(".google-signin-btn").forEach((btn) => {
       const result = await signInWithGoogle();
       if (result.isNewUser) {
         // Show modal and prefill name
-        qs("#google-signup-modal").style.display = "flex";
+        qs("#google-signup-modal").classList.add("open");
         qs("#gs-name").value = result.user.displayName || "";
       } else {
         const profile = result;
@@ -82,7 +82,7 @@ if (signupForm) {
       className: qs("#signup-class").value,
       section: qs("#signup-section").value,
       rollNumber: qs("#signup-roll").value,
-      favouriteGenre: qs("#signup-genre").value,
+      favouriteGenre: Array.from(qs("#signup-genre").selectedOptions).map(opt => opt.value),
       email: qs("#signup-email").value,
       password: qs("#signup-password").value
     };
@@ -115,13 +115,13 @@ if (googleSignupForm) {
       className: qs("#gs-class").value,
       section: qs("#gs-section").value,
       rollNumber: qs("#gs-roll").value,
-      favouriteGenre: qs("#gs-genre").value,
+      favouriteGenre: Array.from(qs("#gs-genre").selectedOptions).map(opt => opt.value),
       password: password
     };
 
     try {
       const profile = await completeGoogleSignUp(payload);
-      qs("#google-signup-modal").style.display = "none";
+      qs("#google-signup-modal").classList.remove("open");
       showToast("Account created — welcome to the library.");
       setTimeout(() => redirectByRole(profile), 500);
     } catch (err) {
