@@ -13,23 +13,6 @@ import {
 export async function getAllBooks() {
   const booksRef = collection(db, "books");
   const snap = await getDocs(query(booksRef, orderBy("createdAt", "desc")));
-  
-  if (snap.empty) {
-    // Auto-seed sample books if Firestore books collection is empty
-    try {
-      const res = await fetch("data/sample-books.json");
-      const samples = await res.json();
-      for (const b of samples) {
-        await addDoc(booksRef, { ...b, createdAt: serverTimestamp() });
-      }
-      const seededSnap = await getDocs(query(booksRef, orderBy("createdAt", "desc")));
-      return seededSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    } catch (e) {
-      console.warn("Failed to auto-seed Firestore sample books:", e);
-      return [];
-    }
-  }
-
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 

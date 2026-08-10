@@ -30,20 +30,28 @@ if (profile.role === "admin") {
    ========================================================================== */
 let currentTab = "catalogue";
 
+const addAnnouncementBtn = qs("#add-announcement-btn");
+
 qsa(".tab").forEach((tab) => {
   tab.addEventListener("click", () => {
     qsa(".tab").forEach((t) => t.classList.remove("active"));
     tab.classList.add("active");
     currentTab = tab.dataset.tab;
 
-    qs("#tab-catalogue").style.display = currentTab === "catalogue" ? "block" : "none";
-    qs("#tab-reviews").style.display = currentTab === "reviews" ? "block" : "none";
-    qs("#tab-students").style.display = currentTab === "students" ? "block" : "none";
-    qs("#tab-audit").style.display = currentTab === "audit" ? "block" : "none";
-    qs("#tab-users").style.display = currentTab === "users" ? "block" : "none";
+    const tabEl = (id) => qs(id);
+    const setDisplay = (id, show) => { const el = tabEl(id); if (el) el.style.display = show ? "block" : "none"; };
+
+    setDisplay("#tab-catalogue", currentTab === "catalogue");
+    setDisplay("#tab-reviews", currentTab === "reviews");
+    setDisplay("#tab-students", currentTab === "students");
+    setDisplay("#tab-audit", currentTab === "audit");
+    setDisplay("#tab-users", currentTab === "users");
 
     if (addBtn) {
       addBtn.style.display = currentTab === "catalogue" ? "inline-flex" : "none";
+    }
+    if (addAnnouncementBtn) {
+      addAnnouncementBtn.style.display = currentTab === "catalogue" ? "inline-flex" : "none";
     }
 
     if (currentTab === "reviews") loadModerationList();

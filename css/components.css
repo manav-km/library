@@ -42,6 +42,14 @@
 .btn-danger { background: rgba(248,113,113,0.15); color: var(--danger); border: 1px solid rgba(248,113,113,0.3); }
 .btn-danger:hover { background: rgba(248,113,113,0.24); }
 
+.btn-secondary {
+  background: var(--glass-fill-hi);
+  border: 1px solid var(--glass-border-hi);
+  color: var(--text-primary);
+  backdrop-filter: blur(12px);
+}
+.btn-secondary:hover { border-color: var(--indigo-400); background: rgba(91,110,245,0.12); }
+
 .btn-google {
   background: #ffffff;
   color: #1f2937;

@@ -29,9 +29,9 @@
           <span class="eyebrow" id="manage-eyebrow">Management tools</span>
           <h1 style="margin:0; font-size:var(--fs-h2);" id="manage-title">Library Management</h1>
         </div>
-        <div class="flex flex-col gap-3">
-          <button class="btn btn-primary" id="add-book-btn">+ Add book</button>
+        <div class="flex items-center gap-3">
           <button class="btn btn-secondary" id="add-announcement-btn">+ Add Announcement</button>
+          <button class="btn btn-primary" id="add-book-btn">+ Add book</button>
         </div>
       </div>
 
@@ -39,6 +39,7 @@
         <div class="tab active" data-tab="catalogue">Catalogue</div>
         <div class="tab" data-tab="reviews">Review moderation</div>
         <div class="tab" data-tab="students">Student management</div>
+        <div class="tab" data-tab="audit">Audit log</div>
         <div class="tab" data-tab="users" id="tab-users-nav" style="display:none;">User management</div>
       </div>
 
@@ -116,6 +117,30 @@
           </table>
         </div>
       </section>
+
+      <!-- ============ Audit log ============ -->
+      <section id="tab-audit" style="display:none;">
+        <div class="library-toolbar">
+          <div class="search-field">
+            <span class="icon">🔎</span>
+            <input type="text" id="audit-search" placeholder="Search audit logs by action, user, or category...">
+          </div>
+        </div>
+
+        <div class="card table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Category</th>
+                <th>Details</th>
+                <th>Performed by</th>
+              </tr>
+            </thead>
+            <tbody id="audit-table-body"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -140,123 +165,25 @@
           <div class="field">
             <label for="f-genre">Genre</label>
             <select id="f-genre">
-              <option>Action</option>
-              <option>Adventure</option>
-              <option>Alternate History</option>
-              <option>Anthology</option>
-              <option>Art</option>
-              <option>Biography</option>
+              <option>Action &amp; Adventure</option>
               <option>Biography &amp; Memoir</option>
-              <option>Business</option>
-              <option>Chick Lit</option>
-              <option>Children's</option>
+              <option>Children's &amp; Middle Grade</option>
               <option>Classics</option>
-              <option>Comedy</option>
-              <option>Coming-of-Age</option>
-              <option>Comics</option>
-              <option>Contemporary</option>
-              <option>Cookbook</option>
-              <option>Crafts &amp; DIY</option>
-              <option>Crime</option>
-              <option>Cyberpunk</option>
-              <option>Dark Fiction</option>
-              <option>Drama</option>
+              <option>Comics &amp; Graphic Novels</option>
               <option>Drama &amp; Romance</option>
-              <option>Dystopian</option>
-              <option>Education</option>
-              <option>Espionage</option>
-              <option>Essays</option>
-              <option>Fairy Tales</option>
-              <option>Family</option>
               <option>Fantasy</option>
-              <option>Fashion</option>
               <option>Fiction</option>
-              <option>Finance</option>
-              <option>Folklore</option>
-              <option>Food &amp; Drink</option>
-              <option>Games &amp; Gaming</option>
-              <option>Gardening</option>
-              <option>Gay &amp; Lesbian (LGBTQ+)</option>
-              <option>General Non-Fiction</option>
-              <option>Gothic</option>
-              <option>Graphic Novels</option>
-              <option>Graphic Novels &amp; Comics</option>
-              <option>Guidebooks</option>
-              <option>Hard Science</option>
-              <option>Health &amp; Wellness</option>
-              <option>Historical Fiction</option>
-              <option>History</option>
-              <option>Holiday</option>
-              <option>Horror</option>
-              <option>Humor</option>
-              <option>Inspirational</option>
-              <option>Journalism</option>
-              <option>Juvenile Fiction</option>
-              <option>Language Learning</option>
-              <option>Legal</option>
-              <option>Literary Fiction</option>
-              <option>Manga</option>
-              <option>Martial Arts</option>
-              <option>Mathematics</option>
-              <option>Medical</option>
-              <option>Memoir</option>
-              <option>Middle Grade</option>
-              <option>Military</option>
-              <option>Music</option>
-              <option>Mystery</option>
+              <option>History &amp; Politics</option>
+              <option>Horror &amp; Dark Fiction</option>
+              <option>Humor &amp; Satire</option>
               <option>Mystery &amp; Thriller</option>
-              <option>Mythology</option>
-              <option>Nature</option>
-              <option>New Adult</option>
-              <option>Noir</option>
               <option>Non-Fiction</option>
-              <option>Occult</option>
-              <option>Paranormal</option>
-              <option>Parenting</option>
-              <option>Performing Arts</option>
-              <option>Pets</option>
-              <option>Philosophy</option>
               <option>Philosophy &amp; Ethics</option>
-              <option>Photography</option>
-              <option>Plays</option>
-              <option>Poetry</option>
               <option>Poetry &amp; Plays</option>
-              <option>Political</option>
-              <option>Psychology</option>
-              <option>Realistic Fiction</option>
-              <option>Reference</option>
-              <option>Religion</option>
-              <option>Romance</option>
-              <option>Satire</option>
-              <option>School Life</option>
-              <option>Science</option>
+              <option>Religion &amp; Spirituality</option>
               <option>Science &amp; Technology</option>
-              <option>Science Fiction</option>
-              <option>Screenplays</option>
-              <option>Self-Help</option>
+              <option>Science Fiction &amp; Dystopian</option>
               <option>Self-Help &amp; Psychology</option>
-              <option>Short Stories</option>
-              <option>Slice of Life</option>
-              <option>Social Science</option>
-              <option>Sociology</option>
-              <option>Space</option>
-              <option>Spirituality</option>
-              <option>Sports</option>
-              <option>Steampunk</option>
-              <option>Survival</option>
-              <option>Suspense</option>
-              <option>Technology</option>
-              <option>Textbooks</option>
-              <option>Theatre</option>
-              <option>Thriller</option>
-              <option>Time Travel</option>
-              <option>Travel</option>
-              <option>True Crime</option>
-              <option>Urban Fiction</option>
-              <option>War</option>
-              <option>Western</option>
-              <option>Wildlife</option>
-              <option>Women's Fiction</option>
               <option>Young Adult (YA)</option>
             </select>
           </div>
