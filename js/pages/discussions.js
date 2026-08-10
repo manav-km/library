@@ -3,6 +3,8 @@ import { getAllBooks } from "../firebase/firestore.js";
 import { listenToThread, sendMessage, deleteMessage, createCustomThread, listenToCustomThreads } from "../firebase/realtime.js";
 import { renderNavbar } from "../components/navbar.js";
 import { initials, timeAgo, escapeHTML, showToast, qs, qsa, ALL_GENRES, MAIN_FILTER_GENRES } from "../utils/helpers.js";
+import { containsBadWords } from "../utils/profanityFilter.js";
+import { logAuditAction } from "../firebase/firestore.js";
 
 const currentProfile = await requireAuth();
 renderNavbar(currentProfile, "discussions.html");
@@ -173,11 +175,23 @@ function renderMessages(messages) {
   });
 }
 
-function send() {
+async function send() {
   const input = qs("#chat-input");
   if (!input) return;
   const text = input.value.trim();
   if (!text || !currentProfile || !activeThread) return;
+  // Profanity check
+  if (containsBadWords(text)) {
+    showToast("Message contains prohibited language.", "error");
+    await logAuditAction({
+      action: "MESSAGE_BLOCKED",
+      category: "Discussions",
+      details: `${currentProfile.name} (${currentProfile.role}) attempted to send a prohibited message in thread ${activeThread.id}.`,
+      performedBy: currentProfile,
+      targetId: activeThread.id
+    });
+    return;
+  }
   sendMessage(activeThread.id, { sender: currentProfile.name, senderUid: currentProfile.uid, message: text });
   input.value = "";
 }

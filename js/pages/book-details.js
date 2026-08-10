@@ -3,7 +3,7 @@ import { getBookById, updateBook, deleteBook, getReviewsForBook, addReview, upda
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
 import { spineColorFor, escapeHTML, starString, timeAgo, showToast, qs, qsa } from "../utils/helpers.js";
-
+import { containsBadWords, sanitizeText } from "../utils/profanityFilter.js";
 const currentProfile = await requireAuth();
 renderNavbar(currentProfile, "library.html");
 
@@ -310,7 +310,18 @@ function wireReviewForm() {
     }
     const text = qs("#review-text").value.trim();
     if (!text) return;
-
+    // Profanity check
+    if (containsBadWords(text)) {
+      showToast("Your review contains prohibited language.", "error");
+      await logAuditAction({
+        action: "REVIEW_BLOCKED",
+        category: "Reviews",
+        details: `${currentProfile.name} (${currentProfile.role}) attempted to post a review with prohibited content for book '${bookId}'.`,
+        performedBy: currentProfile,
+        targetId: bookId
+      });
+      return;
+    }
     await addReview({ bookId, userId: currentProfile.uid, userName: currentProfile.name, rating: selectedRating, reviewText: text });
     qs("#review-text").value = "";
     selectedRating = 0;

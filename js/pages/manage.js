@@ -189,7 +189,8 @@ qs("#book-form")?.addEventListener("submit", async (e) => {
 
   const coverFile = qs("#f-cover").files[0];
   if (coverFile) bookData.coverImage = await uploadImage(coverFile, "covers", bookData.BK_ID);
-
+  const pdfFile = qs("#f-pdf").files[0];
+  if (pdfFile) bookData.pdfUrl = await uploadImage(pdfFile, "pdfs", bookData.BK_ID);
   const docId = qs("#book-doc-id").value;
   if (docId) {
     await updateBook(docId, bookData);
