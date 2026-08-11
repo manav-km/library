@@ -3,6 +3,13 @@ import { getAllUsers } from "../firebase/firestore.js";
 import { renderNavbar } from "../components/navbar.js";
 import { escapeHTML, timeAgo, initials, qs, qsa } from "../utils/helpers.js";
 
+// Mirror the admin-email list so roles render correctly without a server call
+const ADMIN_EMAILS = ["manavgmishra@gmail.com"];
+function resolveRole(u) {
+  if (ADMIN_EMAILS.includes((u.email || "").toLowerCase())) return "admin";
+  return u.role || "student";
+}
+
 const profile = await requireAuth();
 renderNavbar(profile, "discover.html");
 
@@ -41,7 +48,7 @@ function renderPeopleTable(list) {
             ${avatarHTML}
             <div>
               <strong>${escapeHTML(u.name || "Unnamed User")}</strong>
-              <div style="margin-top:2px;">${roleBadge(u.role || "student")}</div>
+              <div style="margin-top:2px;">${roleBadge(resolveRole(u))}</div>
             </div>
           </div>
         </td>
@@ -68,7 +75,7 @@ function openProfileModal(uid) {
   const container = qs("#user-profile-content");
   if (!container) return;
 
-  const role = targetUser.role || "student";
+  const role = resolveRole(targetUser);
   const userInitials = initials(targetUser.name || "U");
   const avatarHTML = targetUser.profilePicture
     ? `<img src="${escapeHTML(targetUser.profilePicture)}" class="avatar avatar-lg" alt="${escapeHTML(targetUser.name)}">`

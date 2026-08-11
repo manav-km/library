@@ -11,9 +11,7 @@ import {
 /* ---------------------------- Books ------------------------------------ */
 
 export async function getAllBooks() {
-  const booksRef = collection(db, "books");
-  const snap = await getDocs(query(booksRef, orderBy("createdAt", "desc")));
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return [];
 }
 
 export async function getBookById(bkId) {
