@@ -8,7 +8,6 @@ import { logOut } from "../firebase/auth.js";
 const NAV_LINKS = [
   { href: "index.html", label: "Home" },
   { href: "library.html", label: "Library" },
-  { href: "glossary.html", label: "Glossary" },
   { href: "discussions.html", label: "Discussions" },
   { href: "discover.html", label: "Discover People" }
 ];
