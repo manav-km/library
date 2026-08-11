@@ -123,6 +123,30 @@ export async function updateUserProfile(uid, changes) {
   await updateDoc(doc(db, "users", uid), changes);
 }
 
+/* ------------------------- Announcements --------------------------------- */
+
+export async function getAnnouncements() {
+  const snap = await getDocs(
+    query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(20))
+  );
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function addAnnouncement({ title, body, authorName, authorRole }) {
+  const ref = await addDoc(collection(db, "announcements"), {
+    title: title || "",
+    body: body || "",
+    authorName: authorName || "Admin",
+    authorRole: authorRole || "admin",
+    createdAt: Date.now()
+  });
+  return ref.id;
+}
+
+export async function deleteAnnouncement(id) {
+  await deleteDoc(doc(db, "announcements", id));
+}
+
 /* -------------------------- Audit Logs ----------------------------------- */
 
 export async function logAuditAction({ action, category, details, performedBy, targetId = "" }) {

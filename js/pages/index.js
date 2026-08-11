@@ -1,5 +1,5 @@
 import { watchAuthState } from "../firebase/auth.js";
-import { getAllBooks } from "../firebase/firestore.js";
+import { getAllBooks, getAnnouncements } from "../firebase/firestore.js";
 import { renderNavbar } from "../components/navbar.js";
 import { renderBookGrid } from "../components/bookCard.js";
 import { ensureReviewModal, wireReviewButtons } from "../components/reviewModal.js";
@@ -42,6 +42,33 @@ async function init() {
   if (recent) renderBookGrid(recent, books.slice(0, 6));
 
   if (currentProfile) wireReviewButtons(currentProfile);
+
+  // ── Announcements ────────────────────────────────────────────────────────
+  const annList = document.getElementById("announcements-list");
+  if (annList) {
+    try {
+      const announcements = await getAnnouncements();
+      if (!announcements.length) {
+        annList.innerHTML = `<p class="text-tertiary" style="font-size:var(--fs-small);">No announcements at this time.</p>`;
+      } else {
+        annList.innerHTML = announcements.map(a => {
+          const date = new Date(a.createdAt).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" });
+          return `
+            <div class="announcement">
+              <span class="dot"></span>
+              <div>
+                <strong style="color:var(--text-primary); font-size:var(--fs-small);">${a.title}</strong>
+                <p style="margin:2px 0 4px; font-size:var(--fs-tiny); color:var(--text-secondary);">${a.body}</p>
+                <span style="font-size:var(--fs-tiny); color:var(--text-tertiary);">Posted ${date} · ${a.authorName}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    } catch (err) {
+      console.warn("Could not load announcements:", err);
+    }
+  }
 }
 
 init();

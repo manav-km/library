@@ -2,7 +2,8 @@ import { requireAuth } from "../firebase/auth.js";
 import {
   getAllBooks, getNextBookId, addBook, updateBook, deleteBook,
   getReviewsForBook, deleteReview, getAllUsers, setUserRole,
-  logAuditAction, getAuditLogs
+  logAuditAction, getAuditLogs,
+  addAnnouncement, getAnnouncements, deleteAnnouncement
 } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
@@ -87,6 +88,8 @@ qsa(".tab").forEach((tab) => {
     if (addAnnouncementBtn) {
       addAnnouncementBtn.style.display = currentTab === "catalogue" ? "inline-flex" : "none";
     }
+
+
     if (deleteAllBtn) {
       deleteAllBtn.style.display = currentTab === "catalogue" ? "inline-flex" : "none";
     }
@@ -541,3 +544,83 @@ qs("#user-profile-modal")?.addEventListener("click", (e) => {
 
 // Initial load
 loadBooks();
+
+/* ==========================================================================
+   Announcements
+   ========================================================================== */
+if (addAnnouncementBtn) {
+  addAnnouncementBtn.addEventListener("click", () => {
+    // Inject modal if not already present
+    if (!qs("#announcement-modal")) {
+      const m = document.createElement("div");
+      m.id = "announcement-modal";
+      m.className = "modal-overlay";
+      m.innerHTML = `
+        <div class="modal-box" style="max-width:520px;">
+          <div class="modal-header">
+            <h2 class="modal-title">New Announcement</h2>
+            <button class="modal-close" id="ann-modal-close-x">✕</button>
+          </div>
+          <div class="modal-body" style="display:flex; flex-direction:column; gap:var(--sp-4);">
+            <div class="form-group">
+              <label class="form-label" for="ann-title">Title</label>
+              <input type="text" id="ann-title" class="form-input" placeholder="e.g. Library closed on Monday">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="ann-body">Message</label>
+              <textarea id="ann-body" class="form-input" rows="4" placeholder="Write the full announcement here…" style="resize:vertical;"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" id="ann-modal-cancel">Cancel</button>
+            <button class="btn btn-primary" id="ann-modal-save">📣 Post Announcement</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(m);
+
+      const closeModal = () => m.classList.remove("open");
+
+      qs("#ann-modal-close-x").addEventListener("click", closeModal);
+      qs("#ann-modal-cancel").addEventListener("click", closeModal);
+      m.addEventListener("click", (e) => { if (e.target === m) closeModal(); });
+
+      qs("#ann-modal-save").addEventListener("click", async () => {
+        const titleVal = qs("#ann-title").value.trim();
+        const bodyVal  = qs("#ann-body").value.trim();
+        if (!titleVal) { showToast("Please enter a title."); return; }
+        if (!bodyVal)  { showToast("Please enter a message."); return; }
+
+        const saveBtn = qs("#ann-modal-save");
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Posting…";
+        try {
+          await addAnnouncement({
+            title: titleVal,
+            body: bodyVal,
+            authorName: profile.name || "Admin",
+            authorRole: profile.role || "admin"
+          });
+          logAuditAction({
+            action: "ANNOUNCEMENT_ADD",
+            category: "Announcements",
+            details: `"${titleVal}" posted by ${profile.name}`,
+            performedBy: profile
+          });
+          showToast("Announcement posted successfully!");
+          qs("#ann-title").value = "";
+          qs("#ann-body").value = "";
+          closeModal();
+        } catch (err) {
+          console.error(err);
+          showToast("Error posting announcement: " + err.message);
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = "📣 Post Announcement";
+        }
+      });
+    }
+
+    qs("#announcement-modal").classList.add("open");
+  });
+}

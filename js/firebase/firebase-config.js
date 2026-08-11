@@ -1,5 +1,5 @@
 // ==========================================================================
-// Firebase initialization — SAJS Digital Library
+// Firebase initialization — SAJS Library Site
 // ==========================================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";

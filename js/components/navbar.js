@@ -34,7 +34,7 @@ export function renderNavbar(profile, activePage = "") {
       <div class="navbar-inner">
         <a href="index.html" class="nav-brand">
           <img src="assets/image.jpeg" class="brand-logo" alt="SAJS Logo" style="width:34px;height:34px;border-radius:8px;object-fit:cover;">
-          SAJS Digital Library
+          SAJS Library Site
         </a>
 
         <div class="nav-links">
