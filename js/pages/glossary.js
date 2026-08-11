@@ -12,7 +12,7 @@ renderNavbar(profile, "glossary.html");
 //  Paste it below — free tier allows 1,000 lookups/day.
 // =============================================================================
 const MW_API_KEY = "c551a93d-6bad-432f-b0da-8e970a6d1790";
-
+const MW_ENABLED = !!MW_API_KEY;
 // Session cache — avoids re-fetching the same word during a browsing session
 const mwCache = new Map();
 
@@ -160,6 +160,10 @@ function renderGlossary(list, { append = false, mwSection = false } = {}) {
       return;
     }
     mount.innerHTML = "";
+  } else {
+    // If we're appending, make sure to remove any empty state that was shown while loading
+    const emptyState = mount.querySelector(".empty-state");
+    if (emptyState) emptyState.remove();
   }
 
   const fragment = document.createDocumentFragment();
