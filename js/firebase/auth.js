@@ -37,7 +37,7 @@ export async function signInWithGoogle() {
   }
 }
 
-export async function signUp({ email, password, name, username, className, section, rollNumber, classTeacher, favouriteGenre, subject, _isTeacherSignup }) {
+export async function signUp({ email, password, name, username, className, section, rollNumber, classTeacher, favouriteGenre, favouriteSubjects, subject, _isTeacherSignup }) {
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(cred.user, { displayName: name });
 
@@ -61,6 +61,7 @@ export async function signUp({ email, password, name, username, className, secti
     rollNumber: rollNumber || "",
     classTeacher: classTeacher || "",
     favouriteGenre: favouriteGenre || "",
+    favouriteSubjects: favouriteSubjects || [],
     subject: subject || "",
     bio: "",
     profilePicture: "",
@@ -89,7 +90,7 @@ export async function logOut() {
   await signOut(auth);
 }
 
-export async function completeGoogleSignUp({ password, name, username, className, section, rollNumber, favouriteGenre }) {
+export async function completeGoogleSignUp({ password, name, username, className, section, rollNumber, favouriteGenre, favouriteSubjects }) {
   const user = auth.currentUser;
   if (!user) throw new Error("No user currently logged in.");
 
@@ -107,6 +108,7 @@ export async function completeGoogleSignUp({ password, name, username, className
     section: section || "",
     rollNumber: rollNumber || "",
     favouriteGenre: favouriteGenre || "",
+    favouriteSubjects: favouriteSubjects || [],
     bio: "",
     profilePicture: user.photoURL || "",
     createdAt: Date.now(),

@@ -54,8 +54,8 @@ service cloud.firestore {
     // users/{uid}
     //
     // Fields: uid, name, email, role, className, section, rollNumber,
-    //         classTeacher, favouriteGenre, bio, profilePicture,
-    //         subject, lastOnline, username, createdAt
+    //         classTeacher, favouriteGenre, favouriteSubjects[], bio,
+    //         profilePicture, subject, lastOnline, username, createdAt
     // ------------------------------------------------------------------
     match /users/{uid} {
 
@@ -79,7 +79,8 @@ service cloud.firestore {
                     && request.resource.data.name.size() > 0
                     && request.resource.data.email is string
                     && (!('classTeacher' in request.resource.data) || request.resource.data.classTeacher is string)
-                    && (!('subject' in request.resource.data) || request.resource.data.subject is string);
+                    && (!('subject' in request.resource.data) || request.resource.data.subject is string)
+                    && (!('favouriteSubjects' in request.resource.data) || request.resource.data.favouriteSubjects is list);
 
       // Self-edit: may update profile fields, but role and uid are frozen —
       // nobody can self-promote through a normal profile update.

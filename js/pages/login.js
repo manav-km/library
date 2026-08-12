@@ -4,7 +4,7 @@ import { showToast, qs, qsa, initGenreChipPicker } from "../utils/helpers.js";
 const TEACHER_EMAIL_SUFFIX = "_lko@jaipuria.edu.in";
 const DEPARTMENTS = [
   "English", "Hindi", "Maths", "Social Science",
-  "Science", "Sports", "Extra Curriculars"
+  "Science", "Computer / IT", "Sports", "Extra Curriculars"
 ];
 
 function isTeacherEmail(email) {
@@ -92,6 +92,44 @@ toggleTeacherBtn.addEventListener("click", setTeacherMode);
 // ---- Initialize genre chip pickers ----
 const signupGenrePicker = initGenreChipPicker(qs("#signup-genre-picker"));
 const gsGenrePicker = initGenreChipPicker(qs("#gs-genre-picker"));
+
+// ---- Favourite Subject multi-select picker (1-3 subjects) ----
+const SUBJECTS = [
+  "Technology", "Social Science", "Science", "Sanskrit",
+  "English", "Hindi", "Maths", "Life Skills", "Art", "Library"
+];
+
+function initSubjectChipPicker(container) {
+  if (!container) return { getSelected: () => [] };
+  let selected = [];
+  function render() {
+    container.innerHTML = "";
+    SUBJECTS.forEach((sub) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "genre-chip" + (selected.includes(sub) ? " selected" : "");
+      chip.textContent = sub;
+      chip.addEventListener("click", () => {
+        if (selected.includes(sub)) {
+          selected = selected.filter(s => s !== sub);
+        } else {
+          if (selected.length >= 3) {
+            showToast("You can select up to 3 subjects.", "error");
+            return;
+          }
+          selected.push(sub);
+        }
+        render();
+      });
+      container.appendChild(chip);
+    });
+  }
+  render();
+  return { getSelected: () => selected };
+}
+
+const signupSubjectPicker = initSubjectChipPicker(qs("#signup-subject-picker"));
+const gsSubjectPicker = initSubjectChipPicker(qs("#gs-subject-picker"));
 
 // ---- Department single-select chip picker ----
 let selectedDept = "";
@@ -186,6 +224,12 @@ if (signupForm) {
       }
     }
 
+    const subjects = isTeacherMode ? [] : signupSubjectPicker.getSelected();
+    if (!isTeacherMode && (!subjects || subjects.length === 0)) {
+      showToast("Please select at least 1 Favourite Subject.", "error");
+      return;
+    }
+
     const payload = {
       name: qs("#signup-name").value,
       username: qs("#signup-username").value,
@@ -195,6 +239,7 @@ if (signupForm) {
       classTeacher: isTeacherMode ? "" : (qs("#signup-class-teacher")?.value || ""),
       subject: isTeacherMode ? selectedDept : "",
       favouriteGenre: signupGenrePicker.getSelected(),
+      favouriteSubjects: subjects,
       email,
       password: qs("#signup-password").value,
       // Pass teacher flag so auth.js can assign role
@@ -225,6 +270,12 @@ if (googleSignupForm) {
       return;
     }
 
+    const subjects = gsSubjectPicker.getSelected();
+    if (!subjects || subjects.length === 0) {
+      showToast("Please select at least 1 Favourite Subject.", "error");
+      return;
+    }
+
     const payload = {
       name: qs("#gs-name").value,
       username: qs("#gs-username").value,
@@ -232,6 +283,7 @@ if (googleSignupForm) {
       section: qs("#gs-section").value,
       rollNumber: qs("#gs-roll").value,
       favouriteGenre: gsGenrePicker.getSelected(),
+      favouriteSubjects: subjects,
       password: password
     };
 
