@@ -3,7 +3,7 @@ import {
   getAllBooks, getNextBookId, addBook, updateBook, deleteBook,
   getReviewsForBook, deleteReview, getAllUsers, setUserRole,
   logAuditAction, getAuditLogs,
-  addAnnouncement, getAnnouncements, deleteAnnouncement
+  addAnnouncement, getAnnouncements, deleteAnnouncement, updateAnnouncement
 } from "../firebase/firestore.js";
 import { uploadImage, uploadFile } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
@@ -81,6 +81,7 @@ qsa(".tab").forEach((tab) => {
     setDisplay("#tab-catalogue", currentTab === "catalogue");
     setDisplay("#tab-reviews", currentTab === "reviews");
     setDisplay("#tab-students", currentTab === "students");
+    setDisplay("#tab-announcements", currentTab === "announcements");
     setDisplay("#tab-audit", currentTab === "audit");
     setDisplay("#tab-users", currentTab === "users");
 
@@ -88,7 +89,7 @@ qsa(".tab").forEach((tab) => {
       addBtn.style.display = currentTab === "catalogue" ? "inline-flex" : "none";
     }
     if (addAnnouncementBtn) {
-      addAnnouncementBtn.style.display = currentTab === "catalogue" ? "inline-flex" : "none";
+      addAnnouncementBtn.style.display = (currentTab === "catalogue" || currentTab === "announcements") ? "inline-flex" : "none";
     }
 
 
@@ -98,6 +99,7 @@ qsa(".tab").forEach((tab) => {
 
     if (currentTab === "reviews") loadModerationList();
     if (currentTab === "students") loadStudents();
+    if (currentTab === "announcements") loadAnnouncementsList();
     if (currentTab === "audit") loadAuditLogs();
     if (currentTab === "users" && profile.role === "admin") loadUsers();
   });
@@ -591,79 +593,190 @@ loadBooks();
 /* ==========================================================================
    Announcements
    ========================================================================== */
-if (addAnnouncementBtn) {
-  addAnnouncementBtn.addEventListener("click", () => {
-    // Inject modal if not already present
-    if (!qs("#announcement-modal")) {
-      const m = document.createElement("div");
-      m.id = "announcement-modal";
-      m.className = "modal-overlay";
-      m.innerHTML = `
-        <div class="modal" style="max-width:520px;">
-          <div class="modal-header">
-            <h2 class="modal-title">New Announcement</h2>
-            <button class="btn btn-ghost btn-sm" id="ann-modal-close-x" style="padding:2px 8px; font-size:1.2rem; line-height:1;">✕</button>
+let editingAnnouncementId = null;
+
+function openAnnouncementModal(ann = null) {
+  if (!qs("#announcement-modal")) {
+    const m = document.createElement("div");
+    m.id = "announcement-modal";
+    m.className = "modal-overlay";
+    m.innerHTML = `
+      <div class="modal" style="max-width:520px;">
+        <div class="modal-header">
+          <h2 class="modal-title" id="ann-modal-title">New Announcement</h2>
+          <button class="btn btn-ghost btn-sm" id="ann-modal-close-x" style="padding:2px 8px; font-size:1.2rem; line-height:1;">✕</button>
+        </div>
+        <div class="modal-body" style="display:flex; flex-direction:column; gap:var(--sp-4);">
+          <div class="field">
+            <label class="form-label" for="ann-title">Title</label>
+            <input type="text" id="ann-title" placeholder="e.g. Library closed on Monday">
           </div>
-          <div class="modal-body" style="display:flex; flex-direction:column; gap:var(--sp-4);">
-            <div class="field">
-              <label class="form-label" for="ann-title">Title</label>
-              <input type="text" id="ann-title" placeholder="e.g. Library closed on Monday">
-            </div>
-            <div class="field">
-              <label class="form-label" for="ann-body">Message</label>
-              <textarea id="ann-body" rows="4" placeholder="Write the full announcement here…" style="resize:vertical;"></textarea>
-            </div>
-          </div>
-          <div class="flex gap-3" style="margin-top:var(--sp-5);">
-            <button class="btn btn-ghost btn-block" id="ann-modal-cancel">Cancel</button>
-            <button class="btn btn-primary btn-block" id="ann-modal-save">📣 Post Announcement</button>
+          <div class="field">
+            <label class="form-label" for="ann-body">Message</label>
+            <textarea id="ann-body" rows="4" placeholder="Write the full announcement here…" style="resize:vertical;"></textarea>
           </div>
         </div>
-      `;
-      document.body.appendChild(m);
+        <div class="flex gap-3" style="margin-top:var(--sp-5);">
+          <button class="btn btn-ghost btn-block" id="ann-modal-cancel">Cancel</button>
+          <button class="btn btn-primary btn-block" id="ann-modal-save">📣 Post Announcement</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(m);
 
-      const closeModal = () => m.classList.remove("open");
+    const closeModal = () => m.classList.remove("open");
+    qs("#ann-modal-close-x").addEventListener("click", closeModal);
+    qs("#ann-modal-cancel").addEventListener("click", closeModal);
+    m.addEventListener("click", (e) => { if (e.target === m) closeModal(); });
 
-      qs("#ann-modal-close-x").addEventListener("click", closeModal);
-      qs("#ann-modal-cancel").addEventListener("click", closeModal);
-      m.addEventListener("click", (e) => { if (e.target === m) closeModal(); });
+    qs("#ann-modal-save").addEventListener("click", handleSaveAnnouncement);
+  }
 
-      qs("#ann-modal-save").addEventListener("click", async () => {
-        const titleVal = qs("#ann-title").value.trim();
-        const bodyVal  = qs("#ann-body").value.trim();
-        if (!titleVal) { showToast("Please enter a title."); return; }
-        if (!bodyVal)  { showToast("Please enter a message."); return; }
+  const titleEl = qs("#ann-title");
+  const bodyEl = qs("#ann-body");
+  const modalTitle = qs("#ann-modal-title");
+  const saveBtn = qs("#ann-modal-save");
 
-        const saveBtn = qs("#ann-modal-save");
-        saveBtn.disabled = true;
-        saveBtn.textContent = "Posting…";
-        try {
-          await addAnnouncement({
-            title: titleVal,
-            body: bodyVal,
-            authorName: profile.name || "Admin",
-            authorRole: profile.role || "admin"
-          });
-          logAuditAction({
-            action: "ANNOUNCEMENT_ADD",
-            category: "Announcements",
-            details: `"${titleVal}" posted by ${profile.name}`,
-            performedBy: profile
-          });
-          showToast("Announcement posted successfully!");
-          qs("#ann-title").value = "";
-          qs("#ann-body").value = "";
-          closeModal();
-        } catch (err) {
-          console.error(err);
-          showToast("Error posting announcement: " + err.message);
-        } finally {
-          saveBtn.disabled = false;
-          saveBtn.textContent = "📣 Post Announcement";
-        }
+  if (ann) {
+    editingAnnouncementId = ann.id;
+    titleEl.value = ann.title || "";
+    bodyEl.value = ann.body || "";
+    modalTitle.textContent = "Edit Announcement";
+    saveBtn.textContent = "📣 Save Changes";
+  } else {
+    editingAnnouncementId = null;
+    titleEl.value = "";
+    bodyEl.value = "";
+    modalTitle.textContent = "New Announcement";
+    saveBtn.textContent = "📣 Post Announcement";
+  }
+
+  qs("#announcement-modal").classList.add("open");
+}
+
+async function handleSaveAnnouncement() {
+  const titleVal = qs("#ann-title").value.trim();
+  const bodyVal  = qs("#ann-body").value.trim();
+  if (!titleVal) { showToast("Please enter a title."); return; }
+  if (!bodyVal)  { showToast("Please enter a message."); return; }
+
+  const saveBtn = qs("#ann-modal-save");
+  saveBtn.disabled = true;
+  saveBtn.textContent = editingAnnouncementId ? "Saving..." : "Posting...";
+
+  try {
+    if (editingAnnouncementId) {
+      await updateAnnouncement(editingAnnouncementId, {
+        title: titleVal,
+        body: bodyVal
       });
+      logAuditAction({
+        action: "ANNOUNCEMENT_EDIT",
+        category: "Announcements",
+        details: `"${titleVal}" edited by ${profile.name}`,
+        performedBy: profile,
+        targetId: editingAnnouncementId
+      });
+      showToast("Announcement updated successfully!");
+    } else {
+      await addAnnouncement({
+        title: titleVal,
+        body: bodyVal,
+        authorName: profile.name || "Admin",
+        authorRole: profile.role || "admin"
+      });
+      logAuditAction({
+        action: "ANNOUNCEMENT_ADD",
+        category: "Announcements",
+        details: `"${titleVal}" posted by ${profile.name}`,
+        performedBy: profile
+      });
+      showToast("Announcement posted successfully!");
+    }
+    
+    qs("#ann-title").value = "";
+    qs("#ann-body").value = "";
+    qs("#announcement-modal").classList.remove("open");
+    
+    if (currentTab === "announcements") {
+      loadAnnouncementsList();
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("Error saving announcement: " + err.message);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = editingAnnouncementId ? "📣 Save Changes" : "📣 Post Announcement";
+  }
+}
+
+async function loadAnnouncementsList() {
+  const mount = qs("#announcements-table-body");
+  if (!mount) return;
+  mount.innerHTML = `<tr><td colspan="5" class="text-tertiary" style="text-align:center;">Loading announcements...</td></tr>`;
+
+  try {
+    const list = await getAnnouncements();
+    if (!list.length) {
+      mount.innerHTML = `<tr><td colspan="5" class="text-tertiary" style="text-align:center; padding:var(--sp-4);">No announcements found.</td></tr>`;
+      return;
     }
 
-    qs("#announcement-modal").classList.add("open");
-  });
+    mount.innerHTML = list.map((a) => {
+      const date = new Date(a.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+      const escapedTitle = escapeHTML(a.title || "");
+      const escapedBody = escapeHTML(a.body || "");
+      const escapedAuthor = escapeHTML(`${a.authorName} (${a.authorRole})`);
+      return `
+        <tr data-id="${a.id}">
+          <td><strong>${escapedTitle}</strong></td>
+          <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapedBody}</td>
+          <td>${escapedAuthor}</td>
+          <td><span class="text-tertiary" style="font-size:var(--fs-tiny);">${date}</span></td>
+          <td>
+            <div class="flex gap-2">
+              <button class="btn btn-ghost btn-sm edit-ann-btn">Edit</button>
+              <button class="btn btn-danger btn-sm delete-ann-btn">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    qsa(".edit-ann-btn", mount).forEach((btn, idx) => {
+      btn.addEventListener("click", () => {
+        openAnnouncementModal(list[idx]);
+      });
+    });
+
+    qsa(".delete-ann-btn", mount).forEach((btn, idx) => {
+      btn.addEventListener("click", async () => {
+        const ann = list[idx];
+        if (!confirm(`Delete announcement "${ann.title}"?`)) return;
+        try {
+          await deleteAnnouncement(ann.id);
+          logAuditAction({
+            action: "ANNOUNCEMENT_DELETE",
+            category: "Announcements",
+            details: `"${ann.title}" deleted by ${profile.name}`,
+            performedBy: profile,
+            targetId: ann.id
+          });
+          showToast("Announcement deleted.");
+          loadAnnouncementsList();
+        } catch (err) {
+          console.error(err);
+          showToast("Error deleting announcement: " + err.message);
+        }
+      });
+    });
+
+  } catch (err) {
+    console.error(err);
+    mount.innerHTML = `<tr><td colspan="5" class="text-danger" style="text-align:center;">Failed to load announcements: ${err.message}</td></tr>`;
+  }
+}
+
+if (addAnnouncementBtn) {
+  addAnnouncementBtn.addEventListener("click", () => openAnnouncementModal());
 }

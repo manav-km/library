@@ -40,9 +40,30 @@
         <div class="tab active" data-tab="catalogue">Catalogue</div>
         <div class="tab" data-tab="reviews">Review moderation</div>
         <div class="tab" data-tab="students">Student management</div>
+        <div class="tab" data-tab="announcements">Announcements</div>
         <div class="tab" data-tab="audit" id="tab-audit-nav" style="display:none;">Audit Log</div>
         <div class="tab" data-tab="users" id="tab-users-nav" style="display:none;">User management</div>
       </div>
+
+      <!-- ============ Announcements management ============ -->
+      <section id="tab-announcements" style="display:none;">
+        <div class="card table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Message</th>
+                <th>Author</th>
+                <th>Date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="announcements-table-body">
+              <tr><td colspan="5" class="text-tertiary" style="text-align:center;">Loading announcements...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <!-- ============ Catalogue management ============ -->
       <section id="tab-catalogue">

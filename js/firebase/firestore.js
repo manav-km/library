@@ -162,6 +162,10 @@ export async function deleteAnnouncement(id) {
   await deleteDoc(doc(db, "announcements", id));
 }
 
+export async function updateAnnouncement(id, changes) {
+  await updateDoc(doc(db, "announcements", id), changes);
+}
+
 /* -------------------------- Audit Logs ----------------------------------- */
 
 export async function logAuditAction({ action, category, details, performedBy, targetId = "" }) {
