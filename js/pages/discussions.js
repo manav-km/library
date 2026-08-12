@@ -144,6 +144,7 @@ function openThread(thread) {
 }
 
 function renderMessages(messages) {
+  console.log("💬 [Discussions] Received messages for active thread:", messages);
   const scroll = qs("#chat-scroll");
   if (!scroll) return;
   const canModerate = currentProfile && (currentProfile.role === "teacher" || currentProfile.role === "admin");

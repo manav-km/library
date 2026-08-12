@@ -47,7 +47,7 @@ export function listenToThread(bookId, callback) {
   const msgsRef = query(ref(rtdb, `discussions/${bookId}/messages`), orderByChild("timestamp"), limitToLast(100));
   const handler = (snap) => {
     const list = [];
-    snap.forEach((child) => list.push({ id: child.key, ...child.val() }));
+    snap.forEach((child) => list.push({ ...child.val(), id: child.key }));
     callback(list);
   };
   return onValue(msgsRef, handler, (err) => {
@@ -87,7 +87,7 @@ export function listenToCustomThreads(callback) {
   const threadsRef = query(ref(rtdb, "custom_threads"), orderByChild("createdAt"));
   return onValue(threadsRef, (snap) => {
     const list = [];
-    snap.forEach((child) => list.push({ id: child.key, ...child.val() }));
+    snap.forEach((child) => list.push({ ...child.val(), id: child.key }));
     callback(list.reverse());
   }, (err) => {
     console.error("RTDB listenToCustomThreads error:", err.message);
