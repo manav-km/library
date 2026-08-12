@@ -8,6 +8,15 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { hasBadWords } from "../utils/filter.js";
 
+// Connection Logger
+onValue(ref(rtdb, ".info/connected"), (snap) => {
+  if (snap.val() === true) {
+    console.log("✅ [RTDB] Connected to Realtime Database successfully!");
+  } else {
+    console.log("❌ [RTDB] Disconnected from Realtime Database.");
+  }
+});
+
 /** Returns true if the RTDB can be reached, false otherwise (5s timeout). */
 async function checkRTDBConnection() {
   return new Promise((resolve) => {

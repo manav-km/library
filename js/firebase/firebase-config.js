@@ -17,7 +17,7 @@ const firebaseConfig = {
   messagingSenderId: "875747952416",
   appId: "1:875747952416:web:fc52ca738e63fb8377b945",
   measurementId: "G-9GVY7ZBQ7T",
-  databaseURL: "https://sajs-lib-default-rtdb.firebaseio.com"
+  databaseURL: "https://sajs-lib-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
 export const DEMO_MODE = false;
@@ -25,6 +25,6 @@ export const DEMO_MODE = false;
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const rtdb = getDatabase(app);
+export const rtdb = getDatabase(app, firebaseConfig.databaseURL);
 export const storage = getStorage(app);
 export const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
