@@ -47,7 +47,21 @@ export function listenToThread(bookId, callback) {
   const msgsRef = query(ref(rtdb, `discussions/${bookId}/messages`), orderByChild("timestamp"), limitToLast(100));
   const handler = (snap) => {
     const list = [];
-    snap.forEach((child) => list.push({ ...child.val(), id: child.key }));
+    snap.forEach((child) => {
+      const val = child.val();
+      if (val && typeof val === "object") {
+        list.push({ ...val, id: child.key });
+      } else {
+        // Fallback for legacy string-only messages
+        list.push({
+          sender: "Member",
+          senderUid: "legacy",
+          message: String(val || ""),
+          timestamp: Date.now(),
+          id: child.key
+        });
+      }
+    });
     callback(list);
   };
   return onValue(msgsRef, handler, (err) => {
