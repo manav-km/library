@@ -58,11 +58,6 @@ export async function createCustomThread({ title, creatorName, creatorUid, first
     throw new Error("The discussion title or message contains inappropriate language.");
   }
 
-  const connected = await checkRTDBConnection();
-  if (!connected) {
-    throw new Error("Cannot reach the Realtime Database. Please go to Firebase Console → Realtime Database → Rules and deploy the updated rules.");
-  }
-
   const threadRef = push(ref(rtdb, "custom_threads"));
   const threadId = threadRef.key;
   await set(threadRef, {
