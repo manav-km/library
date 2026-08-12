@@ -2,7 +2,7 @@ import { requireAuth } from "../firebase/auth.js";
 import { getAllBooks } from "../firebase/firestore.js";
 import { listenToThread, sendMessage, deleteMessage, createCustomThread, listenToCustomThreads } from "../firebase/realtime.js";
 import { renderNavbar } from "../components/navbar.js";
-import { initials, timeAgo, escapeHTML, showToast, qs, qsa, ALL_GENRES, MAIN_FILTER_GENRES } from "../utils/helpers.js";
+import { initials, timeAgo, escapeHTML, showToast, qs, qsa, ALL_GENRES, MAIN_FILTER_GENRES, withTimeout } from "../utils/helpers.js";
 
 const currentProfile = await requireAuth();
 renderNavbar(currentProfile, "discussions.html");
@@ -213,12 +213,12 @@ function wireCreateThreadModal() {
       }
 
       try {
-        const newThread = await createCustomThread({
+        const newThread = await withTimeout(createCustomThread({
           title,
           creatorName: currentProfile.name,
           creatorUid: currentProfile.uid,
           firstMessage
-        });
+        }));
 
         showToast("Discussion created.");
         modal.classList.remove("open");

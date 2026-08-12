@@ -7,7 +7,7 @@ import {
 } from "../firebase/firestore.js";
 import { uploadImage, uploadFile } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
-import { escapeHTML, starString, timeAgo, showToast, initials, qs, qsa } from "../utils/helpers.js";
+import { escapeHTML, starString, timeAgo, showToast, initials, qs, qsa, withTimeout } from "../utils/helpers.js";
 
 const profile = await requireAuth(["teacher", "admin"]);
 renderNavbar(profile, "manage.html");
@@ -266,14 +266,14 @@ qs("#book-form")?.addEventListener("submit", async (e) => {
   };
 
   const coverFile = qs("#f-cover").files[0];
-  if (coverFile) bookData.coverImage = await uploadImage(coverFile, "covers", bookData.BK_ID);
+  if (coverFile) bookData.coverImage = await withTimeout(uploadImage(coverFile, "covers", bookData.BK_ID), 15000, new Error("Image upload timed out."));
 
   const pdfFile = qs("#f-pdf")?.files[0];
-  if (pdfFile) bookData.pdfUrl = await uploadFile(pdfFile, "pdfs", bookData.BK_ID);
+  if (pdfFile) bookData.pdfUrl = await withTimeout(uploadFile(pdfFile, "pdfs", bookData.BK_ID), 30000, new Error("PDF upload timed out."));
 
     const docId = qs("#book-doc-id").value;
     if (docId) {
-      await updateBook(docId, bookData);
+      await withTimeout(updateBook(docId, bookData));
       logAuditAction({
         action: "BOOK_EDIT",
         category: "Books",
@@ -283,7 +283,7 @@ qs("#book-form")?.addEventListener("submit", async (e) => {
       });
       showToast("Book updated.");
     } else {
-      await addBook(bookData);
+      await withTimeout(addBook(bookData));
       logAuditAction({
         action: "BOOK_ADD",
         category: "Books",

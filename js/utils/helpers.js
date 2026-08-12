@@ -162,3 +162,10 @@ export function initGenreChipPicker(container, initialSelected = []) {
   return { getSelected: () => [...selected] };
 }
 
+export function withTimeout(promise, ms = 8000, timeoutError = new Error("Request timed out. Please check your internet connection or Firebase database setup.")) {
+  return Promise.race([
+    promise, 
+    new Promise((_, reject) => setTimeout(() => reject(timeoutError), ms))
+  ]);
+}
+
