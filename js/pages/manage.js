@@ -229,6 +229,14 @@ qs("#cancel-book-modal")?.addEventListener("click", () => modal.classList.remove
 qs("#book-form")?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  const submitBtn = qs("#book-form button[type='submit']");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Saving...";
+  }
+
+  try {
+
   const characters = qs("#f-characters").value.split("\n").filter(Boolean).map((line) => {
     const [name, role, note] = line.split("|").map((s) => (s || "").trim());
     return { name, role, note };
@@ -259,30 +267,39 @@ qs("#book-form")?.addEventListener("submit", async (e) => {
   const pdfFile = qs("#f-pdf")?.files[0];
   if (pdfFile) bookData.pdfUrl = await uploadFile(pdfFile, "pdfs", bookData.BK_ID);
 
-  const docId = qs("#book-doc-id").value;
-  if (docId) {
-    await updateBook(docId, bookData);
-    logAuditAction({
-      action: "BOOK_EDIT",
-      category: "Books",
-      details: `${profile.name} (${profile.role}) edited book '${bookData.bookName}' (${bookData.BK_ID}).`,
-      performedBy: profile,
-      targetId: bookData.BK_ID
-    });
-    showToast("Book updated.");
-  } else {
-    await addBook(bookData);
-    logAuditAction({
-      action: "BOOK_ADD",
-      category: "Books",
-      details: `${profile.name} (${profile.role}) added new book '${bookData.bookName}' (${bookData.BK_ID}) to catalogue.`,
-      performedBy: profile,
-      targetId: bookData.BK_ID
-    });
-    showToast("Book added to catalogue.");
+    const docId = qs("#book-doc-id").value;
+    if (docId) {
+      await updateBook(docId, bookData);
+      logAuditAction({
+        action: "BOOK_EDIT",
+        category: "Books",
+        details: `${profile.name} (${profile.role}) edited book '${bookData.bookName}' (${bookData.BK_ID}).`,
+        performedBy: profile,
+        targetId: bookData.BK_ID
+      });
+      showToast("Book updated.");
+    } else {
+      await addBook(bookData);
+      logAuditAction({
+        action: "BOOK_ADD",
+        category: "Books",
+        details: `${profile.name} (${profile.role}) added new book '${bookData.bookName}' (${bookData.BK_ID}) to catalogue.`,
+        performedBy: profile,
+        targetId: bookData.BK_ID
+      });
+      showToast("Book added to catalogue.");
+    }
+    modal.classList.remove("open");
+    loadBooks();
+  } catch (err) {
+    console.error("Error saving book:", err);
+    showToast("Error saving book: " + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Save book";
+    }
   }
-  modal.classList.remove("open");
-  loadBooks();
 });
 
 /* ==========================================================================
@@ -334,7 +351,8 @@ async function loadModerationList() {
    ========================================================================== */
 let users = [];
 
-function roleBadge(role) {
+function roleBadge(roleStr) {
+  const role = (roleStr || "student").toLowerCase();
   return `<span class="badge badge-role-${role}">${role.charAt(0).toUpperCase() + role.slice(1)}</span>`;
 }
 

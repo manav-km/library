@@ -206,16 +206,32 @@ function wireCreateThreadModal() {
       const firstMessage = qs("#thread-first-msg").value.trim();
       if (!title || !firstMessage) return;
 
-      const newThread = await createCustomThread({
-        title,
-        creatorName: currentProfile.name,
-        creatorUid: currentProfile.uid,
-        firstMessage
-      });
+      const submitBtn = qs("#create-thread-form button[type='submit']");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Posting...";
+      }
 
-      showToast("Discussion created.");
-      modal.classList.remove("open");
-      openThread({ id: newThread.id, title: newThread.title, subtitle: `Started by ${currentProfile.name}` });
+      try {
+        const newThread = await createCustomThread({
+          title,
+          creatorName: currentProfile.name,
+          creatorUid: currentProfile.uid,
+          firstMessage
+        });
+
+        showToast("Discussion created.");
+        modal.classList.remove("open");
+        openThread({ id: newThread.id, title: newThread.title, subtitle: `Started by ${currentProfile.name}` });
+      } catch (err) {
+        console.error("Error creating discussion:", err);
+        showToast("Failed to create discussion: " + err.message);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Post discussion";
+        }
+      }
     });
   }
 }

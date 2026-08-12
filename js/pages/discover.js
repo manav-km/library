@@ -15,7 +15,8 @@ renderNavbar(profile, "discover.html");
 
 let allUsers = [];
 
-function roleBadge(role = "student") {
+function roleBadge(roleStr) {
+  const role = (roleStr || "student").toLowerCase();
   return `<span class="badge badge-role-${role}">${role.charAt(0).toUpperCase() + role.slice(1)}</span>`;
 }
 
@@ -54,7 +55,11 @@ function renderPeopleTable(list) {
         </td>
         <td>${escapeHTML(u.className || "—")}</td>
         <td>${escapeHTML(u.section || "—")}</td>
-        <td><span class="spine-tag">${escapeHTML(u.favouriteGenre || "Fiction")}</span></td>
+        <td>
+          <div style="display:flex; gap:4px; flex-wrap:wrap;">
+            ${Array.isArray(u.favouriteGenre) ? u.favouriteGenre.map(g => `<span class="spine-tag">${escapeHTML(g)}</span>`).join("") : `<span class="spine-tag">${escapeHTML(u.favouriteGenre || "Fiction")}</span>`}
+          </div>
+        </td>
         <td><span class="text-tertiary" style="font-size:var(--fs-tiny);">${lastOnlineText}</span></td>
         <td>
           <button class="btn btn-ghost btn-sm view-profile-btn" data-uid="${userId}">View full profile</button>
@@ -115,7 +120,9 @@ function openProfileModal(uid) {
       ${targetUser.favouriteGenre ? `
         <div class="flex justify-between items-center" style="font-size: var(--fs-small);">
           <span class="text-tertiary">Favourite Genre</span>
-          <span class="spine-tag">${escapeHTML(targetUser.favouriteGenre)}</span>
+          <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end;">
+            ${Array.isArray(targetUser.favouriteGenre) ? targetUser.favouriteGenre.map(g => `<span class="spine-tag">${escapeHTML(g)}</span>`).join("") : `<span class="spine-tag">${escapeHTML(targetUser.favouriteGenre)}</span>`}
+          </div>
         </div>
       ` : ""}
       ${targetUser.subject ? `
@@ -153,9 +160,12 @@ if (searchInput) {
     const filtered = allUsers.filter((u) => {
       const nameMatch = (u.name || "").toLowerCase().includes(term);
       const emailMatch = (u.email || "").toLowerCase().includes(term);
-      const classMatch = (u.className || "").toLowerCase().includes(term);
+      const classMatch = String(u.className || "").toLowerCase().includes(term);
       const secMatch = (u.section || "").toLowerCase().includes(term);
-      const genreMatch = (u.favouriteGenre || "").toLowerCase().includes(term);
+      
+      const genreVal = Array.isArray(u.favouriteGenre) ? u.favouriteGenre.join(" ") : (u.favouriteGenre || "");
+      const genreMatch = genreVal.toLowerCase().includes(term);
+      
       const roleMatch = (u.role || "").toLowerCase().includes(term);
       return nameMatch || emailMatch || classMatch || secMatch || genreMatch || roleMatch;
     });
