@@ -1,10 +1,9 @@
 export const MAIN_FILTER_GENRES = [
   "Fiction",
   "Non-Fiction",
-  "Science Fiction",
+  "Dystopian",
   "Fantasy",
   "Mystery & Thriller",
-  "Historical Fiction",
   "Biography & Memoir",
   "History",
   "Poetry & Plays",
@@ -34,7 +33,7 @@ export const ALL_GENRES = [
   "Poetry & Plays",
   "Religion & Spirituality",
   "Science & Technology",
-  "Science Fiction & Dystopian",
+  "Dystopian",
   "Self-Help & Psychology",
   "Young Adult (YA)"
 ];
@@ -42,11 +41,10 @@ export const ALL_GENRES = [
 const GENRE_SPINES = {
   "Fiction": "var(--spine-fiction)",
   "Non-Fiction": "var(--spine-nonfiction)",
-  "Science Fiction": "var(--spine-scifi)",
+  "Dystopian": "var(--spine-scifi)",
   "Fantasy": "var(--spine-fantasy)",
   "Mystery & Thriller": "var(--spine-mystery)",
   "Mystery": "var(--spine-mystery)",
-  "Historical Fiction": "var(--spine-historical)",
   "Biography & Memoir": "var(--spine-biography)",
   "Biography": "var(--spine-biography)",
   "History": "var(--spine-history)",
