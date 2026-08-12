@@ -2,7 +2,7 @@ import { requireAuth, changeUserPassword, deleteUserProfile } from "../firebase/
 import { getAllBooks, getReviewsForBook, updateUserProfile, logAuditAction } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
-import { spineColorFor, initials, showToast, qs, starString, timeAgo } from "../utils/helpers.js";
+import { spineColorFor, initials, showToast, qs, starString, timeAgo, initGenreChipPicker } from "../utils/helpers.js";
 
 const profile = await requireAuth(); // any signed-in role may view
 renderNavbar(profile, "student-dashboard.html");
@@ -87,23 +87,32 @@ reviewsMount.innerHTML = myReviews.length
 
 // ---- Edit profile modal ----
 const modal = qs("#edit-modal");
+let editGenrePicker = null;
+
 qs("#edit-profile-btn").addEventListener("click", () => {
   qs("#edit-uid").value = profile.uid;
   qs("#edit-name").value = profile.name || "";
   qs("#edit-email").value = profile.email || "";
   qs("#edit-bio").value = profile.bio || "";
-  const userGenres = Array.isArray(profile.favouriteGenre) ? profile.favouriteGenre : [profile.favouriteGenre || "Fiction"];
-  Array.from(qs("#edit-genre").options).forEach(opt => opt.selected = userGenres.includes(opt.value));
-  qs("#edit-class").value = profile.className || "";
-  qs("#edit-section").value = profile.section || "";
-  qs("#edit-roll").value = profile.rollNumber || "";
-  qs("#edit-subject").value = profile.subject || "";
+
+  // Pre-select class/section dropdowns
+  const classEl = qs("#edit-class");
+  const sectionEl = qs("#edit-section");
+  if (classEl) classEl.value = profile.className || "";
+  if (sectionEl) sectionEl.value = profile.section || "";
+  if (qs("#edit-roll")) qs("#edit-roll").value = profile.rollNumber || "";
+  if (qs("#edit-subject")) qs("#edit-subject").value = profile.subject || "";
 
   const studentFields = qs("#student-edit-fields");
   const teacherFields = qs("#teacher-edit-fields");
-
   if (studentFields) studentFields.style.display = profile.role === "teacher" ? "none" : "flex";
   if (teacherFields) teacherFields.style.display = profile.role === "teacher" ? "block" : "none";
+
+  // Re-init genre chip picker with the user's saved genres pre-selected
+  const savedGenres = Array.isArray(profile.favouriteGenre)
+    ? profile.favouriteGenre
+    : (profile.favouriteGenre ? [profile.favouriteGenre] : []);
+  editGenrePicker = initGenreChipPicker(qs("#edit-genre-picker"), savedGenres);
 
   modal.classList.add("open");
 });
@@ -116,7 +125,7 @@ qs("#edit-profile-form").addEventListener("submit", async (e) => {
     name: qs("#edit-name").value,
     email: qs("#edit-email").value,
     bio: qs("#edit-bio").value,
-    favouriteGenre: Array.from(qs("#edit-genre").selectedOptions).map(opt => opt.value)
+    favouriteGenre: editGenrePicker ? editGenrePicker.getSelected() : []
   };
 
   if (qs("#edit-class")) changes.className = qs("#edit-class").value;

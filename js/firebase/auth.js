@@ -147,16 +147,20 @@ export async function deleteUserProfile(username, password) {
 }
 
 export async function getUserProfile(uid) {
-  const user = auth.currentUser;
   const userDocRef = doc(db, "users", uid);
   const snap = await getDoc(userDocRef);
 
   if (snap.exists()) {
     const data = snap.data();
-    if (ADMIN_EMAILS.includes((data.email || "").toLowerCase())) {
-      return { ...data, role: "admin" };
+    const isAdminEmail = ADMIN_EMAILS.includes((data.email || "").toLowerCase());
+
+    // If this is the admin email but Firestore still has role:"student",
+    // silently promote the doc so server-side rules also work.
+    if (isAdminEmail && data.role !== "admin") {
+      updateDoc(userDocRef, { role: "admin" }).catch(() => {});
     }
-    return data;
+
+    return isAdminEmail ? { ...data, role: "admin" } : data;
   }
   return null;
 }

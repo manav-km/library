@@ -110,3 +110,57 @@ export function showToast(message, type = "success") {
 
 export function qs(sel, root = document) { return root.querySelector(sel); }
 export function qsa(sel, root = document) { return [...root.querySelectorAll(sel)]; }
+
+/**
+ * Renders a genre chip picker inside `container`.
+ * Main genres are shown upfront; remaining genres appear after "Show More".
+ * Returns { getSelected } — call getSelected() to get the current array of chosen genres.
+ * Pass `initialSelected` (array) to pre-select genres when editing a profile.
+ */
+export function initGenreChipPicker(container, initialSelected = []) {
+  if (!container) return { getSelected: () => [] };
+
+  const OTHER_GENRES = ALL_GENRES.filter((g) => !MAIN_FILTER_GENRES.includes(g));
+  let expanded = false;
+  const selected = new Set(initialSelected);
+
+  function render() {
+    const visible = expanded
+      ? [...MAIN_FILTER_GENRES, ...OTHER_GENRES]
+      : MAIN_FILTER_GENRES;
+
+    container.innerHTML = "";
+
+    visible.forEach((genre) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "genre-chip" + (selected.has(genre) ? " selected" : "");
+      chip.textContent = genre;
+      chip.addEventListener("click", () => {
+        if (selected.has(genre)) {
+          selected.delete(genre);
+          chip.classList.remove("selected");
+        } else {
+          selected.add(genre);
+          chip.classList.add("selected");
+        }
+      });
+      container.appendChild(chip);
+    });
+
+    // Show More / Show Less toggle
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "genre-chip show-more-chip";
+    toggle.textContent = expanded ? "Show Less ∧" : "Show More ∨";
+    toggle.addEventListener("click", () => {
+      expanded = !expanded;
+      render();
+    });
+    container.appendChild(toggle);
+  }
+
+  render();
+  return { getSelected: () => [...selected] };
+}
+

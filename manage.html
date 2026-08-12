@@ -40,6 +40,7 @@
         <div class="tab active" data-tab="catalogue">Catalogue</div>
         <div class="tab" data-tab="reviews">Review moderation</div>
         <div class="tab" data-tab="students">Student management</div>
+        <div class="tab" data-tab="audit" id="tab-audit-nav" style="display:none;">Audit Log</div>
         <div class="tab" data-tab="users" id="tab-users-nav" style="display:none;">User management</div>
       </div>
 
@@ -188,7 +189,17 @@
             </select>
           </div>
         </div>
-        <div class="field"><label for="f-cover">Cover image</label><input type="file" id="f-cover" accept="image/*">
+        <div class="field">
+          <label for="f-cover">Cover image</label>
+          <input type="file" id="f-cover" accept="image/*">
+        </div>
+        <div class="field">
+          <label for="f-pdf">Book PDF <span style="color:var(--text-tertiary); font-weight:400;">(optional)</span></label>
+          <input type="file" id="f-pdf" accept="application/pdf">
+          <div class="field-hint">Upload the full PDF of the book for online reading.</div>
+          <div id="f-pdf-current" style="margin-top:6px; font-size:var(--fs-tiny); color:var(--cyan-300); display:none;">
+            Current PDF: <a id="f-pdf-link" href="#" target="_blank" rel="noopener" style="color:var(--cyan-300);">View PDF</a>
+          </div>
         </div>
         <div class="field"><label for="f-mainidea">Main idea</label><textarea id="f-mainidea" rows="2"
             required></textarea></div>

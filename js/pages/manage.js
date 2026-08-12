@@ -5,7 +5,7 @@ import {
   logAuditAction, getAuditLogs,
   addAnnouncement, getAnnouncements, deleteAnnouncement
 } from "../firebase/firestore.js";
-import { uploadImage } from "../firebase/storage.js";
+import { uploadImage, uploadFile } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
 import { escapeHTML, starString, timeAgo, showToast, initials, qs, qsa } from "../utils/helpers.js";
 
@@ -21,6 +21,8 @@ if (profile.role === "admin") {
   if (eyebrow) eyebrow.textContent = "Full permissions · Admin tools";
   if (title) title.textContent = "Library Management & Admin";
   if (tabUsersNav) tabUsersNav.style.display = "block";
+  const tabAuditNav = qs("#tab-audit-nav");
+  if (tabAuditNav) tabAuditNav.style.display = "block";
 } else {
   if (eyebrow) eyebrow.textContent = profile.subject ? `${profile.subject} · Teacher tools` : "Teacher tools";
   if (title) title.textContent = "Library Management";
@@ -158,6 +160,9 @@ async function openAddModal() {
   qs("#book-form").reset();
   qs("#book-doc-id").value = "";
   qs("#f-bkid").value = await getNextBookId();
+  // Hide any existing PDF link
+  const pdfCurrentEl = qs("#f-pdf-current");
+  if (pdfCurrentEl) pdfCurrentEl.style.display = "none";
   if (deleteModalBtn) deleteModalBtn.style.display = "none";
   modal.classList.add("open");
 }
@@ -181,6 +186,19 @@ function openEditModal(bkId) {
   qs("#f-resolution").value = b.resolution || "";
   qs("#f-moral").value = b.moral || "";
   qs("#f-summary").value = b.summary || "";
+
+  // Show existing PDF link if the book already has one
+  const pdfCurrentEl = qs("#f-pdf-current");
+  const pdfLinkEl = qs("#f-pdf-link");
+  if (pdfCurrentEl && pdfLinkEl) {
+    if (b.pdfUrl) {
+      pdfLinkEl.href = b.pdfUrl;
+      pdfCurrentEl.style.display = "block";
+    } else {
+      pdfCurrentEl.style.display = "none";
+    }
+  }
+
   if (deleteModalBtn) deleteModalBtn.style.display = "inline-flex";
   modal.classList.add("open");
 }
@@ -237,6 +255,9 @@ qs("#book-form")?.addEventListener("submit", async (e) => {
 
   const coverFile = qs("#f-cover").files[0];
   if (coverFile) bookData.coverImage = await uploadImage(coverFile, "covers", bookData.BK_ID);
+
+  const pdfFile = qs("#f-pdf")?.files[0];
+  if (pdfFile) bookData.pdfUrl = await uploadFile(pdfFile, "pdfs", bookData.BK_ID);
 
   const docId = qs("#book-doc-id").value;
   if (docId) {
@@ -556,24 +577,24 @@ if (addAnnouncementBtn) {
       m.id = "announcement-modal";
       m.className = "modal-overlay";
       m.innerHTML = `
-        <div class="modal-box" style="max-width:520px;">
+        <div class="modal" style="max-width:520px;">
           <div class="modal-header">
             <h2 class="modal-title">New Announcement</h2>
-            <button class="modal-close" id="ann-modal-close-x">✕</button>
+            <button class="btn btn-ghost btn-sm" id="ann-modal-close-x" style="padding:2px 8px; font-size:1.2rem; line-height:1;">✕</button>
           </div>
           <div class="modal-body" style="display:flex; flex-direction:column; gap:var(--sp-4);">
-            <div class="form-group">
+            <div class="field">
               <label class="form-label" for="ann-title">Title</label>
-              <input type="text" id="ann-title" class="form-input" placeholder="e.g. Library closed on Monday">
+              <input type="text" id="ann-title" placeholder="e.g. Library closed on Monday">
             </div>
-            <div class="form-group">
+            <div class="field">
               <label class="form-label" for="ann-body">Message</label>
-              <textarea id="ann-body" class="form-input" rows="4" placeholder="Write the full announcement here…" style="resize:vertical;"></textarea>
+              <textarea id="ann-body" rows="4" placeholder="Write the full announcement here…" style="resize:vertical;"></textarea>
             </div>
           </div>
-          <div class="modal-footer">
-            <button class="btn btn-secondary" id="ann-modal-cancel">Cancel</button>
-            <button class="btn btn-primary" id="ann-modal-save">📣 Post Announcement</button>
+          <div class="flex gap-3" style="margin-top:var(--sp-5);">
+            <button class="btn btn-ghost btn-block" id="ann-modal-cancel">Cancel</button>
+            <button class="btn btn-primary btn-block" id="ann-modal-save">📣 Post Announcement</button>
           </div>
         </div>
       `;

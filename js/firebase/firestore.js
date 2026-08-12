@@ -11,7 +11,8 @@ import {
 /* ---------------------------- Books ------------------------------------ */
 
 export async function getAllBooks() {
-  return [];
+  const snap = await getDocs(query(collection(db, "books"), orderBy("BK_ID", "asc")));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
 export async function getBookById(bkId) {
@@ -83,12 +84,19 @@ export async function addReview({ bookId, userId, userName, rating, reviewText, 
 
   const mainText = reviewText || (parts.length ? parts.join("\n\n") : "");
 
+  if (!mainText.trim()) {
+    throw new Error("Review text cannot be empty. Please write something before submitting.");
+  }
+  if (mainText.length > 2000) {
+    throw new Error("Review text cannot exceed 2 000 characters.");
+  }
+
   const docRef = await addDoc(collection(db, "reviews"), {
     bookId,
     userId,
     userName,
     rating,
-    reviewText: mainText,
+    reviewText: mainText.trim(),
     whyLiked: whyLiked || "",
     whatLearnt: whatLearnt || "",
     canBeImproved: canBeImproved || "",
@@ -133,9 +141,15 @@ export async function getAnnouncements() {
 }
 
 export async function addAnnouncement({ title, body, authorName, authorRole }) {
+  const safeTitle = (title || "").trim();
+  const safeBody = (body || "").trim();
+
+  if (!safeTitle) throw new Error("Announcement title cannot be empty.");
+  if (!safeBody) throw new Error("Announcement message cannot be empty.");
+
   const ref = await addDoc(collection(db, "announcements"), {
-    title: title || "",
-    body: body || "",
+    title: safeTitle,
+    body: safeBody,
     authorName: authorName || "Admin",
     authorRole: authorRole || "admin",
     createdAt: Date.now()

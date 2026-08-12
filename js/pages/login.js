@@ -1,5 +1,5 @@
 import { signUp, logIn, signInWithGoogle, watchAuthState, completeGoogleSignUp } from "../firebase/auth.js";
-import { showToast, qs, qsa } from "../utils/helpers.js";
+import { showToast, qs, qsa, initGenreChipPicker } from "../utils/helpers.js";
 
 function redirectByRole(profile) {
   window.location.href = "student-dashboard.html";
@@ -19,6 +19,10 @@ tabs.forEach((tab) => {
     signupForm.style.display = isLogin ? "none" : "block";
   });
 });
+
+// Initialize genre chip pickers
+const signupGenrePicker = initGenreChipPicker(qs("#signup-genre-picker"));
+const gsGenrePicker = initGenreChipPicker(qs("#gs-genre-picker"));
 
 // Redirect already signed in users
 watchAuthState((profile) => {
@@ -82,7 +86,7 @@ if (signupForm) {
       className: qs("#signup-class").value,
       section: qs("#signup-section").value,
       rollNumber: qs("#signup-roll").value,
-      favouriteGenre: Array.from(qs("#signup-genre").selectedOptions).map(opt => opt.value),
+      favouriteGenre: signupGenrePicker.getSelected(),
       email: qs("#signup-email").value,
       password: qs("#signup-password").value
     };
@@ -115,7 +119,7 @@ if (googleSignupForm) {
       className: qs("#gs-class").value,
       section: qs("#gs-section").value,
       rollNumber: qs("#gs-roll").value,
-      favouriteGenre: Array.from(qs("#gs-genre").selectedOptions).map(opt => opt.value),
+      favouriteGenre: gsGenrePicker.getSelected(),
       password: password
     };
 

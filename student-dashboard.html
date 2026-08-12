@@ -113,11 +113,34 @@
         <div class="field-row" id="student-edit-fields">
           <div class="field">
             <label for="edit-class">Class</label>
-            <input type="text" id="edit-class" placeholder="e.g. 10">
+            <select id="edit-class">
+              <option value="">— Select class —</option>
+              <option value="I">Class I</option>
+              <option value="II">Class II</option>
+              <option value="III">Class III</option>
+              <option value="IV">Class IV</option>
+              <option value="V">Class V</option>
+              <option value="VI">Class VI</option>
+              <option value="VII">Class VII</option>
+              <option value="VIII">Class VIII</option>
+              <option value="IX">Class IX</option>
+              <option value="X">Class X</option>
+              <option value="XI">Class XI</option>
+              <option value="XII">Class XII</option>
+            </select>
           </div>
           <div class="field">
             <label for="edit-section">Section</label>
-            <input type="text" id="edit-section" placeholder="e.g. A">
+            <select id="edit-section">
+              <option value="">— Select —</option>
+              <option value="A">Section A</option>
+              <option value="B">Section B</option>
+              <option value="C">Section C</option>
+              <option value="D">Section D</option>
+              <option value="E">Section E</option>
+              <option value="F">Section F</option>
+              <option value="G">Section G</option>
+            </select>
           </div>
           <div class="field">
             <label for="edit-roll">Roll No.</label>
@@ -132,29 +155,10 @@
         </div>
 
         <div class="field">
-          <label for="edit-genre">Favourite genre (Ctrl/Cmd+Click to select multiple)</label>
-          <select id="edit-genre" multiple style="min-height: 120px;">
-            <option>Action &amp; Adventure</option>
-            <option>Biography &amp; Memoir</option>
-            <option>Children's &amp; Middle Grade</option>
-            <option>Classics</option>
-            <option>Comics &amp; Graphic Novels</option>
-            <option>Drama &amp; Romance</option>
-            <option>Fantasy</option>
-            <option>Fiction</option>
-            <option>History &amp; Politics</option>
-            <option>Horror &amp; Dark Fiction</option>
-            <option>Humor &amp; Satire</option>
-            <option>Mystery &amp; Thriller</option>
-            <option>Non-Fiction</option>
-            <option>Philosophy &amp; Ethics</option>
-            <option>Poetry &amp; Plays</option>
-            <option>Religion &amp; Spirituality</option>
-            <option>Science &amp; Technology</option>
-            <option>Science Fiction &amp; Dystopian</option>
-            <option>Self-Help &amp; Psychology</option>
-            <option>Young Adult (YA)</option>
-          </select>
+          <label>Favourite genres</label>
+          <div class="genre-chip-picker" id="edit-genre-picker"></div>
+          <div class="genre-picker-hint">Tap a genre to select it — tap again to remove it.</div>
+          <input type="hidden" id="edit-genre">
         </div>
 
         <div class="field">

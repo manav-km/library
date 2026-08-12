@@ -17,3 +17,16 @@ export async function uploadImage(file, folder, fileName) {
   await uploadBytes(storageRef, file);
   return getDownloadURL(storageRef);
 }
+
+/**
+ * Uploads any file (e.g. PDF) and returns its public download URL.
+ * folder: "pdfs" | "covers" | "avatars"
+ */
+export async function uploadFile(file, folder, fileName) {
+  const ext = file.name.split(".").pop();
+  const path = `${folder}/${fileName}-${Date.now()}.${ext}`;
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, file);
+  return getDownloadURL(storageRef);
+}
+

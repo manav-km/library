@@ -10,6 +10,13 @@
           }
         }
       }
+    },
+    "custom_threads": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$threadId": {
+        ".validate": "newData.hasChildren(['id', 'title', 'creatorName', 'creatorUid', 'createdAt'])"
+      }
     }
   }
 }
