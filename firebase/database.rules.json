@@ -5,6 +5,7 @@
         "messages": {
           ".read": "auth != null",
           ".write": "auth != null",
+          ".indexOn": ["timestamp"],
           "$messageId": {
             ".validate": "newData.hasChildren(['sender', 'senderUid', 'message', 'timestamp'])"
           }
@@ -14,6 +15,7 @@
     "custom_threads": {
       ".read": "auth != null",
       ".write": "auth != null",
+      ".indexOn": ["createdAt"],
       "$threadId": {
         ".validate": "newData.hasChildren(['id', 'title', 'creatorName', 'creatorUid', 'createdAt'])"
       }

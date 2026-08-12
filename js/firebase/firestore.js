@@ -5,14 +5,15 @@
 import { db } from "./firebase-config.js";
 import {
   collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, setDoc,
-  query, where, orderBy, limit, serverTimestamp
+  query, where, limit, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ---------------------------- Books ------------------------------------ */
 
 export async function getAllBooks() {
-  const snap = await getDocs(query(collection(db, "books"), orderBy("BK_ID", "asc")));
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const snap = await getDocs(collection(db, "books"));
+  const books = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return books.sort((a, b) => String(a.BK_ID).localeCompare(String(b.BK_ID)));
 }
 
 export async function getBookById(bkId) {
@@ -71,9 +72,10 @@ export async function deleteBook(bookIdOrDocId) {
 
 export async function getReviewsForBook(bookId) {
   const snap = await getDocs(
-    query(collection(db, "reviews"), where("bookId", "==", bookId), orderBy("timestamp", "desc"))
+    query(collection(db, "reviews"), where("bookId", "==", bookId))
   );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const reviews = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return reviews.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 }
 
 export async function addReview({ bookId, userId, userName, rating, reviewText, whyLiked, whatLearnt, canBeImproved }) {
@@ -134,10 +136,9 @@ export async function updateUserProfile(uid, changes) {
 /* ------------------------- Announcements --------------------------------- */
 
 export async function getAnnouncements() {
-  const snap = await getDocs(
-    query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(20))
-  );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const snap = await getDocs(collection(db, "announcements"));
+  const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 20);
 }
 
 export async function addAnnouncement({ title, body, authorName, authorRole }) {
@@ -185,10 +186,9 @@ export async function logAuditAction({ action, category, details, performedBy, t
 
 export async function getAuditLogs() {
   try {
-    const snap = await getDocs(
-      query(collection(db, "audit_logs"), orderBy("timestamp", "desc"), limit(150))
-    );
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const snap = await getDocs(collection(db, "audit_logs"));
+    const logs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    return logs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 150);
   } catch (err) {
     console.warn("Failed to fetch audit logs:", err);
     return [];
