@@ -37,21 +37,31 @@ export async function signInWithGoogle() {
   }
 }
 
-export async function signUp({ email, password, name, username, className, section, rollNumber, favouriteGenre }) {
+export async function signUp({ email, password, name, username, className, section, rollNumber, classTeacher, favouriteGenre, subject, _isTeacherSignup }) {
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(cred.user, { displayName: name });
 
   const isAdminEmail = ADMIN_EMAILS.includes((email || "").toLowerCase());
+  
+  // Determine role: admin email → admin, official teacher email → teacher, else student
+  const TEACHER_EMAIL_SUFFIX = "_lko@jaipuria.edu.in";
+  const isOfficialTeacherEmail = (email || "").toLowerCase().trim().endsWith(TEACHER_EMAIL_SUFFIX);
+  let role = "student";
+  if (isAdminEmail) role = "admin";
+  else if (_isTeacherSignup && isOfficialTeacherEmail) role = "teacher";
+
   const profile = {
     uid: cred.user.uid,
     name,
     username: username || "",
     email,
-    role: "student", // Always write "student" on creation to satisfy firestore.md security rules
+    role,
     className: className || "",
     section: section || "",
     rollNumber: rollNumber || "",
+    classTeacher: classTeacher || "",
     favouriteGenre: favouriteGenre || "",
+    subject: subject || "",
     bio: "",
     profilePicture: "",
     createdAt: Date.now(),
@@ -62,12 +72,12 @@ export async function signUp({ email, password, name, username, className, secti
   logAuditAction({
     action: "USER_SIGNUP",
     category: "Users",
-    details: `New account created: ${name} (${email}) registered as student.`,
+    details: `New account created: ${name} (${email}) registered as ${role}.`,
     performedBy: profile,
     targetId: cred.user.uid
   });
 
-  return isAdminEmail ? { ...profile, role: "admin" } : profile;
+  return profile;
 }
 
 export async function logIn(email, password) {

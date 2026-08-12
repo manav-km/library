@@ -54,8 +54,8 @@ service cloud.firestore {
     // users/{uid}
     //
     // Fields: uid, name, email, role, className, section, rollNumber,
-    //         favouriteGenre, bio, profilePicture, subject, classTeacherOf,
-    //         lastOnline, username, createdAt
+    //         classTeacher, favouriteGenre, bio, profilePicture,
+    //         subject, lastOnline, username, createdAt
     // ------------------------------------------------------------------
     match /users/{uid} {
 
@@ -63,14 +63,23 @@ service cloud.firestore {
       // the "Discover People" page.
       allow read: if true;
 
-      // Account creation: only the user themselves, role must be "student",
-      // and required fields must be present and valid.
+      // Account creation: only the user themselves.
+      // Student role is always allowed; teacher role is allowed only
+      // when the email ends with the official Jaipuria teacher suffix.
       allow create: if isOwner(uid)
-                    && request.resource.data.role == "student"
+                    && (
+                      request.resource.data.role == "student"
+                      || (
+                        request.resource.data.role == "teacher"
+                        && request.auth.token.email.matches(".*_lko@jaipuria\\.edu\\.in$")
+                      )
+                    )
                     && request.resource.data.uid == uid
                     && request.resource.data.name is string
                     && request.resource.data.name.size() > 0
-                    && request.resource.data.email is string;
+                    && request.resource.data.email is string
+                    && (!('classTeacher' in request.resource.data) || request.resource.data.classTeacher is string)
+                    && (!('subject' in request.resource.data) || request.resource.data.subject is string);
 
       // Self-edit: may update profile fields, but role and uid are frozen —
       // nobody can self-promote through a normal profile update.

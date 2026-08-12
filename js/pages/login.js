@@ -1,6 +1,16 @@
 import { signUp, logIn, signInWithGoogle, watchAuthState, completeGoogleSignUp } from "../firebase/auth.js";
 import { showToast, qs, qsa, initGenreChipPicker } from "../utils/helpers.js";
 
+const TEACHER_EMAIL_SUFFIX = "_lko@jaipuria.edu.in";
+const DEPARTMENTS = [
+  "English", "Hindi", "Maths", "Social Science",
+  "Science", "Sports", "Extra Curriculars"
+];
+
+function isTeacherEmail(email) {
+  return (email || "").toLowerCase().trim().endsWith(TEACHER_EMAIL_SUFFIX);
+}
+
 function redirectByRole(profile) {
   window.location.href = "student-dashboard.html";
 }
@@ -9,6 +19,7 @@ function redirectByRole(profile) {
 const tabs = qsa(".auth-tab");
 const loginForm = qs("#login-form");
 const signupForm = qs("#signup-form");
+const accountTypeToggle = qs("#account-type-toggle");
 
 tabs.forEach((tab) => {
   tab.addEventListener("click", () => {
@@ -17,14 +28,92 @@ tabs.forEach((tab) => {
     const isLogin = tab.dataset.tab === "login";
     loginForm.style.display = isLogin ? "block" : "none";
     signupForm.style.display = isLogin ? "none" : "block";
+    accountTypeToggle.style.display = isLogin ? "none" : "flex";
+    accountTypeToggle.style.justifyContent = "center";
   });
 });
 
-// Initialize genre chip pickers
+// ---- Student / Teacher toggle ----
+let isTeacherMode = false;
+
+const toggleStudentBtn = qs("#toggle-student");
+const toggleTeacherBtn = qs("#toggle-teacher");
+const studentOnlyFields = qs(".student-only-fields");
+const teacherOnlyFields = qs(".teacher-only-fields");
+const teacherEmailHint = qs(".teacher-email-hint");
+const studentHint = qs(".student-hint");
+const signupEmailInput = qs("#signup-email");
+const signupClassSelect = qs("#signup-class");
+const signupSectionSelect = qs("#signup-section");
+const signupRollInput = qs("#signup-roll");
+const signupSubmitBtn = qs("#signup-submit-btn");
+
+function setStudentMode() {
+  isTeacherMode = false;
+  toggleStudentBtn.classList.add("active");
+  toggleTeacherBtn.classList.remove("active");
+
+  studentOnlyFields.style.display = "block";
+  teacherOnlyFields.style.display = "none";
+  teacherEmailHint.style.display = "none";
+  studentHint.style.display = "block";
+  signupSubmitBtn.textContent = "Create account with Email";
+
+  // Re-enable required on student fields
+  signupClassSelect.required = true;
+  signupSectionSelect.required = true;
+  signupRollInput.required = true;
+
+  signupEmailInput.placeholder = "you@sajs.edu";
+}
+
+function setTeacherMode() {
+  isTeacherMode = true;
+  toggleTeacherBtn.classList.add("active");
+  toggleStudentBtn.classList.remove("active");
+
+  studentOnlyFields.style.display = "none";
+  teacherOnlyFields.style.display = "block";
+  teacherEmailHint.style.display = "block";
+  studentHint.style.display = "none";
+  signupSubmitBtn.textContent = "Create teacher account";
+
+  // Remove required from student-only fields
+  signupClassSelect.required = false;
+  signupSectionSelect.required = false;
+  signupRollInput.required = false;
+
+  signupEmailInput.placeholder = "name_lko@jaipuria.edu.in";
+}
+
+toggleStudentBtn.addEventListener("click", setStudentMode);
+toggleTeacherBtn.addEventListener("click", setTeacherMode);
+
+// ---- Initialize genre chip pickers ----
 const signupGenrePicker = initGenreChipPicker(qs("#signup-genre-picker"));
 const gsGenrePicker = initGenreChipPicker(qs("#gs-genre-picker"));
 
-// Redirect already signed in users
+// ---- Department single-select chip picker ----
+let selectedDept = "";
+function initDeptPicker(container) {
+  if (!container) return;
+  container.innerHTML = "";
+  DEPARTMENTS.forEach((dept) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "genre-chip" + (selectedDept === dept ? " selected" : "");
+    chip.textContent = dept;
+    chip.addEventListener("click", () => {
+      // Single-select: deselect previous
+      selectedDept = selectedDept === dept ? "" : dept;
+      initDeptPicker(container); // re-render
+    });
+    container.appendChild(chip);
+  });
+}
+initDeptPicker(qs("#signup-dept-picker"));
+
+// ---- Redirect already signed-in users ----
 watchAuthState((profile) => {
   if (profile) redirectByRole(profile);
 });
@@ -46,7 +135,6 @@ qsa(".google-signin-btn").forEach((btn) => {
     try {
       const result = await signInWithGoogle();
       if (result.isNewUser) {
-        // Show modal and prefill name
         qs("#google-signup-modal").classList.add("open");
         qs("#gs-name").value = result.user.displayName || "";
       } else {
@@ -61,6 +149,7 @@ qsa(".google-signin-btn").forEach((btn) => {
   });
 });
 
+// ---- Login form ----
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -77,22 +166,44 @@ if (loginForm) {
   });
 }
 
+// ---- Signup form ----
 if (signupForm) {
   signupForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    const email = qs("#signup-email").value.trim();
+
+    // Teacher mode: validate official email
+    if (isTeacherMode) {
+      if (!isTeacherEmail(email)) {
+        showToast(`Only official Jaipuria teacher emails (ending in ${TEACHER_EMAIL_SUFFIX}) can register as a teacher.`, "error");
+        setStudentMode();
+        return;
+      }
+      if (!selectedDept) {
+        showToast("Please select your department.", "error");
+        return;
+      }
+    }
+
     const payload = {
       name: qs("#signup-name").value,
       username: qs("#signup-username").value,
-      className: qs("#signup-class").value,
-      section: qs("#signup-section").value,
-      rollNumber: qs("#signup-roll").value,
+      className: isTeacherMode ? "" : qs("#signup-class").value,
+      section: isTeacherMode ? "" : qs("#signup-section").value,
+      rollNumber: isTeacherMode ? "" : qs("#signup-roll").value,
+      classTeacher: isTeacherMode ? "" : (qs("#signup-class-teacher")?.value || ""),
+      subject: isTeacherMode ? selectedDept : "",
       favouriteGenre: signupGenrePicker.getSelected(),
-      email: qs("#signup-email").value,
-      password: qs("#signup-password").value
+      email,
+      password: qs("#signup-password").value,
+      // Pass teacher flag so auth.js can assign role
+      _isTeacherSignup: isTeacherMode
     };
+
     try {
       const profile = await signUp(payload);
-      showToast("Account created — welcome to the library.");
+      showToast(isTeacherMode ? "Teacher account created — welcome!" : "Account created — welcome to the library.");
       setTimeout(() => redirectByRole(profile), 500);
     } catch (err) {
       console.error(err);
@@ -101,6 +212,7 @@ if (signupForm) {
   });
 }
 
+// ---- Google Signup Modal ----
 const googleSignupForm = qs("#google-signup-form");
 if (googleSignupForm) {
   googleSignupForm.addEventListener("submit", async (e) => {
