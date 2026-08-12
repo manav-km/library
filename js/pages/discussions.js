@@ -173,13 +173,18 @@ function renderMessages(messages) {
   });
 }
 
-function send() {
+async function send() {
   const input = qs("#chat-input");
   if (!input) return;
   const text = input.value.trim();
   if (!text || !currentProfile || !activeThread) return;
-  sendMessage(activeThread.id, { sender: currentProfile.name, senderUid: currentProfile.uid, message: text });
-  input.value = "";
+  try {
+    await sendMessage(activeThread.id, { sender: currentProfile.name, senderUid: currentProfile.uid, message: text });
+    input.value = "";
+  } catch (err) {
+    console.error("Failed to send message:", err);
+    showToast(err.message || "Could not send message.", "error");
+  }
 }
 
 function wireCreateThreadModal() {

@@ -6,6 +6,7 @@ import { rtdb } from "./firebase-config.js";
 import {
   ref, push, set, onValue, query, orderByChild, limitToLast, remove
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { hasBadWords } from "../utils/filter.js";
 
 /** Returns true if the RTDB can be reached, false otherwise (5s timeout). */
 async function checkRTDBConnection() {
@@ -24,6 +25,9 @@ async function checkRTDBConnection() {
 }
 
 export async function sendMessage(bookId, { sender, senderUid, message }) {
+  if (hasBadWords(message)) {
+    throw new Error("Your message contains inappropriate language or profanity.");
+  }
   const payload = { sender, senderUid, message, timestamp: Date.now() };
   const msgsRef = ref(rtdb, `discussions/${bookId}/messages`);
   await push(msgsRef, payload);
@@ -50,6 +54,10 @@ export function deleteMessage(bookId, messageId) {
 
 /** Creates a custom discussion thread and sends initial message. */
 export async function createCustomThread({ title, creatorName, creatorUid, firstMessage }) {
+  if (hasBadWords(title) || hasBadWords(firstMessage)) {
+    throw new Error("The discussion title or message contains inappropriate language.");
+  }
+
   const connected = await checkRTDBConnection();
   if (!connected) {
     throw new Error("Cannot reach the Realtime Database. Please go to Firebase Console → Realtime Database → Rules and deploy the updated rules.");

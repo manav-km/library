@@ -7,6 +7,7 @@ import {
   collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, setDoc,
   query, where, limit, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { hasBadWords } from "../utils/filter.js";
 
 /* ---------------------------- Books ------------------------------------ */
 
@@ -85,6 +86,10 @@ export async function addReview({ bookId, userId, userName, rating, reviewText, 
   if (canBeImproved) parts.push(`What could be improved: ${canBeImproved}`);
 
   const mainText = reviewText || (parts.length ? parts.join("\n\n") : "");
+
+  if (hasBadWords(whyLiked) || hasBadWords(whatLearnt) || hasBadWords(canBeImproved) || hasBadWords(mainText)) {
+    throw new Error("Your review contains inappropriate language or profanity. Please edit it before submitting.");
+  }
 
   if (!mainText.trim()) {
     throw new Error("Review text cannot be empty. Please write something before submitting.");
