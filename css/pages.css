@@ -166,6 +166,22 @@
   padding: 0 var(--sp-3);
 }
 
+@media (min-width: 901px) {
+  .auth-shell {
+    height: 100vh;
+    overflow: hidden;
+  }
+  .auth-form-side {
+    height: 100vh;
+    overflow-y: auto;
+    align-items: flex-start;
+    padding: var(--sp-8) var(--sp-6);
+  }
+  .auth-box {
+    margin: auto 0;
+  }
+}
+
 @media (max-width: 900px) {
   .auth-shell { grid-template-columns: 1fr; }
   .auth-visual { display: none; }

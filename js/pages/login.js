@@ -40,7 +40,6 @@ const toggleStudentBtn = qs("#toggle-student");
 const toggleTeacherBtn = qs("#toggle-teacher");
 const studentOnlyFields = qs(".student-only-fields");
 const teacherOnlyFields = qs(".teacher-only-fields");
-const teacherEmailHint = qs(".teacher-email-hint");
 const studentHint = qs(".student-hint");
 const signupEmailInput = qs("#signup-email");
 const signupClassSelect = qs("#signup-class");
@@ -55,7 +54,6 @@ function setStudentMode() {
 
   studentOnlyFields.style.display = "block";
   teacherOnlyFields.style.display = "none";
-  teacherEmailHint.style.display = "none";
   studentHint.style.display = "block";
   signupSubmitBtn.textContent = "Create account with Email";
 
@@ -64,7 +62,7 @@ function setStudentMode() {
   signupSectionSelect.required = true;
   signupRollInput.required = true;
 
-  signupEmailInput.placeholder = "you@sajs.edu";
+  signupEmailInput.placeholder = "you@example.com";
 }
 
 function setTeacherMode() {
@@ -74,7 +72,6 @@ function setTeacherMode() {
 
   studentOnlyFields.style.display = "none";
   teacherOnlyFields.style.display = "block";
-  teacherEmailHint.style.display = "block";
   studentHint.style.display = "none";
   signupSubmitBtn.textContent = "Create teacher account";
 
@@ -83,7 +80,7 @@ function setTeacherMode() {
   signupSectionSelect.required = false;
   signupRollInput.required = false;
 
-  signupEmailInput.placeholder = "name_lko@jaipuria.edu.in";
+  signupEmailInput.placeholder = "you@example.com";
 }
 
 toggleStudentBtn.addEventListener("click", setStudentMode);
