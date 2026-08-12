@@ -104,17 +104,29 @@ function wireBookEditModal() {
       const docId = qs("#book-doc-id").value;
       const bkId = qs("#f-bkid").value;
       if (!docId) return;
-      if (!confirm("Delete this book from the library? This action cannot be undone.")) return;
-      await deleteBook(docId);
-      logAuditAction({
-        action: "BOOK_DELETE",
-        category: "Books",
-        details: `${currentProfile.name} (${currentProfile.role}) deleted book '${bkId}'.`,
-        performedBy: currentProfile,
-        targetId: bkId
-      });
-      showToast("Book deleted.");
-      window.location.href = "library.html";
+      const reason = prompt(`Reason for deleting book "${bkId}":`);
+      if (reason === null) return; // cancelled
+      const trimmedReason = reason.trim();
+      if (!trimmedReason) {
+        showToast("Reason is required to delete books.", "error");
+        return;
+      }
+      try {
+        await deleteBook(docId);
+        logAuditAction({
+          action: "BOOK_DELETE",
+          category: "Books",
+          details: `${currentProfile.name} (${currentProfile.role}) deleted book '${bkId}'.`,
+          performedBy: currentProfile,
+          targetId: bkId,
+          deletedContent: `Book ID: ${currentBook.BK_ID}\nTitle: ${currentBook.bookName}\nAuthor: ${currentBook.author}\nGenre: ${currentBook.genre}`,
+          reason: trimmedReason
+        });
+        showToast("Book deleted.");
+        window.location.href = "library.html";
+      } catch (err) {
+        showToast("Failed to delete book: " + err.message, "error");
+      }
     });
   }
 
@@ -158,7 +170,9 @@ function wireBookEditModal() {
       category: "Books",
       details: `${currentProfile.name} (${currentProfile.role}) edited book '${bookData.bookName}' (${bookData.BK_ID}).`,
       performedBy: currentProfile,
-      targetId: bookData.BK_ID
+      targetId: bookData.BK_ID,
+      beforeEdit: `Title: ${currentBook.bookName}\nAuthor: ${currentBook.author}\nGenre: ${currentBook.genre}\nMain Idea: ${currentBook.mainIdea}`,
+      afterEdit: `Title: ${bookData.bookName}\nAuthor: ${bookData.author}\nGenre: ${bookData.genre}\nMain Idea: ${bookData.mainIdea}`
     });
     showToast("Book updated.");
     modal.classList.remove("open");
@@ -252,17 +266,62 @@ async function renderReviews() {
 
 function wireReviewItemActions(reviews) {
   qsa(".delete-review-btn, .mod-delete-btn").forEach((btn) => {
-    btn.addEventListener("click", async () => {
+    btn.addEventListener("click", () => {
       const item = btn.closest(".review-item");
       const id = item.dataset.reviewId;
       const ownerId = item.dataset.owner;
-      try {
-        await deleteReview(id, ownerId, currentProfile.uid, currentProfile.role !== "student");
-        showToast("Review removed.");
+      const review = reviews.find((r) => r.id === id);
+      const original = review?.reviewText || "";
+      const isMod = currentProfile && currentProfile.role !== "student" && ownerId !== currentProfile.uid;
+
+      const textEl = item.querySelector(".review-text-content");
+      
+      textEl.innerHTML = `
+        <div class="delete-review-box" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 450px; background: rgba(239, 68, 68, 0.05); padding: var(--sp-3); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: var(--radius-md);">
+          <p style="font-size: 13px; margin: 0; color: var(--danger); font-weight: 600;">
+            ${isMod ? "Are you sure you want to remove this review as a Moderator?" : "Are you sure you want to delete your review?"}
+          </p>
+          <div>
+            <label style="font-size: 11px; color: var(--text-tertiary); display: block; margin-bottom: 2px;">Reason for deletion</label>
+            <input type="text" class="delete-review-reason" placeholder="e.g. Inappropriate content" style="width: 100%; padding: 6px; font-size: 12px; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); color: var(--text-main);">
+          </div>
+          <div class="flex gap-2" style="justify-content: flex-end;">
+            <button class="btn btn-ghost btn-sm cancel-delete-review-btn" style="padding: 2px 8px; font-size: 11px;">Cancel</button>
+            <button class="btn btn-danger btn-sm confirm-delete-review-btn" style="padding: 2px 8px; font-size: 11px;">Delete</button>
+          </div>
+        </div>
+      `;
+
+      item.querySelector(".cancel-delete-review-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
         renderReviews();
-      } catch (err) {
-        showToast(err.message, "error");
-      }
+      });
+
+      item.querySelector(".confirm-delete-review-btn").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const reason = item.querySelector(".delete-review-reason").value.trim();
+        if (!reason) {
+          showToast("Please enter a reason for deletion.", "error");
+          return;
+        }
+
+        try {
+          await deleteReview(id, ownerId, currentProfile.uid, currentProfile.role !== "student");
+          await logAuditAction({
+            action: isMod ? "REVIEW_MODERATE_DELETE" : "REVIEW_DELETE",
+            category: "Reviews",
+            details: `${currentProfile.name} ${isMod ? "(moderator) removed" : "deleted"} review on book "${currentBook.bookName}"`,
+            performedBy: currentProfile,
+            targetId: id,
+            deletedContent: `User: ${review.userName}\nRating: ${review.rating} stars\nContent: ${original}`,
+            reason: reason
+          });
+          showToast("Review deleted successfully.");
+          renderReviews();
+        } catch (err) {
+          showToast("Failed to delete review: " + err.message, "error");
+        }
+      });
     });
   });
 
@@ -275,20 +334,54 @@ function wireReviewItemActions(reviews) {
       const original = review.reviewText;
 
       textEl.innerHTML = `
-        <textarea rows="3" class="edit-review-textarea">${escapeHTML(original)}</textarea>
-        <div class="flex gap-2" style="margin-top:var(--sp-2);">
-          <button class="btn btn-primary btn-sm save-edit-btn">Save</button>
-          <button class="btn btn-ghost btn-sm cancel-edit-btn">Cancel</button>
+        <div class="edit-review-box" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 450px;">
+          <textarea rows="3" class="edit-review-textarea" style="width: 100%; min-height: 80px; padding: 8px; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); color: var(--text-main); font-family: inherit; font-size: var(--fs-small); resize: vertical;">${escapeHTML(original)}</textarea>
+          <div>
+            <label style="font-size: 11px; color: var(--text-tertiary); display: block; margin-bottom: 2px;">Reason for edit</label>
+            <input type="text" class="edit-review-reason" placeholder="e.g. Updated thoughts" style="width: 100%; padding: 6px; font-size: 12px; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); color: var(--text-main);">
+          </div>
+          <div class="flex gap-2" style="justify-content: flex-end;">
+            <button class="btn btn-ghost btn-sm cancel-edit-btn" style="padding: 2px 8px; font-size: 11px;">Cancel</button>
+            <button class="btn btn-primary btn-sm save-edit-btn" style="padding: 2px 8px; font-size: 11px;">Enter Edit</button>
+          </div>
         </div>`;
 
-      item.querySelector(".save-edit-btn").addEventListener("click", async () => {
+      item.querySelector(".save-edit-btn").addEventListener("click", async (e) => {
+        e.stopPropagation();
         const newText = item.querySelector(".edit-review-textarea").value.trim();
-        if (!newText) return;
-        await updateReview(id, review.userId, currentProfile.uid, { reviewText: newText });
-        showToast("Review updated.");
+        const reason = item.querySelector(".edit-review-reason").value.trim();
+        if (!newText) {
+          showToast("Review text cannot be empty.", "error");
+          return;
+        }
+        if (!reason) {
+          showToast("Please enter a reason for the edit.", "error");
+          return;
+        }
+
+        try {
+          await updateReview(id, review.userId, currentProfile.uid, { reviewText: newText });
+          await logAuditAction({
+            action: "REVIEW_EDIT",
+            category: "Reviews",
+            details: `${currentProfile.name} edited review on book "${currentBook.bookName}"`,
+            performedBy: currentProfile,
+            targetId: id,
+            beforeEdit: original,
+            afterEdit: newText,
+            reason: reason
+          });
+          showToast("Review updated successfully.");
+          renderReviews();
+        } catch (err) {
+          showToast("Failed to edit review: " + err.message, "error");
+        }
+      });
+      
+      item.querySelector(".cancel-edit-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
         renderReviews();
       });
-      item.querySelector(".cancel-edit-btn").addEventListener("click", () => renderReviews());
     });
   });
 }

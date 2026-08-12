@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SAJS Library Site - Project Overview &amp; System Documentation</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #333333;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background-color: #ffffff;
+    }
+    h1 {
+      font-size: 26pt;
+      color: #1155cc;
+      font-weight: normal;
+      margin-bottom: 12pt;
+      border-bottom: 1px solid #dddddd;
+      padding-bottom: 6px;
+    }
+    h2 {
+      font-size: 16pt;
+      color: #666666;
+      font-weight: normal;
+      margin-top: 24pt;
+      margin-bottom: 8pt;
+      border-bottom: 1px dashed #eeeeee;
+      padding-bottom: 4px;
+    }
+    h3 {
+      font-size: 12pt;
+      color: #111111;
+      font-weight: bold;
+      margin-top: 16pt;
+      margin-bottom: 6pt;
+    }
+    p, li {
+      font-size: 11pt;
+      margin-bottom: 10pt;
+    }
+    ul, ol {
+      margin-top: 0;
+      margin-bottom: 10pt;
+      padding-left: 20px;
+    }
+    table {
+      border: 1px solid #cccccc;
+      border-collapse: collapse;
+      width: 100%;
+      margin: 16pt 0;
+    }
+    th, td {
+      border: 1px solid #cccccc;
+      padding: 10px;
+      font-size: 10.5pt;
+    }
+    th {
+      background-color: #f3f3f3;
+      font-weight: bold;
+      text-align: left;
+    }
+    .callout {
+      background-color: #f9f9f9;
+      border-left: 6px solid #1155cc;
+      padding: 12px 16px;
+      margin: 16pt 0;
+      border-radius: 0 4px 4px 0;
+    }
+    .code-block {
+      background-color: #f4f4f4;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 12px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 10pt;
+      white-space: pre-wrap;
+      margin: 16pt 0;
+      color: #222222;
+    }
+    .diagram-text {
+      background-color: #fafafa;
+      border: 1px dashed #b0b0b0;
+      padding: 12px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 9.5pt;
+      margin: 12pt 0;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>SAJS Library Site - Project Overview &amp; System Documentation</h1>
+  <p>Welcome to the official system documentation for the <strong>Seth M.R. Jaipuria School (SAJS) Library Site</strong>. This platform serves as a modern digital repository, discussion forum, and management system tailored to connect students, teachers, and administrators.</p>
+
+  <h2>1. Executive Summary &amp; Architecture</h2>
+  <p>The SAJS Library Site is engineered as a highly responsive, secure, and modern Single Page-like application built on top of a serverless cloud infrastructure. The system leverages cloud resources to handle heavy assets, user state, real-time message sync, and auditing without requiring a dedicated server host.</p>
+
+  <div class="callout">
+    <strong>Architecture Note:</strong> The client application communicates directly with Firebase cloud services (Auth, Firestore, Realtime Database, and Storage) securely via client SDK libraries, matching incoming requests against server-side Firestore Security Rules and Realtime Database rules.
+  </div>
+
+  <div class="diagram-text">
+[Web Client: HTML, CSS, JS]
+      |
+      +---> [Firebase Auth]                  (User Sign-in / OAuth)
+      |
+      +---> [Cloud Firestore]                (Profiles, Books, Reviews, Audit Logs)
+      |
+      +---> [Firebase Realtime Database]     (Real-time Forum Chat &amp; Threads)
+      |
+      +---> [Firebase Cloud Storage]         (PDFs, Book Covers, Profile Pictures)
+  </div>
+
+  <h3>Technology Stack &amp; Rationale</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Layer</th>
+        <th>Technology</th>
+        <th>Rationale</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Frontend Core</strong></td>
+        <td>HTML5, CSS3, Vanilla ES6 JavaScript</td>
+        <td>Minimizes initial page load times, eliminates framework overhead, and optimizes browser performance.</td>
+      </tr>
+      <tr>
+        <td><strong>Design System</strong></td>
+        <td>Custom Glassmorphism Theme (Vanilla CSS)</td>
+        <td>Employs custom HSL design tokens, CSS variables, flexbox/grid layouts, and micro-animations to deliver a unified, premium user experience.</td>
+      </tr>
+      <tr>
+        <td><strong>Authentication</strong></td>
+        <td>Firebase Authentication</td>
+        <td>Provides secure credential storage, OAuth (Google Sign-In), session handling, and tokens.</td>
+      </tr>
+      <tr>
+        <td><strong>Structured Data</strong></td>
+        <td>Cloud Firestore</td>
+        <td>A NoSQL document database that scales automatically. Used for indexed queries on books, user profiles, announcements, and audit logs.</td>
+      </tr>
+      <tr>
+        <td><strong>Real-time Sync</strong></td>
+        <td>Firebase Realtime Database (RTDB)</td>
+        <td>JSON database using WebSockets to synchronize chat messages and threads instantly with minimal network latency.</td>
+      </tr>
+      <tr>
+        <td><strong>Asset Storage</strong></td>
+        <td>Firebase Cloud Storage</td>
+        <td>Serves heavy digital files (book PDFs, cover images, user avatars) through Google's Global CDN with strict file size and type validation rules.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>2. Authentication System &amp; Dual-Login</h2>
+  <p>The authentication system supports three native workflows: Standard Email Sign-In, Username Sign-In, and Google OAuth Sign-In.</p>
+
+  <div class="diagram-text">
+User Entry -> Enter Credentials -> Click Login
+    |
+    v
+Check if entry has "@" character
+    |
+    +---> YES: Authenticate directly with Email and Password
+    |
+    +---> NO:  Query Firestore users collection for Username match
+               |
+               v
+         Email found? -> Authenticate with resolved Email and Password
+  </div>
+
+  <ul>
+    <li><strong>Username / Email Sign-In:</strong> If the input field lacks an "@" symbol, the system assumes it is a username. It performs a Firestore query on the <code>users</code> collection matching the <code>username</code> field. Upon matching, it retrieves the user's registered email address and executes the secure Firebase Authentication call <code>signInWithEmailAndPassword</code>.</li>
+    <li><strong>Teacher Registration Restriction:</strong> During signup, if a user attempts to select the "Teacher" role, the auth helper validates that their email matches the official school suffix <code>_lko@jaipuria.edu.in</code>. Students are unable to self-promote to moderator roles.</li>
+    <li><strong>Profile Avatars:</strong> User profiles store an optional <code>profilePicture</code> URL from Firebase Storage. The app displays this image next to reviews, discussion posts, and in the navbar, falling back to dynamic name initials if no image exists.</li>
+  </ul>
+
+  <h2>3. Real-time Discussions Forum</h2>
+  <p>The discussion forum acts as a real-time classroom communication hub. It features two sections: standard book discussions (tied to catalogued book IDs) and teacher-created custom discussion threads.</p>
+
+  <h3>Senders List Modal</h3>
+  <p>Teachers and administrators can view a clean list (👤) of all unique users who have posted in a specific discussion thread. This pulls from a cache of user profiles, displaying the member's profile picture, name, role, class details, or subject specialty.</p>
+
+  <h3>Multi-Message Bulk Deletion</h3>
+  <p>Moderators can click the Trash icon (🗑️) to enter bulk selection mode. Checkboxes appear next to each message in the feed. Once selected, clicking <strong>Delete Selected</strong> prompts the moderator for a deletion reason, removes all selected messages from the database, logs a <code>MESSAGE_BULK_DELETE</code> event in the audit trail, and exits selection mode.</p>
+
+  <h3>Thread Deletion</h3>
+  <p>Teachers and admins can delete entire discussions. Clicking the <strong>Delete Discussion</strong> button triggers a modal where they must type the exact title of the thread to confirm, alongside a reason. The thread metadata and all child messages are permanently removed, logging a <code>DISCUSSION_DELETE</code> action.</p>
+
+  <h3>Student Actions</h3>
+  <p>Students can hover over their own messages to display action buttons (✏️, 🗑️).</p>
+  <ul>
+    <li><strong>Edit:</strong> Inlines a text area and a mandatory "Reason for edit" field. Saving updates the database and logs a <code>MESSAGE_EDIT</code> audit log with the original and modified text.</li>
+    <li><strong>Delete:</strong> Prompts for inline confirmation and a deletion reason. The message is deleted and logged under <code>MESSAGE_DELETE</code> with the deleted text.</li>
+  </ul>
+
+  <h2>4. Book Reviews &amp; Ratings</h2>
+  <p>Each book detail page includes a community review section.</p>
+  <ul>
+    <li><strong>Star Ratings:</strong> Users can leave a review accompanied by a rating from 1 to 5 stars.</li>
+    <li><strong>Inline Reviews Editing / Deletion:</strong> Similar to the chat system, review owners can edit or delete their reviews inline. The edit window provides a text area and a reason input field. The delete action prompts the user for confirmation and a reason.</li>
+    <li><strong>Moderator Actions:</strong> Teachers and admins can remove reviews directly. An inline panel prompts the moderator for a removal reason, deletes the review, and logs a <code>REVIEW_MODERATE_DELETE</code> event containing the deleted content.</li>
+  </ul>
+
+  <h2>5. Audit Logging &amp; System Diagnostics</h2>
+  <p>For accountability, the platform records every administrative and user-moderated action inside Firestore’s <code>audit_logs</code> collection.</p>
+
+  <h3>Full Log Modal</h3>
+  <p>Admins can view a detailed audit table inside the management tab. The <strong>Time</strong> column displays timestamps in a neat <code>YYYY-MM-DD HH:MM</code> format. The table includes a <strong>View Full Log</strong> action button for each entry, which opens a modal populated with:</p>
+  <ul>
+    <li><strong>Action Name &amp; Category:</strong> (e.g., <code>MESSAGE_BULK_DELETE</code>, <code>BOOK_EDIT</code>, <code>REVIEW_DELETE</code>)</li>
+    <li><strong>Metadata:</strong> Exact time, target ID, and the performer's name, email, role, and UID.</li>
+    <li><strong>Reasoning:</strong> A mandatory text description written by the user/moderator explaining why the action was taken.</li>
+    <li><strong>Content Comparisons:</strong>
+      <ul>
+        <li>For edits (Books, Reviews, Announcements, Messages), the modal displays side-by-side <strong>Before Edit</strong> and <strong>After Edit</strong> pre-formatted text boxes.</li>
+        <li>For deletions, it displays a <strong>Deleted Content</strong> block showing the removed content.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="code-block">
+Full Audit Log Details
+----------------------
+Time: 2026-08-12 21:30   Category: Reviews
+Action: REVIEW_MODERATE_DELETE
+Performed By: Jane Doe (jane_lko@jaipuria.edu.in · teacher)
+Details: Jane Doe (moderator) removed review on book "SAJS-001"
+
+Deleted Content:
+User: John Smith
+Rating: 1 stars
+Content: "This book is boring and I hate reading it."
+
+Reason for Action:
+"Inappropriate and non-constructive feedback."
+  </div>
+
+  <h2>6. Page-by-Page Feature Map</h2>
+
+  <h3>1. Home / Student Dashboard (index.html &amp; student-dashboard.html)</h3>
+  <p><strong>For Students:</strong> A welcome dashboard showing checkout statistics, recommended books, active discussion threads, and school announcements. Allows students to edit their profile fields (favorite genre, bio, subjects, upload avatar).</p>
+  <p><strong>For Teachers/Admins:</strong> Prompts quick redirects to the management dashboard.</p>
+
+  <h3>2. Login Shell (login.html)</h3>
+  <p>An auth page housing the Google login buttons and the email/username form. Features an independently scrollable form panel alongside a stationary brand container.</p>
+
+  <h3>3. Library Catalogue (library.html)</h3>
+  <p>Displays all books in a responsive grid. Users can filter books by genre chips (with an expandable "More" drawer) or type in a real-time search field (matches titles, authors, and catalog IDs).</p>
+
+  <h3>4. Book Details (book-details.html)</h3>
+  <p>Displays a book's overview: Title, Author, Year, Genre, Setting, Plot, Themes, Characters list, Conflict, Resolution, and Moral. Embeds the <strong>Digital Reader</strong> (a secure inline PDF viewer iframe).</p>
+
+  <h3>5. Discussions Forum (discussions.html)</h3>
+  <p>Features a split screen: the left column lists active threads (categorized by genres and custom discussions), and the right column loads the live chat area. Includes the teacher action bar and the message inputs.</p>
+
+  <h3>6. Discover People (discover.html)</h3>
+  <p>A grid of all registered users on the system, displaying cards with their names, roles, favorite genres, biographies, and avatars.</p>
+
+  <h3>7. Library Management Dashboard (manage.html)</h3>
+  <p>Accessible only to teachers and administrators. Features four tabs:</p>
+  <ol>
+    <li><strong>Catalogue:</strong> Add/edit books (catalogue ID auto-increment, upload cover, upload PDF) and delete books.</li>
+    <li><strong>Library Schedule:</strong> Create, edit, and view classroom weekly activity schedules.</li>
+    <li><strong>Announcements:</strong> Post, edit, and delete school-wide news.</li>
+    <li><strong>Audit Logs:</strong> (Admin-only) The database monitoring log table with searching and detailed log viewers.</li>
+  </ol>
+
+  <h3>8. Guidelines (guidelines.html)</h3>
+  <p>A static page showing the official library rules, book checkout limits, digital rights safety standards, and school behavioral guidelines.</p>
+
+  <h2>7. Security Rules Overview</h2>
+
+  <h3>Firestore Security (firestore.rules)</h3>
+  <ul>
+    <li><strong>Users:</strong> Read is public; creation validates the user fields and limits teacher role signup to official emails; updates freeze roles and UIDs.</li>
+    <li><strong>Books / Schedules / Announcements:</strong> Read is public; writes are limited to <code>isTeacherOrAdmin()</code>.</li>
+    <li><strong>Reviews:</strong> Creation is limited to owner UIDs with valid rating values; updates are limited to owners; deletion is allowed by owners or moderators.</li>
+    <li><strong>Audit Logs:</strong> Read is limited to <code>isTeacherOrAdmin()</code>; creation is open to signed-in users (must provide valid <code>action</code> and <code>category</code> fields); updates and deletions are entirely blocked (read-only/append-only logs).</li>
+  </ul>
+
+  <h3>Realtime Database Security (database.rules.json)</h3>
+  <ul>
+    <li><strong>Messages:</strong> Reads and writes are open to authenticated users; validations ensure that new messages contain a sender, sender UID, timestamp, and message string.</li>
+    <li><strong>Custom Threads:</strong> Reads and writes are open to authenticated users; validations check that all thread meta fields exist.</li>
+  </ul>
+
+  <h2>8. Conclusion &amp; Future Roadmap</h2>
+  <p>The SAJS Library Site provides a solid foundation for digital cataloguing and school collaboration. Future releases plan to introduce:</p>
+  <ol>
+    <li><strong>AI Recommendation System:</strong> Integrate a recommendations system mapping user preferences (favorite genres/past checkouts) to catalogue items.</li>
+    <li><strong>Push Notifications:</strong> Web notifications alerting students when a discussion thread they participated in receives a new message.</li>
+    <li><strong>Weekly Quiz Tournaments:</strong> A built-in gamification engine letting teachers host weekly book-trivia quizzes with leaderboards to promote reading engagement.</li>
+  </ol>
+
+</body>
+</html>

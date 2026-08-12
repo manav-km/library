@@ -72,7 +72,21 @@ export function listenToThread(bookId, callback) {
 
 /** Teacher/admin moderation — remove a single message. */
 export function deleteMessage(bookId, messageId) {
-  remove(ref(rtdb, `discussions/${bookId}/messages/${messageId}`));
+  return remove(ref(rtdb, `discussions/${bookId}/messages/${messageId}`));
+}
+
+/** Update message content. */
+export async function updateMessage(bookId, messageId, newMessage) {
+  if (hasBadWords(newMessage)) {
+    throw new Error("Your message contains inappropriate language or profanity.");
+  }
+  await set(ref(rtdb, `discussions/${bookId}/messages/${messageId}/message`), newMessage);
+}
+
+/** Delete a custom discussion thread and all its messages. */
+export async function deleteDiscussion(threadId) {
+  await remove(ref(rtdb, `custom_threads/${threadId}`));
+  await remove(ref(rtdb, `discussions/${threadId}`));
 }
 
 /** Creates a custom discussion thread and sends initial message. */

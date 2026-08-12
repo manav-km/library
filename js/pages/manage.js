@@ -463,25 +463,117 @@ function categoryBadge(category) {
   return `<span class="badge">${escapeHTML(category)}</span>`;
 }
 
+function formatTimestamp(timestamp) {
+  const d = new Date(timestamp);
+  if (isNaN(d.getTime())) return "—";
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+}
+
+function showFullLogModal(log) {
+  const modal = qs("#view-full-log-modal");
+  const content = qs("#full-log-details-content");
+  if (!modal || !content) return;
+
+  let detailsHTML = `
+    <div><strong>Time:</strong> <span class="mono">${formatTimestamp(log.timestamp)}</span></div>
+    <div><strong>Category:</strong> ${categoryBadge(log.category)}</div>
+    <div><strong>Action:</strong> <span class="mono">${escapeHTML(log.action || "—")}</span></div>
+    <div style="border-top: 1px solid var(--glass-border); padding-top: var(--sp-2); margin-top: var(--sp-2);">
+      <strong>Done By:</strong>
+      <div style="margin-left: 12px; margin-top: 4px;">
+        <div>Name: ${escapeHTML(log.performedBy?.name || "System")}</div>
+        <div>Email: ${escapeHTML(log.performedBy?.email || "—")}</div>
+        <div>Role: <span style="text-transform: capitalize;">${escapeHTML(log.performedBy?.role || "system")}</span></div>
+        <div>UID: <span class="mono" style="font-size: 11px;">${escapeHTML(log.performedBy?.uid || "—")}</span></div>
+      </div>
+    </div>
+    <div style="border-top: 1px solid var(--glass-border); padding-top: var(--sp-2); margin-top: var(--sp-2);"><strong>Details:</strong> ${escapeHTML(log.details)}</div>
+  `;
+
+  if (log.beforeEdit || log.afterEdit) {
+    detailsHTML += `
+      <div style="margin-top: 10px; border-top: 1px solid var(--glass-border); padding-top: var(--sp-2);">
+        <strong>Before Edit:</strong>
+        <pre style="background:var(--bg-sunken); padding:var(--sp-3); border-radius:var(--radius-sm); white-space:pre-wrap; font-family:var(--font-mono); font-size:11px; margin-top:4px; max-height:150px; overflow-y:auto; border:1px solid var(--glass-border);">${escapeHTML(log.beforeEdit || "—")}</pre>
+      </div>
+      <div style="margin-top: 10px;">
+        <strong>After Edit:</strong>
+        <pre style="background:var(--bg-sunken); padding:var(--sp-3); border-radius:var(--radius-sm); white-space:pre-wrap; font-family:var(--font-mono); font-size:11px; margin-top:4px; max-height:150px; overflow-y:auto; border:1px solid var(--glass-border);">${escapeHTML(log.afterEdit || "—")}</pre>
+      </div>
+    `;
+  }
+
+  if (log.deletedContent) {
+    detailsHTML += `
+      <div style="margin-top: 10px; border-top: 1px solid var(--glass-border); padding-top: var(--sp-2);">
+        <strong>Deleted Content:</strong>
+        <pre style="background:var(--bg-sunken); padding:var(--sp-3); border-radius:var(--radius-sm); white-space:pre-wrap; font-family:var(--font-mono); font-size:11px; margin-top:4px; max-height:150px; overflow-y:auto; border:1px solid var(--glass-border);">${escapeHTML(log.deletedContent || "—")}</pre>
+      </div>
+    `;
+  }
+
+  if (log.reason) {
+    detailsHTML += `
+      <div style="margin-top: 10px; border-top: 1px solid var(--glass-border); padding-top: var(--sp-2);">
+        <strong>Reason for Action:</strong>
+        <div style="background:rgba(251,191,36,0.05); padding:var(--sp-3); border:1px solid rgba(251,191,36,0.15); border-radius:var(--radius-sm); margin-top:4px; font-style:italic;">
+          "${escapeHTML(log.reason)}"
+        </div>
+      </div>
+    `;
+  }
+
+  content.innerHTML = detailsHTML;
+  modal.classList.add("open");
+}
+
+// Close full log modal event listener
+setTimeout(() => {
+  const closeFullLogModalBtn = qs("#close-full-log-modal");
+  if (closeFullLogModalBtn) {
+    closeFullLogModalBtn.addEventListener("click", () => {
+      qs("#view-full-log-modal").classList.remove("open");
+    });
+  }
+}, 100);
+
 function renderAuditLogsTable(list) {
   const tbody = qs("#audit-table-body");
   if (!tbody) return;
   tbody.innerHTML = list.length ? list.map((l) => `
     <tr>
-      <td class="text-tertiary mono" style="font-size:var(--fs-tiny); white-space:nowrap;">${timeAgo(l.timestamp)}</td>
+      <td class="text-tertiary mono" style="font-size:var(--fs-tiny); white-space:nowrap;">${formatTimestamp(l.timestamp)}</td>
       <td>${categoryBadge(l.category)}</td>
       <td>${escapeHTML(l.details)}</td>
       <td>
         <strong style="font-size:var(--fs-small);">${escapeHTML(l.performedBy?.name || 'System')}</strong>
         <div class="text-tertiary" style="font-size:var(--fs-tiny);">${escapeHTML(l.performedBy?.email || '')} · ${escapeHTML(l.performedBy?.role || 'user')}</div>
       </td>
+      <td>
+        <button class="btn btn-ghost btn-sm view-full-log-btn" data-id="${l.id}">View Full Log</button>
+      </td>
     </tr>
-  `).join("") : `<tr><td colspan="4" class="text-tertiary" style="text-align:center; padding:var(--sp-4);">No audit log entries recorded yet.</td></tr>`;
+  `).join("") : `<tr><td colspan="5" class="text-tertiary" style="text-align:center; padding:var(--sp-4);">No audit log entries recorded yet.</td></tr>`;
+
+  qsa(".view-full-log-btn", tbody).forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.id;
+      const log = list.find((l) => l.id === id);
+      if (log) {
+        showFullLogModal(log);
+      }
+    });
+  });
 }
 
 async function loadAuditLogs() {
   const mount = qs("#audit-table-body");
-  if (mount) mount.innerHTML = `<tr><td colspan="4"><div class="skeleton" style="height:60px;"></div></td></tr>`;
+  if (mount) mount.innerHTML = `<tr><td colspan="5"><div class="skeleton" style="height:60px;"></div></td></tr>`;
   auditLogs = await getAuditLogs();
   renderAuditLogsTable(auditLogs);
 }
@@ -594,6 +686,7 @@ loadBooks();
    Announcements
    ========================================================================== */
 let editingAnnouncementId = null;
+let originalAnnouncement = null;
 
 function openAnnouncementModal(ann = null) {
   if (!qs("#announcement-modal")) {
@@ -639,12 +732,14 @@ function openAnnouncementModal(ann = null) {
 
   if (ann) {
     editingAnnouncementId = ann.id;
+    originalAnnouncement = ann;
     titleEl.value = ann.title || "";
     bodyEl.value = ann.body || "";
     modalTitle.textContent = "Edit Announcement";
     saveBtn.textContent = "📣 Save Changes";
   } else {
     editingAnnouncementId = null;
+    originalAnnouncement = null;
     titleEl.value = "";
     bodyEl.value = "";
     modalTitle.textContent = "New Announcement";
@@ -670,12 +765,14 @@ async function handleSaveAnnouncement() {
         title: titleVal,
         body: bodyVal
       });
-      logAuditAction({
+      await logAuditAction({
         action: "ANNOUNCEMENT_EDIT",
         category: "Announcements",
         details: `"${titleVal}" edited by ${profile.name}`,
         performedBy: profile,
-        targetId: editingAnnouncementId
+        targetId: editingAnnouncementId,
+        beforeEdit: `Title: ${originalAnnouncement?.title}\nBody: ${originalAnnouncement?.body}`,
+        afterEdit: `Title: ${titleVal}\nBody: ${bodyVal}`
       });
       showToast("Announcement updated successfully!");
     } else {
@@ -685,7 +782,7 @@ async function handleSaveAnnouncement() {
         authorName: profile.name || "Admin",
         authorRole: profile.role || "admin"
       });
-      logAuditAction({
+      await logAuditAction({
         action: "ANNOUNCEMENT_ADD",
         category: "Announcements",
         details: `"${titleVal}" posted by ${profile.name}`,
@@ -752,15 +849,23 @@ async function loadAnnouncementsList() {
     qsa(".delete-ann-btn", mount).forEach((btn, idx) => {
       btn.addEventListener("click", async () => {
         const ann = list[idx];
-        if (!confirm(`Delete announcement "${ann.title}"?`)) return;
+        const reason = prompt(`Reason for deleting announcement "${ann.title}":`);
+        if (reason === null) return; // cancelled
+        const trimmedReason = reason.trim();
+        if (!trimmedReason) {
+          showToast("Reason is required to delete announcements.", "error");
+          return;
+        }
         try {
           await deleteAnnouncement(ann.id);
-          logAuditAction({
+          await logAuditAction({
             action: "ANNOUNCEMENT_DELETE",
             category: "Announcements",
             details: `"${ann.title}" deleted by ${profile.name}`,
             performedBy: profile,
-            targetId: ann.id
+            targetId: ann.id,
+            deletedContent: `Title: ${ann.title}\nBody: ${ann.body}`,
+            reason: trimmedReason
           });
           showToast("Announcement deleted.");
           loadAnnouncementsList();

@@ -173,7 +173,7 @@ export async function updateAnnouncement(id, changes) {
 
 /* -------------------------- Audit Logs ----------------------------------- */
 
-export async function logAuditAction({ action, category, details, performedBy, targetId = "" }) {
+export async function logAuditAction({ action, category, details, performedBy, targetId = "", beforeEdit = "", afterEdit = "", deletedContent = "", reason = "" }) {
   try {
     await addDoc(collection(db, "audit_logs"), {
       action: action || "ACTION",
@@ -186,7 +186,11 @@ export async function logAuditAction({ action, category, details, performedBy, t
         email: performedBy?.email || ""
       },
       targetId: targetId || "",
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      beforeEdit: beforeEdit || "",
+      afterEdit: afterEdit || "",
+      deletedContent: deletedContent || "",
+      reason: reason || ""
     });
   } catch (err) {
     console.warn("Failed to log audit action:", err);

@@ -50,9 +50,6 @@ export function renderNavbar(profile, activePage = "") {
                 ${profile.profilePicture ? `<img src="${profile.profilePicture}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : initials(profile.name)}
               </button>
               <div class="dropdown-menu">
-                <a href="${dashboardHref}">Dashboard</a>
-                <a href="${dashboardHref}#profile">My profile</a>
-                ${canManage ? `<a href="${manageHref}">Manage</a>` : ""}
                 <button id="logout-btn">Sign out</button>
               </div>
             </div>
@@ -68,8 +65,7 @@ export function renderNavbar(profile, activePage = "") {
 
     <div class="mobile-nav" id="mobile-nav">
       ${links}
-      <a href="${dashboardHref}">Dashboard</a>
-      <a href="${dashboardHref}#profile">My profile</a>
+      ${profile ? `<a href="${dashboardHref}">Dashboard</a>` : ""}
       ${canManage ? `<a href="${manageHref}">Manage</a>` : ""}
       ${profile ? `<a href="#" id="mobile-logout">Sign out</a>` : `<a href="login.html">Sign in</a>`}
     </div>

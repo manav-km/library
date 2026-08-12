@@ -206,7 +206,8 @@ service cloud.firestore {
     // ------------------------------------------------------------------
     // audit_logs/{docId}
     //
-    // Fields: action, category, details, performedBy, targetId, timestamp
+    // Fields: action, category, details, performedBy, targetId, timestamp,
+    //         beforeEdit, afterEdit, deletedContent, reason
     // ------------------------------------------------------------------
     match /audit_logs/{docId} {
 
@@ -217,7 +218,11 @@ service cloud.firestore {
       // but the action and category fields must be present strings.
       allow create: if isSignedIn()
                     && request.resource.data.action is string
-                    && request.resource.data.category is string;
+                    && request.resource.data.category is string
+                    && (!('beforeEdit' in request.resource.data) || request.resource.data.beforeEdit is string)
+                    && (!('afterEdit' in request.resource.data) || request.resource.data.afterEdit is string)
+                    && (!('deletedContent' in request.resource.data) || request.resource.data.deletedContent is string)
+                    && (!('reason' in request.resource.data) || request.resource.data.reason is string);
 
       // Log entries are immutable — no updates or deletes.
     }

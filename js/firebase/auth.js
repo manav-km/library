@@ -17,7 +17,7 @@ import {
   deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  doc, setDoc, getDoc, updateDoc
+  doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { logAuditAction } from "./firestore.js";
@@ -81,8 +81,26 @@ export async function signUp({ email, password, name, username, className, secti
   return profile;
 }
 
-export async function logIn(email, password) {
-  const cred = await signInWithEmailAndPassword(auth, email, password);
+export async function logIn(emailOrUsername, password) {
+  let targetEmail = emailOrUsername.trim();
+  
+  if (!targetEmail.includes("@")) {
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("username", "==", targetEmail));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      throw new Error("No user found with that username.");
+    }
+    
+    const userDocData = querySnapshot.docs[0].data();
+    targetEmail = userDocData.email;
+    if (!targetEmail) {
+      throw new Error("No email associated with this username.");
+    }
+  }
+
+  const cred = await signInWithEmailAndPassword(auth, targetEmail, password);
   return getUserProfile(cred.user.uid);
 }
 
