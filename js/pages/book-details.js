@@ -122,8 +122,12 @@ function wireBookEditModal() {
     e.preventDefault();
 
     const characters = qs("#f-characters").value.split("\n").filter(Boolean).map((line) => {
-      const [name, role, note] = line.split("|").map((s) => (s || "").trim());
-      return { name, role, note };
+      const parts = line.split("|").map((s) => (s || "").trim());
+      return { 
+        name: parts[0] || "", 
+        role: parts[1] || "", 
+        note: parts[2] || "" 
+      };
     });
 
     const parsedYear = parseInt(qs("#f-year").value, 10);
