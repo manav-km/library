@@ -278,6 +278,14 @@ service cloud.firestore {
     // ------------------------------------------------------------------
     // Deny everything else by default
     // ------------------------------------------------------------------
+    // schedules/{scheduleId}
+    //
+    // Fields: date, day, period, className, section, teacher, genre, notes, createdAt
+    // ------------------------------------------------------------------
+    match /schedules/{scheduleId} {
+      allow read: if true;
+      allow create, update, delete: if isTeacherOrAdmin();
+    }
   }
 }
 

@@ -320,3 +320,30 @@ export async function updateBookIssueStatus(id, status) {
   await updateDoc(doc(db, "bookIssues", id), { status, updatedAt: Date.now() });
 }
 
+/* ---------------------------- Schedules ----------------------------------- */
+
+export async function getSchedules() {
+  const snap = await getDocs(collection(db, "schedules"));
+  const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return list.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+}
+
+export async function addSchedule(data) {
+  const ref = await addDoc(collection(db, "schedules"), {
+    ...data,
+    createdAt: Date.now()
+  });
+  return ref.id;
+}
+
+export async function deleteSchedule(id) {
+  await deleteDoc(doc(db, "schedules", id));
+}
+
+export async function updateSchedule(id, data) {
+  await updateDoc(doc(db, "schedules", id), {
+    ...data,
+    updatedAt: Date.now()
+  });
+}
+

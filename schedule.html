@@ -1,165 +1,266 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Schedule — SAJS Digital Library</title>
-  <link rel="icon" type="image/jpeg" href="assets/image.jpeg">
-  <link rel="shortcut icon" href="assets/image.jpeg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/variables.css">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/layout.css">
-  <link rel="stylesheet" href="css/pages.css">
-</head>
-<body>
+  <title>Library Timetable - SAJS Digital Library</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/glass.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <style>
+    .timetable-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--glass-border);
+    }
 
+    .timetable {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    .timetable th,
+    .timetable td {
+      border: 1px solid var(--glass-border);
+      padding: 10px 8px;
+      text-align: center;
+      vertical-align: top;
+      font-size: var(--fs-tiny);
+    }
+
+    .timetable th {
+      background: var(--bg-sunken);
+      color: var(--cyan-300);
+      font-family: var(--font-mono);
+      font-weight: 600;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .timetable td.day-cell {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      font-weight: 700;
+      font-family: var(--font-mono);
+      vertical-align: middle;
+      white-space: nowrap;
+      width: 110px;
+    }
+
+    .slot-box {
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 6px;
+      text-align: left;
+      transition: all var(--dur-fast) var(--ease-standard);
+      position: relative;
+    }
+
+    .slot-box:hover {
+      border-color: var(--indigo-400);
+      box-shadow: var(--shadow-glow-indigo);
+    }
+
+    .slot-box.holiday {
+      background: rgba(244, 63, 94, 0.12);
+      border-color: rgba(244, 63, 94, 0.3);
+    }
+
+    .slot-box.substitution {
+      background: rgba(251, 191, 36, 0.12);
+      border-color: rgba(251, 191, 36, 0.3);
+    }
+
+    .past-planner-item {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .past-planner-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Global Navigation Header -->
   <div id="navbar-mount"></div>
 
-  <main class="app-main">
-    <div class="container">
-      <div class="section-head" style="margin-bottom:var(--sp-4);">
-        <div>
-          <span class="eyebrow">Weekly Timetable</span>
-          <h1 style="margin:0; font-size:var(--fs-h2);">Library Schedule</h1>
-          <p class="text-tertiary" style="margin-top:4px; font-size:var(--fs-small);" id="schedule-week-range">
-            Weekly library period allocations (resets every Monday).
-          </p>
-        </div>
-        <button id="open-schedule-modal-btn" class="btn btn-primary hidden">
-          <span>➕</span> Add Period
+  <main class="page-container fade-in">
+    <!-- Header Hero Banner -->
+    <header class="flex justify-between items-center mb-6" style="flex-wrap: wrap; gap: 16px;">
+      <div>
+        <h1 style="font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, var(--text-primary), var(--cyan-300)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          📅 Weekly Library Timetable
+        </h1>
+        <p class="text-secondary" style="font-size: var(--fs-small); margin-top: 4px;" id="current-week-label">
+          Active Weekly Schedule
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button class="btn btn-ghost" id="open-past-schedules-btn">
+          📜 View Past Schedules
+        </button>
+        <button class="btn btn-primary" id="open-add-schedule-btn" style="display: none;">
+          ➕ Add / Edit Slot
         </button>
       </div>
+    </header>
 
-      <div class="schedule-table-wrap">
-        <table class="schedule-table" id="schedule-table">
-          <thead>
-            <tr>
-              <th>Day</th>
-              <th>1st Period</th>
-              <th>2nd Period</th>
-              <th>3rd Period</th>
-              <th>4th Period</th>
-              <th>5th Period</th>
-              <th>6th Period</th>
-              <th>7th Period</th>
-              <th>8th Period</th>
-            </tr>
-          </thead>
-          <tbody id="schedule-tbody">
-            <!-- Populated dynamically -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </main>
-
-  <!-- Add Period Modal -->
-  <div class="modal-overlay" id="schedule-modal" style="display:none; z-index:1000;">
-    <div class="modal-card" style="max-width: 540px; background:var(--bg-elevated); border:1px solid var(--glass-border-hi); border-radius:var(--radius-lg); padding:var(--sp-6);">
-      <div class="modal-header flex items-center justify-between" style="margin-bottom:var(--sp-4);">
-        <h2 style="margin:0; font-size:var(--fs-h3);">Add Library Period</h2>
-        <button type="button" class="icon-btn close-modal" style="background:none; border:none; color:var(--text-secondary); font-size:1.5rem; cursor:pointer;">&times;</button>
-      </div>
-      <form id="schedule-form">
-        <div class="form-group" style="margin-bottom:var(--sp-4); background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:var(--radius-md); padding:10px 14px;">
-          <label class="flex items-center gap-2" style="cursor:pointer; margin:0; font-weight:600; color:#f59e0b;">
-            <input type="checkbox" id="p-is-holiday" style="width:18px; height:18px; accent-color:#f59e0b;">
-            <span>🌴 Mark this day / period as a Holiday</span>
-          </label>
-        </div>
-
-        <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4);">
-          <div class="form-group">
-            <label for="p-date">Date</label>
-            <input type="date" id="p-date" required>
-          </div>
-          <div class="form-group">
-            <label for="p-day">Day <span class="text-tertiary" style="font-weight:400; font-size:var(--fs-tiny);">(Auto-detected)</span></label>
-            <select id="p-day" required>
-              <option value="Monday">Monday</option>
-              <option value="Tuesday">Tuesday</option>
-              <option value="Wednesday">Wednesday</option>
-              <option value="Thursday">Thursday</option>
-              <option value="Friday">Friday</option>
-              <option value="Saturday">Saturday</option>
-              <option value="Sunday">Sunday</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:var(--sp-4); margin-top:var(--sp-3);">
-          <div class="form-group">
-            <label for="p-period">Period</label>
-            <select id="p-period" required>
-              <option value="All Periods">All Periods (Full Day)</option>
-              <option value="1st Period">1st Period</option>
-              <option value="2nd Period">2nd Period</option>
-              <option value="3rd Period">3rd Period</option>
-              <option value="4th Period">4th Period</option>
-              <option value="5th Period">5th Period</option>
-              <option value="6th Period">6th Period</option>
-              <option value="7th Period">7th Period</option>
-              <option value="8th Period">8th Period</option>
-            </select>
-          </div>
-          <div class="form-group" id="group-grade-box">
-            <label for="p-grade">Grade</label>
-            <select id="p-grade">
-              <option value="Grade 1">Grade 1</option>
-              <option value="Grade 2">Grade 2</option>
-              <option value="Grade 3">Grade 3</option>
-              <option value="Grade 4">Grade 4</option>
-              <option value="Grade 5">Grade 5</option>
-              <option value="Grade 6">Grade 6</option>
-              <option value="Grade 7">Grade 7</option>
-              <option value="Grade 8">Grade 8</option>
-              <option value="Grade 9">Grade 9</option>
-              <option value="Grade 10" selected>Grade 10</option>
-              <option value="Grade 11">Grade 11</option>
-              <option value="Grade 12">Grade 12</option>
-            </select>
-          </div>
-          <div class="form-group" id="group-section-box">
-            <label for="p-section">Section</label>
-            <select id="p-section">
-              <option value="A">Section A</option>
-              <option value="B">Section B</option>
-              <option value="C">Section C</option>
-              <option value="D">Section D</option>
-              <option value="E">Section E</option>
-              <option value="F">Section F</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group" id="group-teacher-box" style="margin-top:var(--sp-3);">
-          <label for="p-teacher">Teacher Taking Class</label>
-          <input type="text" id="p-teacher" placeholder="e.g. Mrs. Ananya Sharma">
-        </div>
-
-        <div class="form-group" id="group-genre-box" style="margin-top:var(--sp-3);">
-          <label for="p-genre">Shelf / Genre to Read</label>
-          <select id="p-genre">
-            <!-- Populated dynamically with ALL_GENRES -->
+    <!-- Filters Bar -->
+    <div class="glass-card mb-6" style="padding: 14px 20px;">
+      <div class="flex justify-between items-center" style="flex-wrap: wrap; gap: 16px;">
+        <div class="flex items-center gap-3">
+          <label for="filter-class" style="font-size: var(--fs-small); color: var(--text-tertiary); font-weight: 600;">Filter Class:</label>
+          <select id="filter-class" class="input" style="width: auto; padding: 6px 14px; font-size: var(--fs-small);">
+            <option value="ALL">All Classes</option>
+            <option value="6">Class 6</option>
+            <option value="7">Class 7</option>
+            <option value="8">Class 8</option>
+            <option value="9">Class 9</option>
+            <option value="10">Class 10</option>
+            <option value="11">Class 11</option>
+            <option value="12">Class 12</option>
           </select>
         </div>
 
-        <div class="form-group" style="margin-top:var(--sp-3);">
-          <label for="p-activity">Assignments / Activities / Holiday Note</label>
-          <textarea id="p-activity" rows="3" placeholder="e.g. Chapter 4 reading, book review notes, or School Holiday reason..."></textarea>
+        <div class="text-tertiary" style="font-size: var(--fs-tiny);" id="week-date-range">
+          <!-- Active Week Monday – Saturday -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Timetable (6 Rows x 8 Columns) -->
+    <section class="timetable-wrap">
+      <table class="timetable">
+        <thead>
+          <tr>
+            <th style="width: 110px;">Day</th>
+            <th>Period 1</th>
+            <th>Period 2</th>
+            <th>Period 3</th>
+            <th>Period 4</th>
+            <th>Period 5</th>
+            <th>Period 6</th>
+            <th>Period 7</th>
+            <th>Period 8</th>
+          </tr>
+        </thead>
+        <tbody id="active-timetable-body">
+          <tr><td colspan="9" style="padding: 30px; color: var(--text-tertiary);">Loading weekly timetable...</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- Modal: Add / Edit Schedule Slot (Staff Only) -->
+  <div class="modal-overlay" id="add-schedule-modal">
+    <div class="modal" style="max-width: 540px;">
+      <h3 style="margin-bottom: var(--sp-4);">➕ Fill Timetable Slot</h3>
+      <form id="add-schedule-form">
+        <div class="grid gap-4" style="grid-template-columns: 1fr 1fr;">
+          <div class="form-group">
+            <label class="form-label" for="sched-date">Date *</label>
+            <input type="date" id="sched-date" class="input" required>
+            <div id="auto-day-display" style="font-size: var(--fs-tiny); color: var(--cyan-300); margin-top: 4px; font-weight: 600;">Day: Auto Detected</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="sched-period">Period Number *</label>
+            <select id="sched-period" class="input" required>
+              <option value="Period 1">Period 1</option>
+              <option value="Period 2">Period 2</option>
+              <option value="Period 3">Period 3</option>
+              <option value="Period 4">Period 4</option>
+              <option value="Period 5">Period 5</option>
+              <option value="Period 6">Period 6</option>
+              <option value="Period 7">Period 7</option>
+              <option value="Period 8">Period 8</option>
+            </select>
+          </div>
         </div>
 
-        <div class="modal-actions" style="margin-top:var(--sp-5); justify-content:flex-end;">
-          <button type="button" class="btn btn-tertiary close-modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Period</button>
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label" for="sched-type">Slot Status Type *</label>
+          <select id="sched-type" class="input" required>
+            <option value="normal">Regular Class Period</option>
+            <option value="holiday">🏖️ Holiday / Closed</option>
+            <option value="substitution">🔄 Substitution Period</option>
+          </select>
+        </div>
+
+        <div id="normal-slot-fields">
+          <div class="grid gap-4" style="grid-template-columns: 1fr 1fr; margin-top: 12px;">
+            <div class="form-group">
+              <label class="form-label" for="sched-class">Class / Grade *</label>
+              <input type="text" id="sched-class" class="input" placeholder="e.g. 8">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="sched-section">Section *</label>
+              <input type="text" id="sched-section" class="input" placeholder="e.g. D">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 12px;">
+            <label class="form-label" for="sched-teacher">Assigned Teacher *</label>
+            <input type="text" id="sched-teacher" class="input" placeholder="e.g. Ms. Sharma">
+          </div>
+
+          <div class="form-group" style="margin-top: 12px;">
+            <label class="form-label" for="sched-genre">Target Genre / Shelf Focus</label>
+            <select id="sched-genre" class="input">
+              <option value="General Reading">General Reading</option>
+              <option value="Fiction">Fiction</option>
+              <option value="Science Fiction">Science Fiction</option>
+              <option value="Fantasy">Fantasy</option>
+              <option value="Mystery">Mystery</option>
+              <option value="Non-Fiction">Non-Fiction</option>
+              <option value="History">History</option>
+              <option value="Biography">Biography</option>
+              <option value="Poetry">Poetry</option>
+              <option value="Comics & Graphic Novels">Comics & Graphic Novels</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label" for="sched-notes">Any Notes / Remarks?</label>
+          <textarea id="sched-notes" class="input" rows="2" placeholder="e.g. Substitute teacher handling Class 9-A"></textarea>
+        </div>
+
+        <div class="flex gap-3 justify-end" style="margin-top: var(--sp-5);">
+          <button type="button" class="btn btn-ghost" id="close-sched-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="save-sched-btn">Save Timetable Slot</button>
         </div>
       </form>
     </div>
   </div>
 
+  <!-- Modal: View Past Schedules -->
+  <div class="modal-overlay" id="past-schedules-modal">
+    <div class="modal" style="max-width: 960px; max-height: 85vh; display: flex; flex-direction: column;">
+      <div class="flex justify-between items-center mb-4">
+        <h3>📜 Previous Weekly Planners</h3>
+        <button class="btn btn-ghost btn-sm" id="close-past-modal" style="font-size: 1.2rem;">✕</button>
+      </div>
+
+      <div id="past-planners-container" style="overflow-y: auto; flex: 1; padding-right: 8px;">
+        <!-- Iterated weekly planners will mount here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Page Logic Script -->
   <script type="module" src="js/pages/schedule.js"></script>
 </body>
+
 </html>

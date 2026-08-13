@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAJS Library Site - Documentation Hub</title>
+  <link rel="icon" type="image/jpeg" href="image.jpeg">
+  <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+  <div class="mobile-header">
+    <div class="brand-section">
+      <img src="image.jpeg" class="brand-logo" alt="SAJS Logo">
+      <span class="brand-name">SAJS Library Docs</span>
+    </div>
+  </div>
+
+  <div class="app-container" id="app-wrapper">
+    <!-- Collapsible Sidebar Toggle Button -->
+    <button class="sidebar-toggle-btn" id="sidebar-toggle" title="Toggle Sidebar"
+      aria-label="Toggle Sidebar">&lt;</button>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="docs-sidebar">
+      <a href="#" class="brand-section">
+        <img src="../assets/image.jpeg" class="brand-logo" alt="SAJS Logo">
+        <span class="brand-name">SAJS Library Docs</span>
+      </a>
+      <nav class="nav-container">
+        <ul class="nav-menu">
+          <li class="nav-item active" id="li-introduction"><a href="#introduction">Introduction</a></li>
+          <li class="nav-item" id="li-purpose"><a href="#purpose">Purpose of the Website</a></li>
+          <li class="nav-item" id="li-languages"><a href="#languages">Languages &amp; Services</a></li>
+          <li class="nav-item" id="li-structure"><a href="#structure">Website Structure</a></li>
+          <li class="nav-item" id="li-security"><a href="#security">Security &amp; Access Control</a></li>
+          <li class="nav-item" id="li-features"><a href="#features">Key Features</a></li>
+          <li class="nav-item" id="li-conclusion"><a href="#conclusion">Conclusion</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- Section: Introduction -->
+      <section id="introduction">
+        <h1>Seth Anandram Jaipuria School's Library Website</h1>
+        <p>This document provides an overview of the Seth Anandram Jaipuria School Library Website, developed by
+          Manav Kumar Mishra of Class VIII-D.
+        </p>
+        <p>The website is a fully-featured, production-ready digital library ecosystem designed for students, teachers,
+          and library administrators. It provides centralized access to the school library's catalogue, book details,
+          reading progress tracking, achievements, leaderboards, physical book issuing, custom shelves, reading
+          challenges, teacher management portals, and community discussions.</p>
+        <p>The website is built using modern web standards and public cloud services, allowing full platform operations,
+          hosting, and backend data persistence within free usage tiers.</p>
+      </section>
+
+      <!-- Section: Purpose -->
+      <section id="purpose">
+        <h2>Purpose of the Website</h2>
+        <p>The primary goal of the platform is to fully digitize, streamline, and gamify the school library experience
+          for the entire student body and staff community.</p>
+        <p>Instead of maintaining physical registers or fragmented records, the platform integrates catalogue browsing,
+          reading progress, achievement rewards, and administrative oversight into a cohesive web application.</p>
+        <p>The website accomplishes the following:</p>
+        <ul>
+          <li>Provides instant, searchable access to the digital book catalogue with full book metadata.</li>
+          <li>Enables students to request physical book issues with automated return notices and fine policy
+            disclaimers.</li>
+          <li>Tracks student reading progress page-by-page with interactive completion status bars.</li>
+          <li>Gamifies student reading through 16 unlockable achievements, live stat evaluations, and toast
+            notifications.</li>
+          <li>Offers a 4-tab competitive Leaderboard for student engagement while strictly excluding staff to ensure
+            fair play.</li>
+          <li>Enables personal reading list management with default shelves (Want to Read, Currently Reading, Favorites)
+            and custom user shelves.</li>
+          <li>Fosters academic discussions via automated book-associated chatrooms with bad-word content filtering.</li>
+          <li>Provides a dedicated Teacher & Admin Dashboard for book issue approvals, reading challenge creation,
+            student activity tracking, and announcements.</li>
+          <li>Enforces strict Security Enhancements including 72-hour email verification windows and instant
+            multi-account switching.</li>
+        </ul>
+      </section>
+
+      <!-- Section: Languages & Services -->
+      <section id="languages">
+        <h2>Languages and Services Used</h2>
+
+        <h3>HTML5, CSS3 and Modern ES6+ JavaScript</h3>
+        <p>The frontend is built using pure, highly optimized web standards:</p>
+        <ul>
+          <li><strong>HTML5:</strong> Semantic structure, accessible forms, modal dialogs, and dynamic page layouts.
+          </li>
+          <li><strong>Vanilla CSS3:</strong> Custom glassmorphic visual system, vibrant color tokens, responsive grid
+            layouts, animations, and dark mode aesthetics.</li>
+          <li><strong>ES6+ JavaScript (Modules):</strong> Asynchronous API calls, real-time achievement evaluation,
+            client-side image compression, and dynamic DOM rendering.</li>
+        </ul>
+
+        <h3>Firebase (Google Cloud Platform)</h3>
+        <p>Firebase powers the backend infrastructure without requiring physical server maintenance:</p>
+        <ul>
+          <li><strong>Firebase Authentication:</strong> User registration, login, 72-hour email verification gates, and
+            Google OAuth single sign-on.</li>
+          <li><strong>Cloud Firestore:</strong> NoSQL database storing user profiles, book catalogues, reviews, reading
+            progress, shelves, reading challenges, book issues, and announcements.</li>
+          <li><strong>Firebase Realtime Database:</strong> High-speed WebSocket messaging for discussion chatrooms and
+            custom community threads.</li>
+          <li><strong>Firebase Storage:</strong> Storage for compressed cover images, avatars, and direct PDF downloads
+            (up to 100MB per file).</li>
+          <li><strong>Security Rules:</strong> Fine-grained data access rules (`firestore.rules` and
+            `database.rules.json`) enforcing role-based permissions and self-deletion rights for expired accounts.</li>
+        </ul>
+
+        <h3>GitHub &amp; GitHub Pages</h3>
+        <p>GitHub manages project source code, version history, and automated web deployment via GitHub Pages.</p>
+      </section>
+
+      <!-- Section: Website Structure -->
+      <section id="structure">
+        <h2>Website Structure &amp; Page Modules</h2>
+        <p>The application consists of specialized pages tailored for students, teachers, and administrators.</p>
+
+        <h3>1. Home (`index.html`)</h3>
+        <p>The portal landing page featuring quick navigation, featured book collections, recently added titles, library
+          announcements, and platform stats.</p>
+
+        <h3>2. Library Catalogue (`library.html`)</h3>
+        <p>The main library catalogue supporting real-time genre filtering, title/author search, mandatory `totalPages`
+          indicators, cover image displays, and book creation modals for staff.</p>
+
+        <h3>3. Book Details (`book-details.html`)</h3>
+        <p>A comprehensive detail view for every book. Includes plot summaries, character lists, setting details,
+          themes, star ratings, review submission, direct PDF downloads, an interactive **Reading Progress Tracker**, a
+          **"📋 Issue Book"** request button, an **"Add to Shelf"** manager, and personalized genre recommendations.</p>
+
+        <h3>4. Student Dashboard (`student-dashboard.html`)</h3>
+        <p>The personal hub for students. Displays reading stats (total pages read, finished books, reviews written), an
+          interactive **"My Shelves"** widget, active **Reading Challenges**, a **Recently Viewed Books** carousel
+          synced across devices, and a 16-badge **Achievements Grid** highlighting unlocked rewards.</p>
+
+        <h3>5. Teacher &amp; Admin Dashboard (`teacher-dashboard.html`)</h3>
+        <p>A role-gated management portal reserved for staff (`role: teacher` or `admin`). Contains 5 tabs: Overview,
+          Reading Challenges Manager, Book Issue Approvals, Student Activity Tracker, and System Announcements.</p>
+
+        <h3>6. Leaderboard (`leaderboard.html`)</h3>
+        <p>A 4-tab competitive showcase: Top Reviewers, Most Achievements, Most Books Read (ranking readers by finished
+          books and pages), and Highest Rated Books. Staff accounts are automatically filtered out to focus competition
+          on students.</p>
+
+        <h3>7. Schedule (`schedule.html`)</h3>
+        <p>A 6-Day x 8-Period Weekly Timetable portal. Allows students and staff to view the active weekly schedule
+          across 8 periods (Period 1–8) and 6 days (Monday–Saturday) with class filters. Supports regular class periods,
+          🏖️ Holiday designations, and 🔄 Substitution coverage. Features click-to-edit for staff, automatic Sunday
+          week rollovers, and a <strong>"📜 View Past Schedules"</strong> popup modal displaying historic weekly
+          planners grouped by week range. All creation, edit, and deletion actions are recorded in the system Audit Log
+          under the <code>Schedule</code> category.</p>
+
+        <h3>8. Discussions (`discussions.html`)</h3>
+        <p>Interactive community hub featuring book-specific chatrooms and user-created custom threads. Powered by
+          Realtime Database with automated bad-word filtering.</p>
+
+        <h3>9. Discover People (`discover.html`)</h3>
+        <p>A student directory displaying member profiles, favorite genres, reading activity, and online status while
+          keeping passwords and private data hidden.</p>
+
+        <h3>10. Management Panel (`manage.html`)</h3>
+        <p>Centralized administrative panel containing Catalogue CRUD, Issue Status columns (`Not Issued`, `Requested`,
+          `Issued`), Review Moderation, Student Role Management, Analytics Charts, and Audit Logs with color-coded
+          category badges.</p>
+
+        <h3>11. Email Verification Gate (`verify-email.html`)</h3>
+        <p>A security gate displaying a live **72-hour countdown timer** and resend options for newly registered
+          unverified password accounts.</p>
+      </section>
+
+      <!-- Section: Security -->
+      <section id="security">
+        <h2>Security &amp; Access Control</h2>
+
+        <h3>1. Role-Based Access Control (RBAC)</h3>
+        <p>Strict role gating enforces user separation:</p>
+        <ul>
+          <li><strong>Students:</strong> Access library browsing, review submission, progress tracking, book issues,
+            shelves, achievements, schedules, and student dashboards. Staff pages automatically redirect students to
+            their dashboard.</li>
+          <li><strong>Teachers &amp; Admins:</strong> Access book management, review moderation, issue approvals,
+            challenge management, timetable slot editing, student oversight, and audit logs.</li>
+        </ul>
+
+        <h3>2. Enforced 72-Hour Email Verification Gate</h3>
+        <p>To enhance security and prevent spam or fake email signups, newly created password accounts must verify their
+          email address within 72 hours of registration. If an account remains unverified after 72 hours, the system
+          automatically purges both the Firestore user document and the Firebase Auth account.</p>
+
+        <h3>3. Instant 1-Click Multi-Account Switcher</h3>
+        <p>Users can sign into multiple accounts on a single device. The profile dropdown menu features a **"🔄 Switch
+          account"** option placed directly above "Sign out". Clicking **Switch** on any saved account switches sessions
+          instantly in the background without needing password re-entry or login redirects.</p>
+
+        <h3>4. Client-Side Image Compression</h3>
+        <p>Cover images and avatars are automatically compressed down to 600px max dimension (~30-50KB) before uploading
+          to Cloud Storage, preventing network hangs and ensuring document sizes stay well below Firestore's 1MB limit.
+        </p>
+      </section>
+
+      <!-- Section: Features -->
+      <section id="features">
+        <h2>Key Implemented Features</h2>
+        <p>All core and advanced library features have been fully built and deployed:</p>
+        <ul>
+          <li><strong>Digital Book Catalogue:</strong> Full book metadata, SAJS-### auto-numbering, genre filters, and
+            PDF attachment links.</li>
+          <li><strong>6x8 Weekly Timetable System:</strong> 6 Days x 8 Periods timetable grid with regular, 🏖️ Holiday,
+            and 🔄 Substitution status badges, click-to-edit, auto-day calculation, automatic Sunday clearing, and a
+            "View Past Schedules" historic planners popup modal.</li>
+          <li><strong>Book Issue System:</strong> Request modal with overdue fine warnings, staff approval/rejection
+            queue, and live Catalogue status column (`Not Issued`, `Requested`, `Issued`).</li>
+          <li><strong>Interactive Reading Tracker:</strong> Page-by-page progress bars, mandatory `totalPages` field,
+            and completion badges (`Not Started`, `Reading`, `Finished ✓`).</li>
+          <li><strong>Reading Lists &amp; Custom Shelves:</strong> Default shelves (Want to Read, Currently Reading,
+            Favorites) and user-created custom shelves.</li>
+          <li><strong>16-Badge Achievement System:</strong> Live stat evaluation, real-time toast unlock popups, and
+            student profile badges.</li>
+          <li><strong>Student-Only Leaderboards:</strong> 4 rankings tabs excluding staff for fair student competition.
+          </li>
+          <li><strong>Teacher Management Portal:</strong> Dedicated dashboard for issue approvals, reading challenges,
+            student activity, and announcements.</li>
+          <li><strong>Instant Multi-Account Switcher:</strong> Device account registry with 1-click passwordless session
+            switching.</li>
+          <li><strong>72-Hour Security Verification Gate:</strong> Mandatory email verification with live countdown
+            timer and automated 72h account purge.</li>
+          <li><strong>Community Discussions:</strong> Automated book threads with bad-word filtering and own-message
+            alignment.</li>
+          <li><strong>Audit Logging System:</strong> Full administrative audit logging with unified color-coded category
+            badges (`Schedule`, `Book Issues`, `Announcements`, `Reviews`, `Users`, `Profile`, `Discussions`, `Reading
+            Progress`).</li>
+        </ul>
+      </section>
+
+      <!-- Section: Conclusion -->
+      <section id="conclusion">
+        <h2>Conclusion</h2>
+        <p>The Seth Anandram Jaipuria School Library Website stands as a complete, modern, and secure digital library
+          ecosystem.</p>
+        <p>By integrating modern web technology with Firebase cloud infrastructure, the platform provides students with
+          an engaging, gamified reading environment while equipping teachers and administrators with robust management,
+          moderation, and auditing tools.</p>
+
+        <div class="signature-block"
+          style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--glass-border);">
+          <p style="margin-bottom: 4px; color: var(--text-tertiary);">Regards,</p>
+          <p style="font-weight: 600; color: var(--cyan-300); font-size: 1.05rem; margin-bottom: 2px;">Manav Kumar
+            Mishra</p>
+          <p style="font-size: 0.85rem; color: var(--text-tertiary); margin: 0;">Class VIII-D</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Collapsible sidebar toggle script -->
+  <script>
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    const appContainer = document.getElementById('app-wrapper');
+
+    toggleBtn.addEventListener('click', () => {
+      const isCollapsed = appContainer.classList.toggle('collapsed');
+      toggleBtn.textContent = isCollapsed ? '>' : '<';
+      toggleBtn.title = isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar';
+    });
+
+    // Auto sidebar highlight logic
+    const sections = document.querySelectorAll('section');
+    const navLi = document.querySelectorAll('.nav-menu .nav-item');
+    const mainContent = document.querySelector('.main-content');
+
+    mainContent.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (mainContent.scrollTop >= (sectionTop - 150)) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLi.forEach(li => {
+        li.classList.remove('active');
+        if (li.id === `li-${current}`) {
+          li.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

@@ -100,6 +100,7 @@ qsa(".tab").forEach((tab) => {
       deleteAllBtn.style.display = currentTab === "catalogue" ? "inline-flex" : "none";
     }
 
+    if (currentTab === "catalogue") loadBooks();
     if (currentTab === "reviews") loadModerationList();
     if (currentTab === "students") loadStudents();
     if (currentTab === "announcements") loadAnnouncementsList();
@@ -476,12 +477,21 @@ if (studentSearch) {
 let auditLogs = [];
 
 function categoryBadge(category) {
-  const cat = (category || "General").toLowerCase();
-  if (cat === "books") return `<span class="badge" style="background:rgba(124,140,248,0.15); color:var(--spine-fiction); border:1px solid rgba(124,140,248,0.3);">Books</span>`;
-  if (cat === "reviews") return `<span class="badge" style="background:rgba(251,191,36,0.15); color:var(--warning); border:1px solid rgba(251,191,36,0.3);">Reviews</span>`;
-  if (cat === "profile") return `<span class="badge" style="background:rgba(34,211,238,0.15); color:var(--cyan-400); border:1px solid rgba(34,211,238,0.3);">Profile</span>`;
-  if (cat === "users") return `<span class="badge" style="background:rgba(167,139,250,0.15); color:var(--spine-scifi); border:1px solid rgba(167,139,250,0.3);">Users</span>`;
-  return `<span class="badge">${escapeHTML(category)}</span>`;
+  const cat = (category || "General").toLowerCase().trim();
+  const map = {
+    "books": { bg: "rgba(124,140,248,0.15)", color: "var(--spine-fiction)", border: "rgba(124,140,248,0.3)" },
+    "book issues": { bg: "rgba(245,158,11,0.15)", color: "#f59e0b", border: "rgba(245,158,11,0.3)" },
+    "reviews": { bg: "rgba(16,185,129,0.15)", color: "#10b981", border: "rgba(16,185,129,0.3)" },
+    "profile": { bg: "rgba(244,63,94,0.15)", color: "#f43f5e", border: "rgba(244,63,94,0.3)" },
+    "users": { bg: "rgba(168,85,247,0.15)", color: "var(--spine-scifi)", border: "rgba(168,85,247,0.3)" },
+    "announcements": { bg: "rgba(56,189,248,0.15)", color: "#38bdf8", border: "rgba(56,189,248,0.3)" },
+    "challenges": { bg: "rgba(234,179,8,0.15)", color: "#eab308", border: "rgba(234,179,8,0.3)" },
+    "discussions": { bg: "rgba(59,130,246,0.15)", color: "#3b82f6", border: "rgba(59,130,246,0.3)" },
+    "reading progress": { bg: "rgba(52,211,153,0.15)", color: "#34d399", border: "rgba(52,211,153,0.3)" },
+    "schedule": { bg: "rgba(99,102,241,0.15)", color: "#818cf8", border: "rgba(99,102,241,0.3)" }
+  };
+  const style = map[cat] || { bg: "rgba(148,163,184,0.15)", color: "var(--text-secondary)", border: "rgba(148,163,184,0.3)" };
+  return `<span class="badge" style="background:${style.bg}; color:${style.color}; border:1px solid ${style.border}; padding:3px 10px; font-size:11px; font-weight:600; display:inline-block;">${escapeHTML(category || 'General')}</span>`;
 }
 
 function formatTimestamp(timestamp) {
@@ -940,14 +950,18 @@ async function loadManageIssues() {
       btn.addEventListener("click", async () => {
         await updateBookIssueStatus(btn.dataset.id, "approved");
         showToast("Request approved.");
+        allBookIssues = await getBookIssues();
         loadManageIssues();
+        renderBooksTable();
       });
     });
     qsa(".rej-issue").forEach((btn) => {
       btn.addEventListener("click", async () => {
         await updateBookIssueStatus(btn.dataset.id, "rejected");
         showToast("Request rejected.");
+        allBookIssues = await getBookIssues();
         loadManageIssues();
+        renderBooksTable();
       });
     });
   } catch (err) {
