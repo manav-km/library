@@ -368,16 +368,18 @@
 @keyframes modal-in { from { opacity:0; transform: scale(0.97) translateY(8px); } to { opacity:1; transform: scale(1) translateY(0); } }
 
 /* ---------- Chat / discussion bubble --------------------------------------- */
-.chat-msg { display: flex; gap: var(--sp-3); padding: var(--sp-2) 0; }
+.chat-msg { display: flex; gap: var(--sp-3); padding: var(--sp-2) 0; align-items: flex-start; }
+.chat-body { flex: 1; display: flex; flex-direction: column; align-items: flex-start; }
+.chat-msg.own .chat-body { align-items: flex-end; }
 .chat-bubble {
   background: rgba(120,154,255,0.08);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: 10px 14px;
-  max-width: 70%;
 }
 .chat-msg.own { flex-direction: row-reverse; }
 .chat-msg.own .chat-bubble { background: rgba(34,211,238,0.1); border-color: rgba(34,211,238,0.2); }
+.chat-msg.own .chat-meta { flex-direction: row-reverse; }
 .chat-meta { display: flex; gap: 8px; align-items: baseline; margin-bottom: 3px; }
 .chat-name { font-weight: 600; font-size: var(--fs-small); }
 .chat-time { font-size: var(--fs-tiny); color: var(--text-tertiary); }

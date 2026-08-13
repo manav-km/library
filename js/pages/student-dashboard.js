@@ -1,10 +1,15 @@
 import { requireAuth, changeUserPassword, deleteUserProfile } from "../firebase/auth.js";
-import { getAllBooks, getReviewsForBook, updateUserProfile, logAuditAction } from "../firebase/firestore.js";
+import { getAllBooks, getReviewsForBook, updateUserProfile, logAuditAction, getReadingLists, getChallenges } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
 import { spineColorFor, initials, showToast, qs, starString, timeAgo, initGenreChipPicker } from "../utils/helpers.js";
+import { ALL_ACHIEVEMENTS, checkAndAwardAchievements } from "../utils/achievements.js";
 
-const profile = await requireAuth(); // any signed-in role may view
+const profile = await requireAuth();
+// Role gate: teachers and admins go to their own dashboard
+if (profile.role === "teacher" || profile.role === "admin") {
+  window.location.href = "teacher-dashboard.html";
+}
 renderNavbar(profile, "student-dashboard.html");
 
 // ---- Profile card ----
@@ -84,6 +89,97 @@ reviewsMount.innerHTML = myReviews.length
         </div>`;
     }).join("")
   : `<div class="empty-state"><h3>No reviews yet</h3><p>Open a book and share what you thought.</p></div>`;
+
+// ---- Reading Lists / Shelves ----
+const listData = await getReadingLists(profile.uid);
+const shelves = listData.shelves || {};
+const shelvesMount = qs("#my-shelves");
+const shelfNames = Object.keys(shelves);
+if (shelvesMount) {
+  shelvesMount.innerHTML = shelfNames.length
+    ? shelfNames.map((name) => {
+        const bookIds = shelves[name] || [];
+        const shelfBooks = bookIds.map((id) => allBooks.find((b) => b.BK_ID === id || b.id === id)).filter(Boolean);
+        return `
+          <div class="challenge-card" style="margin-bottom:var(--sp-3);">
+            <div class="challenge-title">${name} <span class="badge badge-role-student" style="margin-left:4px;">${bookIds.length} book${bookIds.length !== 1 ? 's' : ''}</span></div>
+            <div class="mini-book-row" style="margin-top:var(--sp-3);">
+              ${shelfBooks.slice(0, 4).map((b) => `
+                <a href="book-details.html?id=${b.BK_ID}" class="book-card" style="width:70px;">
+                  <div class="book-cover" style="--spine-color:${spineColorFor(b.genre)}; display:flex; align-items:center; justify-content:center; padding:4px; min-height:90px;">
+                    <span class="mono" style="font-size:0.55rem; color:var(--text-tertiary);">${b.bookName}</span>
+                  </div>
+                  <span class="bk-id mono">${b.BK_ID}</span>
+                </a>`).join('')}
+              ${bookIds.length > 4 ? `<span class="text-tertiary" style="font-size:var(--fs-tiny); align-self:center;">+${bookIds.length - 4} more</span>` : ''}
+            </div>
+          </div>`;
+      }).join('')
+    : `<p class="text-tertiary" style="font-size:var(--fs-small);">No shelves yet — add books to a list from any book page.</p>`;
+}
+
+// ---- Reading Challenges ----
+const challenges = await getChallenges();
+const now = Date.now();
+const activeChallenges = challenges.filter((c) => c.active && (!c.endDate || new Date(c.endDate).getTime() > now));
+const challengeMount = qs("#active-challenges");
+if (challengeMount) {
+  challengeMount.innerHTML = activeChallenges.length
+    ? activeChallenges.map((c) => {
+        const userProgress = c.goalType === "reviews" ? myReviews.length : recentBooks.length;
+        const pct = Math.min(100, Math.round((userProgress / c.goal) * 100));
+        const done = userProgress >= c.goal;
+        return `
+          <div class="challenge-card">
+            <div class="challenge-title">${done ? '🎯 ' : ''}${c.title}</div>
+            <div class="challenge-meta">
+              Goal: ${c.goal} ${c.goalType === 'reviews' ? 'reviews' : 'books viewed'} · ${c.endDate ? 'Due ' + c.endDate : 'Ongoing'}
+            </div>
+            <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
+            <div class="flex justify-between" style="margin-top:4px; font-size:var(--fs-tiny); color:var(--text-tertiary);">
+              <span>${userProgress} / ${c.goal}</span><span>${pct}%</span>
+            </div>
+            ${c.description ? `<p style="font-size:var(--fs-tiny); margin-top:var(--sp-2); color:var(--text-tertiary);">${c.description}</p>` : ''}
+          </div>`;
+      }).join('')
+    : `<p class="text-tertiary" style="font-size:var(--fs-small);">No active challenges right now.</p>`;
+}
+
+// ---- Achievements ----
+const shelfBookCount = shelfNames.reduce((s, n) => s + (shelves[n]?.length || 0), 0);
+const viewedCount = recentBooks.length;
+const shelfGenres = [...new Set(
+  shelfNames.flatMap((n) => (shelves[n] || []).map((id) => allBooks.find((b) => b.BK_ID === id)?.genre).filter(Boolean))
+)];
+
+const completedChallenges = activeChallenges.filter((c) => {
+  const progress = c.goalType === "reviews" ? myReviews.length : recentBooks.length;
+  return progress >= c.goal;
+}).length;
+
+await checkAndAwardAchievements(profile, {
+  reviewCount: myReviews.length,
+  messageCount: 0, // real-time count would need extra fetch; leave 0 here
+  shelfBookCount,
+  shelfGenreCount: shelfGenres.length,
+  viewedCount,
+  completedChallenges
+});
+
+// Re-read profile for updated achievements (optimistic: merge locally)
+const earnedIds = new Set(profile.achievements || []);
+const achMount = qs("#achievements-grid");
+if (achMount) {
+  achMount.innerHTML = ALL_ACHIEVEMENTS.map((a) => {
+    const unlocked = earnedIds.has(a.id);
+    return `
+      <div class="achievement-badge ${unlocked ? 'unlocked' : 'locked'}" title="${a.description}">
+        <span class="ach-icon">${a.icon}</span>
+        <span class="ach-title">${a.title}</span>
+        <span class="ach-desc">${a.description}</span>
+      </div>`;
+  }).join("");
+}
 
 // ---- Edit profile modal ----
 const modal = qs("#edit-modal");

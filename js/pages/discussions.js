@@ -199,22 +199,22 @@ function renderMessages(messages) {
       <div class="chat-msg ${isOwn ? "own" : ""}" data-msg-id="${m.id}" data-text="${escapeHTML(m.message)}">
         ${checkboxHTML}
         ${avatarHTML}
-        <div style="flex:1;">
+        <div class="chat-body">
           <div class="chat-meta">
             <span class="chat-name">${escapeHTML(m.sender)}</span>
             <span class="chat-time">${timeAgo(m.timestamp)}</span>
           </div>
-          <div class="chat-bubble-container" style="position:relative; display:inline-block; max-width:80%;">
-            <div class="chat-bubble" style="display:inline-block; word-break:break-word;">
+          <div class="chat-bubble-container" style="position:relative; display:flex; flex-direction:column; width:100%; align-items:${isOwn ? 'flex-end' : 'flex-start'}; max-width:80%;">
+            <div class="chat-bubble" style="word-break:break-word; max-width:100%;">
               ${escapeHTML(m.message)}
             </div>
             ${isOwn && !isSelectionMode ? `
-              <div class="msg-actions" style="display:none; gap:6px; margin-top:4px; justify-content:${isOwn ? 'flex-end' : 'flex-start'};">
+              <div class="msg-actions" style="display:none; gap:6px; margin-top:4px; justify-content:flex-end; width:100%;">
                 <button class="btn btn-ghost btn-sm edit-msg-btn" style="padding:2px 6px; font-size:11px;" title="Edit message">✏️</button>
                 <button class="btn btn-ghost btn-sm delete-msg-btn" style="padding:2px 6px; font-size:11px;" title="Delete message">🗑️</button>
               </div>
             ` : ""}
-            ${!isOwn && canModerate && !isSelectionMode ? `<button class="btn btn-danger btn-sm mod-remove-msg" data-id="${m.id}" style="margin-left:8px; padding:2px 8px; vertical-align:middle;">Remove</button>` : ""}
+            ${!isOwn && canModerate && !isSelectionMode ? `<button class="btn btn-danger btn-sm mod-remove-msg" data-id="${m.id}" style="margin-top:4px; padding:2px 8px;">Remove</button>` : ""}
           </div>
         </div>
       </div>`;

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard — SAJS Library Site</title>
+  <meta name="description" content="See the top reviewers, most-read books, and highest-rated books in the SAJS Library.">
+  <link rel="icon" type="image/jpeg" href="assets/image.jpeg">
+  <link rel="shortcut icon" href="assets/image.jpeg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <div id="navbar-mount"></div>
+
+  <main class="app-main">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">School Rankings</span>
+          <h1 style="margin:0; font-size:var(--fs-h2);">🏆 Leaderboard</h1>
+        </div>
+      </div>
+
+      <div class="tabs" id="lb-tabs">
+        <div class="tab active" data-tab="reviewers">Top Reviewers</div>
+        <div class="tab" data-tab="read">Most Read Books</div>
+        <div class="tab" data-tab="rated">Highest Rated Books</div>
+      </div>
+
+      <!-- Top Reviewers -->
+      <section id="tab-reviewers">
+        <div class="card table-wrap">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th style="width:50px;">#</th>
+                <th>Reader</th>
+                <th>Class</th>
+                <th>Reviews</th>
+                <th>Avg Rating Given</th>
+              </tr>
+            </thead>
+            <tbody id="reviewers-body">
+              <tr><td colspan="5"><div class="skeleton" style="height:40px;"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Most Read Books -->
+      <section id="tab-read" style="display:none;">
+        <div class="card table-wrap">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th style="width:50px;">#</th>
+                <th>Book</th>
+                <th>Genre</th>
+                <th>Reviews</th>
+                <th>Avg Rating</th>
+              </tr>
+            </thead>
+            <tbody id="read-body">
+              <tr><td colspan="5"><div class="skeleton" style="height:40px;"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Highest Rated Books -->
+      <section id="tab-rated" style="display:none;">
+        <div class="card table-wrap">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th style="width:50px;">#</th>
+                <th>Book</th>
+                <th>Genre</th>
+                <th>Avg Rating</th>
+                <th>Reviews</th>
+              </tr>
+            </thead>
+            <tbody id="rated-body">
+              <tr><td colspan="5"><div class="skeleton" style="height:40px;"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script type="module" src="js/pages/leaderboard.js"></script>
+</body>
+</html>

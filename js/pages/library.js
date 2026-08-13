@@ -186,6 +186,7 @@ async function init() {
       resolution: qs("#f-resolution").value,
       moral: qs("#f-moral").value,
       summary: qs("#f-summary").value,
+      totalPages: parseInt(qs("#f-pages")?.value, 10) || 0,
       coverImage: ""
     };
 

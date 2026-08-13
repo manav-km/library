@@ -2,16 +2,14 @@
   "rules": {
     "discussions": {
       "$bookId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
         "messages": {
-          ".read": "auth != null",
-          ".write": "auth != null",
-          ".indexOn": [
-            "timestamp"
-          ],
+          ".indexOn": ["timestamp"],
           "$messageId": {
-            ".validate": "newData.hasChildren(['sender', 'senderUid', 'message', 'timestamp'])",
+            ".validate": "!newData.exists() || newData.hasChildren(['sender', 'senderUid', 'message', 'timestamp'])",
             "message": {
-              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 2000"
+              ".validate": "!newData.exists() || (newData.isString() && newData.val().length > 0 && newData.val().length <= 2000)"
             }
           }
         }
@@ -20,13 +18,11 @@
     "custom_threads": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": [
-        "createdAt"
-      ],
+      ".indexOn": ["createdAt"],
       "$threadId": {
-        ".validate": "newData.hasChildren(['id', 'title', 'creatorName', 'creatorUid', 'createdAt'])",
+        ".validate": "!newData.exists() || newData.hasChildren(['id', 'title', 'creatorName', 'creatorUid', 'createdAt'])",
         "title": {
-          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200"
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length > 0 && newData.val().length <= 200)"
         }
       }
     }

@@ -49,6 +49,11 @@
           </div>
 
           <div class="card">
+            <h4>🎯 Active Challenges</h4>
+            <div id="active-challenges" class="stack" style="margin-top:0; gap:var(--sp-3);"></div>
+          </div>
+
+          <div class="card">
             <h4>Quick access</h4>
             <div class="stack" id="quick-access-list" style="margin-top:0;">
               <a href="library.html" class="btn btn-ghost btn-block">Browse library</a>
@@ -78,9 +83,25 @@
 
           <section class="card">
             <div class="section-head">
+              <h3 style="margin:0;">📚 My Shelves</h3>
+              <a href="library.html">Browse library →</a>
+            </div>
+            <div id="my-shelves"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-head">
               <h3 style="margin:0;">Your reviews</h3>
             </div>
             <div id="my-reviews"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-head">
+              <h3 style="margin:0;">🏅 Achievements</h3>
+              <span class="text-tertiary" style="font-size:var(--fs-tiny);" id="ach-count-label"></span>
+            </div>
+            <div class="achievements-grid" id="achievements-grid"></div>
           </section>
         </div>
       </div>

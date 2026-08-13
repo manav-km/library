@@ -1,5 +1,5 @@
 import { requireAuth } from "../firebase/auth.js";
-import { getBookById, updateBook, deleteBook, getReviewsForBook, addReview, updateReview, deleteReview, logAuditAction } from "../firebase/firestore.js";
+import { getBookById, getAllBooks, updateBook, deleteBook, getReviewsForBook, addReview, updateReview, deleteReview, logAuditAction, getReadingProgress, setReadingProgress, addBookIssue, getReadingLists, saveReadingLists } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
 import { spineColorFor, escapeHTML, starString, timeAgo, showToast, qs, qsa } from "../utils/helpers.js";
@@ -40,6 +40,10 @@ async function init() {
   wireReviewForm();
   wireScrollSpy();
   if (canEdit) wireBookEditModal();
+  wireReadingProgress(currentBook);
+  wireIssueBook(currentBook);
+  wireAddToShelf(currentBook);
+  renderRecommendations(currentBook);
 }
 
 function renderOverview(b) {
@@ -57,9 +61,10 @@ function renderOverview(b) {
         ${(b.themes || []).slice(0, 3).map((t) => `<span class="spine-tag">${escapeHTML(t)}</span>`).join("")}
       </div>
       <p>${escapeHTML(b.mainIdea || "")}</p>
-      <div class="flex gap-3" style="margin-top:var(--sp-4);">
+      <div class="flex gap-3" style="margin-top:var(--sp-4); flex-wrap:wrap;">
         <a href="#sec-reviews" class="btn btn-primary btn-sm">Read reviews</a>
         <a href="discussions.html?book=${b.BK_ID}" class="btn btn-ghost btn-sm">Join the discussion</a>
+        <button class="btn btn-ghost btn-sm" id="add-to-shelf-btn">🔖 Add to shelf</button>
         ${canEdit ? `<button class="btn btn-ghost btn-sm" id="edit-book-details-btn">✏️ Edit book</button>` : ""}
       </div>
     </div>
@@ -157,7 +162,8 @@ function wireBookEditModal() {
       conflict: qs("#f-conflict").value,
       resolution: qs("#f-resolution").value,
       moral: qs("#f-moral").value,
-      summary: qs("#f-summary").value
+      summary: qs("#f-summary").value,
+      totalPages: parseInt(qs("#f-pages")?.value, 10) || 0
     };
 
     const coverFile = qs("#f-cover").files[0];
@@ -427,6 +433,223 @@ function wireScrollSpy() {
     }
     links.forEach((l) => l.classList.toggle("active", l.getAttribute("href") === `#${currentId}`));
   }, { passive: true });
+}
+
+// ---- Reading Progress Tracker ----
+async function wireReadingProgress(book) {
+  const card = qs("#reading-progress-card");
+  if (!card || !book.totalPages) return;
+
+  card.style.display = "block";
+  const totalPages = Number(book.totalPages);
+
+  // Load existing progress
+  let progress = await getReadingProgress(currentProfile.uid, book.BK_ID);
+  if (!progress) progress = { currentPage: 0, totalPages, status: "not_started" };
+
+  function updateProgressUI(current, total, status) {
+    const pct = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
+    const fill = qs("#progress-fill");
+    const pagesLabel = qs("#progress-pages-label");
+    const pctLabel = qs("#progress-pct-label");
+    const badge = qs("#progress-status-badge");
+    const input = qs("#progress-input");
+
+    if (fill) fill.style.width = pct + "%";
+    if (pagesLabel) pagesLabel.textContent = `Page ${current} of ${total}`;
+    if (pctLabel) pctLabel.textContent = pct + "%";
+    if (input) input.value = current || "";
+    if (input) input.max = total;
+
+    const statusMap = { not_started: ["Not started", "badge-not-started"], reading: ["Reading", "badge-reading"], finished: ["Finished ✓", "badge-finished"] };
+    const [label, cls] = statusMap[status] || statusMap.not_started;
+    if (badge) { badge.textContent = label; badge.className = `badge ${cls}`; }
+  }
+
+  updateProgressUI(progress.currentPage, totalPages, progress.status);
+
+  qs("#progress-save-btn")?.addEventListener("click", async () => {
+    const raw = parseInt(qs("#progress-input").value, 10);
+    if (isNaN(raw) || raw < 0) { showToast("Enter a valid page number.", "error"); return; }
+    const current = Math.min(raw, totalPages);
+    const status = current === 0 ? "not_started" : current >= totalPages ? "finished" : "reading";
+    await setReadingProgress(currentProfile.uid, book.BK_ID, { currentPage: current, totalPages, status });
+    updateProgressUI(current, totalPages, status);
+    showToast(status === "finished" ? "Congratulations! You finished this book! 🎉" : "Progress saved.");
+  });
+}
+
+// ---- Issue Book ----
+function wireIssueBook(book) {
+  const issueBtn = qs("#issue-book-btn");
+  if (!issueBtn) return;
+
+  // Only students can issue books
+  if (currentProfile.role !== "student") {
+    issueBtn.style.display = "none";
+    return;
+  }
+
+  const modal = qs("#issue-book-modal");
+  const cancelBtn = qs("#cancel-issue-book");
+  const form = qs("#issue-book-form");
+
+  // Pre-fill today as issue date
+  const today = new Date().toISOString().split("T")[0];
+  const issueInput = qs("#ib-issue-date");
+  if (issueInput) { issueInput.value = today; issueInput.min = today; }
+  const returnInput = qs("#ib-return-date");
+  if (returnInput) returnInput.min = today;
+
+  issueBtn.addEventListener("click", () => {
+    if (qs("#ib-book-title")) qs("#ib-book-title").value = book.bookName || "";
+    if (qs("#ib-class")) qs("#ib-class").value = currentProfile.className || "";
+    if (qs("#ib-section")) qs("#ib-section").value = currentProfile.section || "";
+    modal?.classList.add("open");
+  });
+
+  cancelBtn?.addEventListener("click", () => modal?.classList.remove("open"));
+  modal?.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("open"); });
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const submitBtn = form.querySelector("button[type='submit']");
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Submitting..."; }
+    try {
+      await addBookIssue({
+        bookId: book.BK_ID,
+        bookName: book.bookName,
+        userId: currentProfile.uid,
+        userName: currentProfile.name,
+        userClass: qs("#ib-class").value.trim(),
+        userSection: qs("#ib-section").value.trim(),
+        reason: qs("#ib-reason").value.trim(),
+        issueDate: qs("#ib-issue-date").value,
+        returnDate: qs("#ib-return-date").value
+      });
+      await logAuditAction({
+        action: "BOOK_ISSUE_REQUEST",
+        category: "Books",
+        details: `${currentProfile.name} requested to issue "${book.bookName}" (${book.BK_ID}).`,
+        performedBy: currentProfile,
+        targetId: book.BK_ID
+      });
+      showToast("Issue request submitted! A teacher will review it shortly.");
+      modal?.classList.remove("open");
+      form.reset();
+    } catch (err) {
+      showToast("Failed to submit issue request: " + err.message, "error");
+    } finally {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Request Issue"; }
+    }
+  });
+}
+
+// ---- Book Recommendations ----
+async function renderRecommendations(book) {
+  const bodyEl = qs("#book-body");
+  if (!bodyEl || !book.genre) return;
+
+  const allBooks = await getAllBooks();
+  const reviews = await Promise.all(allBooks.map((b) => getReviewsForBook(b.BK_ID)));
+
+  // Avg rating per book
+  const rated = allBooks.map((b, i) => {
+    const bReviews = reviews[i];
+    const avg = bReviews.length ? bReviews.reduce((s, r) => s + (r.rating || 0), 0) / bReviews.length : 0;
+    return { ...b, avgRating: avg, reviewCount: bReviews.length };
+  });
+
+  const recs = rated
+    .filter((b) => b.BK_ID !== book.BK_ID && b.genre === book.genre && b.reviewCount > 0)
+    .sort((a, b) => b.avgRating - a.avgRating)
+    .slice(0, 4);
+
+  if (!recs.length) return;
+
+  const section = document.createElement("section");
+  section.className = "book-section";
+  section.id = "sec-recs";
+  section.innerHTML = `
+    <div class="section-head" style="margin-bottom:var(--sp-4);">
+      <div>
+        <span class="eyebrow">Based on genre · ${escapeHTML(book.genre)}</span>
+        <h3 style="margin:0;">You might also like</h3>
+      </div>
+    </div>
+    <div class="books-grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));">
+      ${recs.map((b) => `
+        <a href="book-details.html?id=${b.BK_ID}" class="book-card">
+          <div class="book-cover" style="--spine-color:${spineColorFor(b.genre)}; display:flex; align-items:center; justify-content:center; padding:var(--sp-2); min-height:120px;">
+            <span class="mono" style="font-size:0.7rem; color:var(--text-tertiary);">${escapeHTML(b.bookName)}</span>
+          </div>
+          <span class="bk-id mono">${b.BK_ID}</span>
+          <strong style="font-size:var(--fs-small);">${escapeHTML(b.bookName)}</strong>
+          <span class="text-tertiary" style="font-size:var(--fs-tiny);">${b.avgRating.toFixed(1)} ★ · ${b.reviewCount} review${b.reviewCount !== 1 ? "s" : ""}</span>
+        </a>`).join("")}
+    </div>
+  `;
+  bodyEl.appendChild(section);
+}
+
+// ---- Add to Shelf ----
+async function wireAddToShelf(book) {
+  const btn = qs("#add-to-shelf-btn");
+  const modal = qs("#add-to-shelf-modal");
+  const cancelBtn = qs("#cancel-shelf-modal");
+  const form = qs("#shelf-form");
+  const select = qs("#shelf-select");
+  const newField = qs("#new-shelf-field");
+
+  if (!btn || !modal) return;
+
+  btn.addEventListener("click", async () => {
+    // Load current user shelves to populate select options
+    const data = await getReadingLists(currentProfile.uid);
+    const shelves = data.shelves || {};
+    const customNames = Object.keys(shelves).filter((n) => !["Want to Read", "Currently Reading", "Favorites"].includes(n));
+
+    select.innerHTML = `
+      <option value="Want to Read">Want to Read</option>
+      <option value="Currently Reading">Currently Reading</option>
+      <option value="Favorites">Favorites</option>
+      ${customNames.map((n) => `<option value="${escapeHTML(n)}">${escapeHTML(n)}</option>`).join("")}
+      <option value="__new__">+ Create New Shelf...</option>
+    `;
+    newField.style.display = "none";
+    modal.classList.add("open");
+  });
+
+  select?.addEventListener("change", () => {
+    newField.style.display = select.value === "__new__" ? "block" : "none";
+  });
+
+  cancelBtn?.addEventListener("click", () => modal.classList.remove("open"));
+  modal?.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("open"); });
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    let targetShelf = select.value;
+    if (targetShelf === "__new__") {
+      targetShelf = qs("#new-shelf-name").value.trim();
+      if (!targetShelf) { showToast("Enter a shelf name.", "error"); return; }
+    }
+
+    const data = await getReadingLists(currentProfile.uid);
+    const shelves = data.shelves || {};
+    const existing = shelves[targetShelf] || [];
+    if (existing.includes(book.BK_ID)) {
+      showToast(`Book is already in "${targetShelf}".`, "info");
+      modal.classList.remove("open");
+      return;
+    }
+
+    shelves[targetShelf] = [...existing, book.BK_ID];
+    await saveReadingLists(currentProfile.uid, shelves);
+    showToast(`Added to "${targetShelf}"! 📚`);
+    modal.classList.remove("open");
+    qs("#new-shelf-name").value = "";
+  });
 }
 
 init();

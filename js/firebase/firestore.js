@@ -207,3 +207,116 @@ export async function getAuditLogs() {
     return [];
   }
 }
+
+/* -------------------------- Reading Lists --------------------------------- */
+
+/** Get all shelves for a user. Returns { shelves: { "Want to Read": ["SAJS-001",...], ... } } */
+export async function getReadingLists(uid) {
+  if (!uid) return { shelves: {} };
+  const snap = await getDoc(doc(db, "readingLists", uid));
+  return snap.exists() ? snap.data() : { shelves: {} };
+}
+
+/** Save (overwrite) the shelves map for a user. */
+export async function saveReadingLists(uid, shelves) {
+  if (!uid) return;
+  await setDoc(doc(db, "readingLists", uid), { shelves, updatedAt: Date.now() }, { merge: true });
+}
+
+/* -------------------------- Reading Progress ------------------------------ */
+
+/** Get reading progress for a specific user+book pair. */
+export async function getReadingProgress(uid, bookId) {
+  if (!uid || !bookId) return null;
+  const snap = await getDoc(doc(db, "readingProgress", `${uid}_${bookId}`));
+  return snap.exists() ? snap.data() : null;
+}
+
+/** Set (upsert) reading progress for a user+book pair. */
+export async function setReadingProgress(uid, bookId, { currentPage, totalPages, status }) {
+  if (!uid || !bookId) return;
+  await setDoc(doc(db, "readingProgress", `${uid}_${bookId}`), {
+    uid,
+    bookId,
+    currentPage: Number(currentPage) || 0,
+    totalPages: Number(totalPages) || 0,
+    status: status || "not_started",
+    updatedAt: Date.now()
+  }, { merge: true });
+}
+
+/** Get all reading progress docs for a user (for the dashboard). */
+export async function getAllReadingProgress(uid) {
+  if (!uid) return [];
+  const q = query(collection(db, "readingProgress"), where("uid", "==", uid));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data());
+}
+
+/* -------------------------- Reading Challenges ---------------------------- */
+
+export async function getChallenges() {
+  const snap = await getDocs(collection(db, "challenges"));
+  const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+export async function addChallenge({ title, description, goal, goalType, startDate, endDate, createdBy }) {
+  const ref = await addDoc(collection(db, "challenges"), {
+    title: (title || "").trim(),
+    description: (description || "").trim(),
+    goal: Number(goal) || 1,
+    goalType: goalType || "reviews", // "reviews" | "books"
+    startDate: startDate || "",
+    endDate: endDate || "",
+    createdBy: createdBy || "teacher",
+    active: true,
+    createdAt: Date.now()
+  });
+  return ref.id;
+}
+
+export async function deleteChallenge(id) {
+  await deleteDoc(doc(db, "challenges", id));
+}
+
+export async function updateChallenge(id, changes) {
+  await updateDoc(doc(db, "challenges", id), changes);
+}
+
+/* -------------------------- Book Issues ----------------------------------- */
+
+export async function addBookIssue({ bookId, bookName, userId, userName, userClass, userSection, reason, issueDate, returnDate }) {
+  const ref = await addDoc(collection(db, "bookIssues"), {
+    bookId: bookId || "",
+    bookName: bookName || "",
+    userId: userId || "",
+    userName: userName || "",
+    userClass: userClass || "",
+    userSection: userSection || "",
+    reason: (reason || "").trim(),
+    issueDate: issueDate || "",
+    returnDate: returnDate || "",
+    status: "pending",
+    requestedAt: Date.now()
+  });
+  return ref.id;
+}
+
+export async function getBookIssues() {
+  const snap = await getDocs(collection(db, "bookIssues"));
+  const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return list.sort((a, b) => (b.requestedAt || 0) - (a.requestedAt || 0));
+}
+
+export async function getBookIssuesForUser(uid) {
+  const q = query(collection(db, "bookIssues"), where("userId", "==", uid));
+  const snap = await getDocs(q);
+  const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return list.sort((a, b) => (b.requestedAt || 0) - (a.requestedAt || 0));
+}
+
+export async function updateBookIssueStatus(id, status) {
+  await updateDoc(doc(db, "bookIssues", id), { status, updatedAt: Date.now() });
+}
+

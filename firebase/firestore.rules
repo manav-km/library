@@ -228,8 +228,55 @@ service cloud.firestore {
     }
 
     // ------------------------------------------------------------------
-    // Deny everything else by default (Firestore is closed unless a
-    // match block above explicitly grants access).
+    // readingLists/{uid}
+    //
+    // Fields: shelves (map of array of book IDs), updatedAt
+    // ------------------------------------------------------------------
+    match /readingLists/{uid} {
+      allow read: if isOwner(uid) || isTeacherOrAdmin();
+      allow create, update: if isOwner(uid);
+      allow delete: if isOwner(uid) || isAdmin();
+    }
+
+    // ------------------------------------------------------------------
+    // readingProgress/{progressId}
+    //
+    // Fields: uid, bookId, currentPage, totalPages, status, updatedAt
+    // ------------------------------------------------------------------
+    match /readingProgress/{progressId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+                    && request.resource.data.uid == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // ------------------------------------------------------------------
+    // challenges/{challengeId}
+    //
+    // Fields: title, description, goal, goalType, startDate, endDate,
+    //         createdBy, active, createdAt
+    // ------------------------------------------------------------------
+    match /challenges/{challengeId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isTeacherOrAdmin();
+    }
+
+    // ------------------------------------------------------------------
+    // bookIssues/{issueId}
+    //
+    // Fields: bookId, bookName, userId, userName, userClass, userSection,
+    //         reason, issueDate, returnDate, status, requestedAt, updatedAt
+    // ------------------------------------------------------------------
+    match /bookIssues/{issueId} {
+      allow read: if isSignedIn()
+                  && (resource.data.userId == request.auth.uid || isTeacherOrAdmin());
+      allow create: if isSignedIn()
+                    && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isTeacherOrAdmin();
+    }
+
+    // ------------------------------------------------------------------
+    // Deny everything else by default
     // ------------------------------------------------------------------
   }
 }

@@ -2,13 +2,188 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0;url=manage.html">
-  <script>window.location.href = "manage.html";</script>
-  <title>Redirecting to Manage — SAJS Library Site</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard — SAJS Library Site</title>
+  <meta name="description" content="Teacher and administrator dashboard for the SAJS Library Site. Manage challenges, review student activity, handle book issues and announcements.">
   <link rel="icon" type="image/jpeg" href="assets/image.jpeg">
   <link rel="shortcut icon" href="assets/image.jpeg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
 </head>
 <body>
-  <p>Redirecting to <a href="manage.html">Manage page</a>...</p>
+
+  <div id="navbar-mount"></div>
+
+  <main class="app-main">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Staff Portal</span>
+          <h1 style="margin:0; font-size:var(--fs-h2);" id="td-greeting">Teacher Dashboard</h1>
+        </div>
+        <a href="manage.html" class="btn btn-ghost btn-sm">⚙️ Full Admin Panel</a>
+      </div>
+
+      <div class="tabs" id="td-tabs">
+        <div class="tab active" data-tab="overview">Overview</div>
+        <div class="tab" data-tab="challenges">Reading Challenges</div>
+        <div class="tab" data-tab="issues">Book Issues</div>
+        <div class="tab" data-tab="students">Student Activity</div>
+        <div class="tab" data-tab="announcements">Announcements</div>
+      </div>
+
+      <!-- ============ Overview ============ -->
+      <section id="tab-overview">
+        <div class="stats-grid" id="td-stats-grid">
+          <div class="skeleton" style="height:110px;"></div>
+          <div class="skeleton" style="height:110px;"></div>
+          <div class="skeleton" style="height:110px;"></div>
+          <div class="skeleton" style="height:110px;"></div>
+        </div>
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:var(--sp-5); align-items:start;">
+          <div class="card">
+            <h4 style="margin-bottom:var(--sp-4);">Active Reading Challenges</h4>
+            <div id="td-overview-challenges"></div>
+          </div>
+          <div class="card">
+            <h4 style="margin-bottom:var(--sp-4);">Pending Book Issue Requests</h4>
+            <div id="td-overview-issues"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Reading Challenges ============ -->
+      <section id="tab-challenges" style="display:none;">
+        <div class="section-head">
+          <h3 style="margin:0;">Manage Challenges</h3>
+          <button class="btn btn-primary" id="add-challenge-btn">+ New Challenge</button>
+        </div>
+        <div id="challenges-list" class="stack gap-4"></div>
+      </section>
+
+      <!-- ============ Book Issues ============ -->
+      <section id="tab-issues" style="display:none;">
+        <div class="card table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Book</th>
+                <th>Class</th>
+                <th>Issue Date</th>
+                <th>Return Date</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="issues-table-body">
+              <tr><td colspan="7"><div class="skeleton" style="height:40px;"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ Student Activity ============ -->
+      <section id="tab-students" style="display:none;">
+        <div class="library-toolbar">
+          <div class="search-field">
+            <span class="icon">🔎</span>
+            <input type="text" id="td-student-search" placeholder="Search students by name, class, or section...">
+          </div>
+        </div>
+        <div class="card table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Class</th>
+                <th>Reviews</th>
+                <th>Books Viewed</th>
+                <th>Achievements</th>
+              </tr>
+            </thead>
+            <tbody id="td-students-body">
+              <tr><td colspan="5"><div class="skeleton" style="height:40px;"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ Announcements ============ -->
+      <section id="tab-announcements" style="display:none;">
+        <div class="section-head">
+          <h3 style="margin:0;">Post Announcement</h3>
+        </div>
+        <div class="card" style="margin-bottom:var(--sp-5);">
+          <form id="td-announce-form">
+            <div class="field">
+              <label for="td-ann-title">Title <span style="color:var(--danger);">*</span></label>
+              <input type="text" id="td-ann-title" required placeholder="e.g. Library closed on Friday">
+            </div>
+            <div class="field">
+              <label for="td-ann-body">Message <span style="color:var(--danger);">*</span></label>
+              <textarea id="td-ann-body" rows="3" required placeholder="Details of the announcement..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Post Announcement</button>
+          </form>
+        </div>
+        <h4 style="margin-bottom:var(--sp-4);">Recent Announcements</h4>
+        <div id="td-announcements-list" class="stack"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ============ New Challenge Modal ============ -->
+  <div class="modal-overlay" id="challenge-modal">
+    <div class="modal" style="max-width:500px;">
+      <h3 id="challenge-modal-title" style="margin-bottom:var(--sp-4);">New Reading Challenge</h3>
+      <form id="challenge-form">
+        <input type="hidden" id="challenge-doc-id">
+        <div class="field">
+          <label for="ch-title">Challenge Title <span style="color:var(--danger);">*</span></label>
+          <input type="text" id="ch-title" required placeholder="e.g. Summer Reading Sprint">
+        </div>
+        <div class="field">
+          <label for="ch-desc">Description</label>
+          <textarea id="ch-desc" rows="2" placeholder="Optional details for students..."></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="ch-goal">Goal (number) <span style="color:var(--danger);">*</span></label>
+            <input type="number" id="ch-goal" min="1" required placeholder="e.g. 3">
+          </div>
+          <div class="field">
+            <label for="ch-type">Goal Type <span style="color:var(--danger);">*</span></label>
+            <select id="ch-type">
+              <option value="reviews">Reviews written</option>
+              <option value="books">Books viewed</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="ch-start">Start Date</label>
+            <input type="date" id="ch-start">
+          </div>
+          <div class="field">
+            <label for="ch-end">End Date</label>
+            <input type="date" id="ch-end">
+          </div>
+        </div>
+        <div class="flex gap-3" style="margin-top:var(--sp-5);">
+          <button type="button" class="btn btn-ghost btn-block" id="cancel-challenge">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-block">Save Challenge</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/teacher-dashboard.js"></script>
 </body>
 </html>

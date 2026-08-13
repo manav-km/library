@@ -85,6 +85,31 @@
             <p id="txt-summary">—</p>
           </section>
 
+          <!-- ============ Reading Progress ============ -->
+          <section class="card" id="reading-progress-card" style="margin-bottom:var(--sp-5); display:none;">
+            <div class="section-head" style="margin-bottom:var(--sp-4);">
+              <div>
+                <span class="eyebrow">Your progress</span>
+                <h4 style="margin:0;">Reading Progress</h4>
+              </div>
+              <span class="badge" id="progress-status-badge">Not started</span>
+            </div>
+            <div style="margin-bottom:var(--sp-3);">
+              <div class="progress-track">
+                <div class="progress-fill" id="progress-fill" style="width:0%;"></div>
+              </div>
+              <div class="flex justify-between" style="margin-top:6px; font-size:var(--fs-tiny); color:var(--text-tertiary);">
+                <span id="progress-pages-label">Page 0 of —</span>
+                <span id="progress-pct-label">0%</span>
+              </div>
+            </div>
+            <div class="flex gap-3 items-center">
+              <input type="number" id="progress-input" min="0" placeholder="Current page" style="width:120px; padding:8px 12px; background:var(--bg-sunken); border:1px solid var(--glass-border); border-radius:var(--radius-sm); color:var(--text-primary); font-family:inherit; font-size:var(--fs-small);">
+              <button class="btn btn-primary btn-sm" id="progress-save-btn">Update</button>
+              <button class="btn btn-ghost btn-sm" id="issue-book-btn">📋 Issue Book</button>
+            </div>
+          </section>
+
           <!-- ============ Reviews ============ -->
           <section class="book-section" id="sec-reviews">
             <div class="section-head">
@@ -180,5 +205,78 @@
   </div>
 
   <script type="module" src="js/pages/book-details.js"></script>
+
+  <!-- ============ Issue Book Modal ============ -->
+  <div class="modal-overlay" id="issue-book-modal">
+    <div class="modal" style="max-width:540px; max-height:85vh; overflow-y:auto;">
+      <h3 style="margin-bottom:var(--sp-4);">📋 Issue Book Request</h3>
+      <form id="issue-book-form">
+        <div class="field">
+          <label for="ib-book-title">Book Title</label>
+          <input type="text" id="ib-book-title" readonly style="opacity:0.7;">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="ib-issue-date">Issue Date <span style="color:var(--danger);">*</span></label>
+            <input type="date" id="ib-issue-date" required>
+          </div>
+          <div class="field">
+            <label for="ib-return-date">Return Date <span style="color:var(--danger);">*</span></label>
+            <input type="date" id="ib-return-date" required>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="ib-class">Class <span style="color:var(--danger);">*</span></label>
+            <input type="text" id="ib-class" required placeholder="e.g. X">
+          </div>
+          <div class="field">
+            <label for="ib-section">Section <span style="color:var(--danger);">*</span></label>
+            <input type="text" id="ib-section" required placeholder="e.g. A">
+          </div>
+        </div>
+        <div class="field">
+          <label for="ib-reason">Why do you want to issue this book? <span style="color:var(--danger);">*</span></label>
+          <textarea id="ib-reason" rows="3" required placeholder="Tell the librarian why you'd like to borrow this book..."></textarea>
+        </div>
+
+        <div class="issue-warning">
+          <span class="issue-warning-icon">⚠️</span>
+          <p><strong>Please note:</strong> If you do not return the book by the selected return date, a daily late fee will be charged for every day the book is overdue, in addition to a fixed fine for each day past the return date. Please ensure timely return to avoid charges.</p>
+        </div>
+
+        <div class="flex gap-3" style="margin-top:var(--sp-5);">
+          <button type="button" class="btn btn-ghost btn-block" id="cancel-issue-book">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-block">Request Issue</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ Add to Shelf Modal ============ -->
+  <div class="modal-overlay" id="add-to-shelf-modal">
+    <div class="modal" style="max-width:450px;">
+      <h3 style="margin-bottom:var(--sp-4);">🔖 Add to Shelf / Reading List</h3>
+      <form id="shelf-form">
+        <div class="field">
+          <label for="shelf-select">Select Shelf</label>
+          <select id="shelf-select">
+            <option value="Want to Read">Want to Read</option>
+            <option value="Currently Reading">Currently Reading</option>
+            <option value="Favorites">Favorites</option>
+            <option value="__new__">+ Create New Shelf...</option>
+          </select>
+        </div>
+        <div class="field" id="new-shelf-field" style="display:none;">
+          <label for="new-shelf-name">New Shelf Name</label>
+          <input type="text" id="new-shelf-name" placeholder="e.g. Sci-Fi Masterpieces">
+        </div>
+        <div class="flex gap-3" style="margin-top:var(--sp-5);">
+          <button type="button" class="btn btn-ghost btn-block" id="cancel-shelf-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-block">Add Book</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </body>
 </html>

@@ -3,7 +3,8 @@ import {
   getAllBooks, getNextBookId, addBook, updateBook, deleteBook,
   getReviewsForBook, deleteReview, getAllUsers, setUserRole,
   logAuditAction, getAuditLogs,
-  addAnnouncement, getAnnouncements, deleteAnnouncement, updateAnnouncement
+  addAnnouncement, getAnnouncements, deleteAnnouncement, updateAnnouncement,
+  getBookIssues, updateBookIssueStatus
 } from "../firebase/firestore.js";
 import { uploadImage, uploadFile } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
@@ -82,6 +83,8 @@ qsa(".tab").forEach((tab) => {
     setDisplay("#tab-reviews", currentTab === "reviews");
     setDisplay("#tab-students", currentTab === "students");
     setDisplay("#tab-announcements", currentTab === "announcements");
+    setDisplay("#tab-issues", currentTab === "issues");
+    setDisplay("#tab-analytics", currentTab === "analytics");
     setDisplay("#tab-audit", currentTab === "audit");
     setDisplay("#tab-users", currentTab === "users");
 
@@ -100,6 +103,8 @@ qsa(".tab").forEach((tab) => {
     if (currentTab === "reviews") loadModerationList();
     if (currentTab === "students") loadStudents();
     if (currentTab === "announcements") loadAnnouncementsList();
+    if (currentTab === "issues") loadManageIssues();
+    if (currentTab === "analytics") loadManageAnalytics();
     if (currentTab === "audit") loadAuditLogs();
     if (currentTab === "users" && profile.role === "admin") loadUsers();
   });
@@ -264,6 +269,7 @@ qs("#book-form")?.addEventListener("submit", async (e) => {
     resolution: qs("#f-resolution").value,
     moral: qs("#f-moral").value,
     summary: qs("#f-summary").value,
+    totalPages: parseInt(qs("#f-pages")?.value, 10) || 0,
     coverImage: ""
   };
 
@@ -884,4 +890,134 @@ async function loadAnnouncementsList() {
 
 if (addAnnouncementBtn) {
   addAnnouncementBtn.addEventListener("click", () => openAnnouncementModal());
+}
+
+/* ==========================================================================
+   Book Issues Management
+   ========================================================================== */
+async function loadManageIssues() {
+  const mount = qs("#manage-issues-body");
+  if (!mount) return;
+  mount.innerHTML = `<tr><td colspan="7" class="text-tertiary" style="text-align:center;">Loading requests...</td></tr>`;
+
+  try {
+    const issues = await getBookIssues();
+    mount.innerHTML = issues.length
+      ? issues.map((i) => `
+          <tr>
+            <td><strong>${escapeHTML(i.userName)}</strong></td>
+            <td><a href="book-details.html?id=${i.bookId}">${escapeHTML(i.bookName)}</a></td>
+            <td>${escapeHTML(i.userClass || "—")}-${escapeHTML(i.userSection || "")}</td>
+            <td class="mono" style="font-size:var(--fs-tiny);">${i.issueDate || "—"}</td>
+            <td class="mono" style="font-size:var(--fs-tiny);">${i.returnDate || "—"}</td>
+            <td><span class="badge badge-${i.status}">${i.status.charAt(0).toUpperCase() + i.status.slice(1)}</span></td>
+            <td>
+              ${i.status === "pending" ? `
+                <div class="flex gap-2">
+                  <button class="btn btn-ghost btn-sm app-issue" data-id="${i.id}">Approve</button>
+                  <button class="btn btn-danger btn-sm rej-issue" data-id="${i.id}">Reject</button>
+                </div>` : `<span class="text-tertiary" style="font-size:var(--fs-tiny);">${timeAgo(i.updatedAt || i.requestedAt)}</span>`}
+            </td>
+          </tr>`).join("")
+      : `<tr><td colspan="7" class="text-tertiary" style="text-align:center; padding:var(--sp-5);">No issue requests found.</td></tr>`;
+
+    qsa(".app-issue").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        await updateBookIssueStatus(btn.dataset.id, "approved");
+        showToast("Request approved.");
+        loadManageIssues();
+      });
+    });
+    qsa(".rej-issue").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        await updateBookIssueStatus(btn.dataset.id, "rejected");
+        showToast("Request rejected.");
+        loadManageIssues();
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    mount.innerHTML = `<tr><td colspan="7" class="text-danger" style="text-align:center;">Failed to load issues: ${err.message}</td></tr>`;
+  }
+}
+
+/* ==========================================================================
+   Analytics (Visual bars & distribution)
+   ========================================================================== */
+async function loadManageAnalytics() {
+  const genreMount = qs("#genre-chart-container");
+  const statusMount = qs("#status-chart-container");
+  const topBooksMount = qs("#top-books-chart-container");
+
+  if (!genreMount) return;
+  genreMount.innerHTML = `<div class="skeleton" style="height:120px;"></div>`;
+  statusMount.innerHTML = `<div class="skeleton" style="height:120px;"></div>`;
+  topBooksMount.innerHTML = `<div class="skeleton" style="height:120px;"></div>`;
+
+  try {
+    const allBooksList = await getAllBooks();
+    const allReviewsList = (await Promise.all(allBooksList.map((b) => getReviewsForBook(b.BK_ID)))).flat();
+
+    // 1. Genre breakdown
+    const genreCounts = {};
+    for (const b of allBooksList) {
+      const g = b.genre || "Uncategorized";
+      genreCounts[g] = (genreCounts[g] || 0) + 1;
+    }
+    const maxGenre = Math.max(...Object.values(genreCounts), 1);
+    genreMount.innerHTML = Object.entries(genreCounts).map(([genre, count]) => {
+      const pct = Math.round((count / maxGenre) * 100);
+      return `
+        <div style="margin-bottom:var(--sp-3);">
+          <div class="flex justify-between" style="font-size:var(--fs-small); margin-bottom:4px;">
+            <span>${escapeHTML(genre)}</span>
+            <strong>${count} book${count !== 1 ? "s" : ""}</strong>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
+        </div>`;
+    }).join("") || `<p class="text-tertiary">No books in catalogue.</p>`;
+
+    // 2. Rating breakdown
+    const ratingCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    for (const r of allReviewsList) {
+      if (r.rating && ratingCounts[r.rating] !== undefined) ratingCounts[r.rating]++;
+    }
+    const totalRev = allReviewsList.length || 1;
+    statusMount.innerHTML = [5, 4, 3, 2, 1].map((stars) => {
+      const count = ratingCounts[stars];
+      const pct = Math.round((count / totalRev) * 100);
+      return `
+        <div style="margin-bottom:var(--sp-2);">
+          <div class="flex justify-between" style="font-size:var(--fs-small); margin-bottom:4px;">
+            <span>${stars} Stars ⭐</span>
+            <span>${count} (${pct}%)</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
+        </div>`;
+    }).join("");
+
+    // 3. Top books by review count
+    const bookReviewCounts = allBooksList.map((b) => {
+      const revs = allReviewsList.filter((r) => r.bookId === b.BK_ID);
+      const avg = revs.length ? revs.reduce((s, r) => s + (r.rating || 0), 0) / revs.length : 0;
+      return { ...b, reviewCount: revs.length, avgRating: avg };
+    }).sort((a, b) => b.reviewCount - a.reviewCount).slice(0, 5);
+
+    const maxBookRev = Math.max(...bookReviewCounts.map((b) => b.reviewCount), 1);
+    topBooksMount.innerHTML = bookReviewCounts.map((b) => {
+      const pct = Math.round((b.reviewCount / maxBookRev) * 100);
+      return `
+        <div style="margin-bottom:var(--sp-3);">
+          <div class="flex justify-between" style="font-size:var(--fs-small); margin-bottom:4px;">
+            <span><a href="book-details.html?id=${b.BK_ID}"><strong>${escapeHTML(b.bookName)}</strong></a> (${b.genre})</span>
+            <span>${b.reviewCount} review${b.reviewCount !== 1 ? "s" : ""} · ${b.avgRating.toFixed(1)} ★</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
+        </div>`;
+    }).join("") || `<p class="text-tertiary">No reviews yet.</p>`;
+
+  } catch (err) {
+    console.error("Analytics error:", err);
+    genreMount.innerHTML = `<p class="text-danger">Failed to load analytics: ${err.message}</p>`;
+  }
 }
