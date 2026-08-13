@@ -35,10 +35,22 @@ function medalEmoji(i) {
   return "";
 }
 
+const ADMIN_EMAILS = ["manavgmishra@gmail.com"];
+const TEACHER_EMAIL_SUFFIX = "_lko@jaipuria.edu.in";
+
+function isStaffUser(u) {
+  const email = (u.email || "").toLowerCase().trim();
+  const role = (u.role || "").toLowerCase().trim();
+  if (role === "admin" || role === "teacher") return true;
+  if (ADMIN_EMAILS.includes(email)) return true;
+  if (email.endsWith(TEACHER_EMAIL_SUFFIX)) return true;
+  return false;
+}
+
 async function init() {
   const [allBooks, rawUsers] = await Promise.all([getAllBooks(), getAllUsers()]);
-  // Exclude teachers and admins from student leaderboards
-  const allUsers = rawUsers.filter((u) => !u.role || u.role === "student");
+  // Strictly filter out any teachers or admins by role OR email domain
+  const allUsers = rawUsers.filter((u) => !isStaffUser(u));
   const allReviewArrays = await Promise.all(allBooks.map((b) => getReviewsForBook(b.BK_ID)));
   const allReviews = allReviewArrays.flat();
 

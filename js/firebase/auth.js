@@ -326,21 +326,17 @@ export function removeSavedAccount(email) {
 }
 
 /** Direct 1-click account switcher without visiting login page */
-export async function switchAccountDirect(targetEmail) {
+export async function switchAccountDirect(targetEmail, explicitPassword = null) {
   const saved = getSavedAccounts();
   const target = saved.find((a) => a.email.toLowerCase() === (targetEmail || "").toLowerCase());
-  if (!target) throw new Error("Account not found in saved list.");
+  const passToUse = explicitPassword || target?.password;
 
-  if (target.password) {
-    const cred = await signInWithEmailAndPassword(auth, target.email, target.password);
-    const profile = await getUserProfile(cred.user.uid);
-    if (profile) saveAccountToLocal(profile, target.password);
-    return profile;
-  } else {
-    // Fallback if no saved password
-    await logOut();
-    sessionStorage.setItem("sajs_switch_email", target.email);
-    window.location.href = `login.html?email=${encodeURIComponent(target.email)}`;
-    return null;
+  if (!passToUse) {
+    throw new Error("PASSWORD_REQUIRED");
   }
+
+  const cred = await signInWithEmailAndPassword(auth, targetEmail, passToUse);
+  const profile = await getUserProfile(cred.user.uid);
+  if (profile) saveAccountToLocal(profile, passToUse);
+  return profile;
 }
