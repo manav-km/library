@@ -78,6 +78,8 @@ export async function signUp({ email, password, name, username, className, secti
   };
   await setDoc(doc(db, "users", cred.user.uid), profile);
 
+  saveAccountToLocal(profile, password);
+
   logAuditAction({
     action: "USER_SIGNUP",
     category: "Users",
@@ -109,7 +111,9 @@ export async function logIn(emailOrUsername, password) {
   }
 
   const cred = await signInWithEmailAndPassword(auth, targetEmail, password);
-  return getUserProfile(cred.user.uid);
+  const profile = await getUserProfile(cred.user.uid);
+  if (profile) saveAccountToLocal(profile, password);
+  return profile;
 }
 
 export async function logOut() {
@@ -287,17 +291,19 @@ export async function resendVerificationEmail() {
 }
 
 /** Local saved accounts management for account switching */
-export function saveAccountToLocal(profile) {
+export function saveAccountToLocal(profile, password = null) {
   if (!profile || !profile.email) return;
   try {
     const saved = JSON.parse(localStorage.getItem("sajs_saved_accounts") || "[]");
+    const existing = saved.find((a) => a.email.toLowerCase() === profile.email.toLowerCase());
     const filtered = saved.filter((a) => a.email.toLowerCase() !== profile.email.toLowerCase());
     const entry = {
       uid: profile.uid,
       name: profile.name || "User",
       email: profile.email,
       role: profile.role || "student",
-      profilePicture: profile.profilePicture || ""
+      profilePicture: profile.profilePicture || "",
+      password: password || existing?.password || ""
     };
     localStorage.setItem("sajs_saved_accounts", JSON.stringify([entry, ...filtered]));
   } catch (e) {}
@@ -317,4 +323,24 @@ export function removeSavedAccount(email) {
     const filtered = saved.filter((a) => a.email.toLowerCase() !== (email || "").toLowerCase());
     localStorage.setItem("sajs_saved_accounts", JSON.stringify(filtered));
   } catch (e) {}
+}
+
+/** Direct 1-click account switcher without visiting login page */
+export async function switchAccountDirect(targetEmail) {
+  const saved = getSavedAccounts();
+  const target = saved.find((a) => a.email.toLowerCase() === (targetEmail || "").toLowerCase());
+  if (!target) throw new Error("Account not found in saved list.");
+
+  if (target.password) {
+    const cred = await signInWithEmailAndPassword(auth, target.email, target.password);
+    const profile = await getUserProfile(cred.user.uid);
+    if (profile) saveAccountToLocal(profile, target.password);
+    return profile;
+  } else {
+    // Fallback if no saved password
+    await logOut();
+    sessionStorage.setItem("sajs_switch_email", target.email);
+    window.location.href = `login.html?email=${encodeURIComponent(target.email)}`;
+    return null;
+  }
 }

@@ -36,7 +36,9 @@ function medalEmoji(i) {
 }
 
 async function init() {
-  const [allBooks, allUsers] = await Promise.all([getAllBooks(), getAllUsers()]);
+  const [allBooks, rawUsers] = await Promise.all([getAllBooks(), getAllUsers()]);
+  // Exclude teachers and admins from student leaderboards
+  const allUsers = rawUsers.filter((u) => !u.role || u.role === "student");
   const allReviewArrays = await Promise.all(allBooks.map((b) => getReviewsForBook(b.BK_ID)));
   const allReviews = allReviewArrays.flat();
 

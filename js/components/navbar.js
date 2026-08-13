@@ -2,8 +2,8 @@
 // Navbar component with Account Switcher
 // ==========================================================================
 
-import { initials, escapeHTML } from "../utils/helpers.js";
-import { logOut, getSavedAccounts, removeSavedAccount } from "../firebase/auth.js";
+import { initials, escapeHTML, showToast } from "../utils/helpers.js";
+import { logOut, getSavedAccounts, removeSavedAccount, switchAccountDirect } from "../firebase/auth.js";
 
 const NAV_LINKS = [
   { href: "index.html", label: "Home" },
@@ -134,9 +134,22 @@ function renderSwitchModal(currentProfile) {
   modal.querySelectorAll(".switch-acc-btn").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const email = btn.dataset.email;
-      await logOut();
-      sessionStorage.setItem("sajs_switch_email", email);
-      window.location.href = `login.html?email=${encodeURIComponent(email)}`;
+      btn.disabled = true;
+      btn.textContent = "Switching...";
+      showToast("Switching account...", "info");
+      try {
+        const newProfile = await switchAccountDirect(email);
+        if (newProfile) {
+          showToast(`Switched to ${newProfile.name}`, "success");
+          setTimeout(() => {
+            window.location.href = roleHome(newProfile.role);
+          }, 300);
+        }
+      } catch (err) {
+        showToast("Switch failed: " + err.message, "error");
+        btn.disabled = false;
+        btn.textContent = "Switch";
+      }
     });
   });
 
