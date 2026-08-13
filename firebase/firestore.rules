@@ -93,9 +93,9 @@ service cloud.firestore {
                       || request.resource.data.username == resource.data.username
                     );
 
-      // Admin override: may change role, edit any profile field, or delete.
+      // User self-deletion (e.g. 72h expired account cleanup) or Admin override
       allow update: if isAdmin();
-      allow delete: if isAdmin();
+      allow delete: if isOwner(uid) || isAdmin();
     }
 
     // ------------------------------------------------------------------

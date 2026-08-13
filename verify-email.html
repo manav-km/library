@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Email — SAJS Library</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="navbar-mount"></div>
+
+  <main class="page-container" style="display:flex; align-items:center; justify-content:center; min-height:calc(100vh - 160px);">
+    <div class="card text-center" style="max-width:500px; width:100%; padding:var(--sp-8);">
+      <div style="font-size:3.5rem; margin-bottom:var(--sp-3);">✉️</div>
+      <h2 style="margin-bottom:var(--sp-2);">Check your inbox</h2>
+      <p class="text-secondary" style="font-size:1.05rem; line-height:1.6; margin-bottom:var(--sp-4);">
+        We sent a verification link to your email address. Please click the link to verify your account before accessing the library:
+      </p>
+      <div style="padding:10px 16px; background:var(--bg-sunken); border:1px solid var(--glass-border); border-radius:var(--radius-sm); font-family:var(--font-mono); color:var(--accent-teal); font-weight:600; margin-bottom:var(--sp-4);" id="user-email-tag">
+        loading...
+      </div>
+
+      <div style="margin-bottom:var(--sp-6); padding:14px 16px; background:rgba(239, 68, 68, 0.08); border:1px solid rgba(239, 68, 68, 0.25); border-radius:var(--radius-md); text-align:center;">
+        <strong style="color:var(--danger); font-size:var(--fs-small); display:block; margin-bottom:4px;">
+          🔒 Security Enhancement Notice · 72-Hour Verification Deadline
+        </strong>
+        <span class="text-secondary" style="font-size:var(--fs-tiny); line-height:1.4; display:block;">
+          To enhance library security and ensure valid user identity, you must verify your email address within 72 hours of account creation. Unverified accounts are automatically purged.
+        </span>
+        <div id="verify-countdown" class="mono" style="font-size:0.85rem; font-weight:700; color:var(--danger); margin-top:6px;">
+          Time remaining: --h --m
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <button class="btn btn-primary btn-block" id="check-verified-btn">I've verified my email →</button>
+        <button class="btn btn-ghost btn-block" id="resend-email-btn">✉️ Resend verification email</button>
+        <button class="btn btn-ghost btn-block" id="signout-verify-btn" style="color:var(--text-tertiary);">Sign out & return to login</button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/pages/verify-email.js"></script>
+</body>
+</html>

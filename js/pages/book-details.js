@@ -1,8 +1,9 @@
 import { requireAuth } from "../firebase/auth.js";
-import { getBookById, getAllBooks, updateBook, deleteBook, getReviewsForBook, addReview, updateReview, deleteReview, logAuditAction, getReadingProgress, setReadingProgress, addBookIssue, getReadingLists, saveReadingLists } from "../firebase/firestore.js";
+import { getBookById, getAllBooks, updateBook, deleteBook, getReviewsForBook, addReview, updateReview, deleteReview, logAuditAction, getReadingProgress, setReadingProgress, addBookIssue, getReadingLists, saveReadingLists, updateUserProfile, getAllReadingProgress, getBookIssuesForUser } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
 import { spineColorFor, escapeHTML, starString, timeAgo, showToast, qs, qsa } from "../utils/helpers.js";
+import { checkAndAwardAchievements } from "../utils/achievements.js";
 
 const currentProfile = await requireAuth();
 renderNavbar(currentProfile, "library.html");
@@ -13,6 +14,50 @@ const canEdit = currentProfile && (currentProfile.role === "teacher" || currentP
 
 const params = new URLSearchParams(window.location.search);
 const bookId = params.get("id");
+
+async function evaluateCurrentAchievements() {
+  if (!currentProfile || !currentProfile.uid) return;
+  try {
+    const [allBooksList, userProgressList, userIssuesList, userLists] = await Promise.all([
+      getAllBooks(),
+      getAllReadingProgress(currentProfile.uid),
+      getBookIssuesForUser(currentProfile.uid),
+      getReadingLists(currentProfile.uid)
+    ]);
+    const allReviewArrays = await Promise.all(allBooksList.map((b) => getReviewsForBook(b.BK_ID)));
+    const myReviews = allReviewArrays.flat().filter((r) => r.userId === currentProfile.uid);
+
+    const localViewed = JSON.parse(localStorage.getItem("sajs_recently_viewed") || "[]");
+    const viewedCount = localViewed.length || 1;
+
+    const shelves = userLists.shelves || {};
+    const shelfNames = Object.keys(shelves);
+    const shelfBookCount = shelfNames.reduce((s, n) => s + (shelves[n]?.length || 0), 0);
+    const shelfGenres = [...new Set(
+      shelfNames.flatMap((n) => (shelves[n] || []).map((id) => allBooksList.find((b) => b.BK_ID === id)?.genre).filter(Boolean))
+    )];
+
+    const totalPagesRead = userProgressList.reduce((sum, p) => sum + (Number(p.currentPage) || 0), 0);
+    const finishedBooks = userProgressList.filter((p) => p.status === "finished").length;
+    const hasFiveStarReview = myReviews.some((r) => r.rating === 5);
+    const issueCount = userIssuesList.length;
+
+    await checkAndAwardAchievements(currentProfile, {
+      reviewCount: myReviews.length,
+      messageCount: 0,
+      shelfBookCount,
+      shelfGenreCount: shelfGenres.length,
+      viewedCount,
+      completedChallenges: 0,
+      totalPagesRead,
+      finishedBooks,
+      hasFiveStarReview,
+      issueCount
+    });
+  } catch (err) {
+    console.warn("Achievement evaluation error:", err);
+  }
+}
 
 async function init() {
   if (!bookId) {
@@ -26,9 +71,17 @@ async function init() {
     return;
   }
 
-  // Track for the student dashboard's "Recently viewed" row
-  const viewed = JSON.parse(sessionStorage.getItem("sajs_recently_viewed") || "[]");
-  sessionStorage.setItem("sajs_recently_viewed", JSON.stringify([bookId, ...viewed.filter((id) => id !== bookId)].slice(0, 8)));
+  // Track for the student dashboard's "Recently viewed" row (synced to localStorage and Firestore profile)
+  const localViewed = JSON.parse(localStorage.getItem("sajs_recently_viewed") || "[]");
+  const profileViewed = Array.isArray(currentProfile.recentlyViewed) ? currentProfile.recentlyViewed : [];
+  const mergedViewed = [bookId, ...new Set([...localViewed, ...profileViewed])].filter((id) => id !== bookId);
+  const updatedViewed = [bookId, ...mergedViewed].slice(0, 10);
+  
+  localStorage.setItem("sajs_recently_viewed", JSON.stringify(updatedViewed));
+  sessionStorage.setItem("sajs_recently_viewed", JSON.stringify(updatedViewed));
+  if (currentProfile.uid) {
+    updateUserProfile(currentProfile.uid, { recentlyViewed: updatedViewed }).catch(() => {});
+  }
 
   renderOverview(currentBook);
   renderSections(currentBook);
@@ -44,13 +97,20 @@ async function init() {
   wireIssueBook(currentBook);
   wireAddToShelf(currentBook);
   renderRecommendations(currentBook);
+  
+  // Evaluate achievements immediately on book page load
+  evaluateCurrentAchievements();
 }
 
 function renderOverview(b) {
   const spine = spineColorFor(b.genre);
+  const coverHTML = b.coverImage
+    ? `<img src="${escapeHTML(b.coverImage)}" alt="${escapeHTML(b.bookName)}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`
+    : `<span class="mono" style="font-size:0.85rem; color:var(--text-tertiary); font-weight:600;">${escapeHTML(b.bookName)}</span>`;
+
   qs("#sec-overview").innerHTML = `
-    <div class="book-cover" style="--spine-color:${spine}; display:flex; align-items:center; justify-content:center; padding:var(--sp-4); text-align:center;">
-      <span class="mono" style="font-size:0.85rem; color:var(--text-tertiary); font-weight:600;">${escapeHTML(b.bookName)}</span>
+    <div class="book-cover" style="--spine-color:${spine}; display:flex; align-items:center; justify-content:center; padding:${b.coverImage ? '0' : 'var(--sp-4)'}; text-align:center; overflow:hidden; border-radius:var(--radius-md);">
+      ${coverHTML}
     </div>
     <div>
       <span class="bk-id mono text-tertiary">${b.BK_ID}</span>
@@ -421,6 +481,7 @@ function wireReviewForm() {
     qsa("#star-input span").forEach((s) => s.classList.remove("active"));
     showToast("Review posted.");
     renderReviews();
+    evaluateCurrentAchievements();
   });
 }
 
@@ -477,6 +538,7 @@ async function wireReadingProgress(book) {
     await setReadingProgress(currentProfile.uid, book.BK_ID, { currentPage: current, totalPages, status });
     updateProgressUI(current, totalPages, status);
     showToast(status === "finished" ? "Congratulations! You finished this book! 🎉" : "Progress saved.");
+    evaluateCurrentAchievements();
   });
 }
 
@@ -538,6 +600,7 @@ function wireIssueBook(book) {
       showToast("Issue request submitted! A teacher will review it shortly.");
       modal?.classList.remove("open");
       form.reset();
+      evaluateCurrentAchievements();
     } catch (err) {
       showToast("Failed to submit issue request: " + err.message, "error");
     } finally {
@@ -650,6 +713,7 @@ async function wireAddToShelf(book) {
     showToast(`Added to "${targetShelf}"! 📚`);
     modal.classList.remove("open");
     qs("#new-shelf-name").value = "";
+    evaluateCurrentAchievements();
   });
 }
 

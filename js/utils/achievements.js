@@ -9,6 +9,20 @@ import { showToast } from "./helpers.js";
 /** Master list of all achievements. */
 export const ALL_ACHIEVEMENTS = [
   {
+    id: "welcome",
+    icon: "🎓",
+    title: "Library Member",
+    description: "Welcome! Create your SAJS Library account.",
+    check: () => true,
+  },
+  {
+    id: "first_view",
+    icon: "👁️",
+    title: "First Steps",
+    description: "Open and explore your first book.",
+    check: ({ viewedCount }) => (viewedCount || 0) >= 1,
+  },
+  {
     id: "first_review",
     icon: "📝",
     title: "First Review",
@@ -28,13 +42,6 @@ export const ALL_ACHIEVEMENTS = [
     title: "Critic",
     description: "Write 10 book reviews.",
     check: ({ reviewCount }) => (reviewCount || 0) >= 10,
-  },
-  {
-    id: "top_reviewer",
-    icon: "🏆",
-    title: "Top Reviewer",
-    description: "Write 25 book reviews.",
-    check: ({ reviewCount }) => (reviewCount || 0) >= 25,
   },
   {
     id: "five_star_critic",
@@ -59,7 +66,7 @@ export const ALL_ACHIEVEMENTS = [
   },
   {
     id: "master_reader",
-    icon: "🎓",
+    icon: "👑",
     title: "Master Reader",
     description: "Finish reading 5 books.",
     check: ({ finishedBooks }) => (finishedBooks || 0) >= 5,
@@ -96,8 +103,8 @@ export const ALL_ACHIEVEMENTS = [
     id: "book_explorer",
     icon: "🔭",
     title: "Book Explorer",
-    description: "View 10 or more unique books.",
-    check: ({ viewedCount }) => (viewedCount || 0) >= 10,
+    description: "View 5 or more unique books.",
+    check: ({ viewedCount }) => (viewedCount || 0) >= 5,
   },
   {
     id: "challenge_champion",
@@ -136,7 +143,8 @@ export async function checkAndAwardAchievements(profile, stats) {
 
   if (newlyEarned.length > 0) {
     const updated = [...already, ...newlyEarned];
-    await updateUserProfile(profile.uid, { achievements: updated });
+    // Persist to Firestore
+    await updateUserProfile(profile.uid, { achievements: updated }).catch((err) => console.error("Achievement save error:", err));
     // Update local profile object so in-memory state is immediately consistent!
     profile.achievements = updated;
 

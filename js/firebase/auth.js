@@ -18,7 +18,7 @@ import {
   sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs
+  doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { logAuditAction } from "./firestore.js";
@@ -210,6 +210,7 @@ export function watchAuthState(callback) {
     try {
       updateDoc(doc(db, "users", user.uid), { lastOnline: Date.now() }).catch(() => {});
       const profile = await getUserProfile(user.uid);
+      if (profile) saveAccountToLocal(profile);
       callback(profile);
     } catch (err) {
       console.error("Error fetching user profile:", err);
@@ -223,12 +224,51 @@ export function watchAuthState(callback) {
  * Redirects to login.html if signed out, or to student-dashboard.html
  * if signed in but lacking the required role.
  */
+export const SEVENTY_TWO_HOURS_MS = 72 * 60 * 60 * 1000;
+
+export async function checkOrDeleteExpiredUnverifiedAccount(profile) {
+  const user = auth.currentUser;
+  if (!user || !profile) return false;
+
+  const isGoogleUser = user.providerData.some((p) => p.providerId === "google.com");
+  if (user.emailVerified || isGoogleUser) return false;
+
+  const createdAt = profile.createdAt || Date.now();
+  const ageMs = Date.now() - createdAt;
+
+  if (ageMs > SEVENTY_TWO_HOURS_MS) {
+    try {
+      await deleteDoc(doc(db, "users", user.uid)).catch(() => {});
+      await deleteUser(user).catch(() => {});
+      removeSavedAccount(user.email);
+    } catch (err) {
+      console.warn("Error deleting expired unverified account:", err);
+    }
+    return true;
+  }
+  return false;
+}
+
 export function requireAuth(requiredRoles = []) {
   return new Promise((resolve) => {
-    watchAuthState((profile) => {
+    watchAuthState(async (profile) => {
       if (!profile) {
         window.location.href = "login.html";
         return;
+      }
+      const user = auth.currentUser;
+      if (user) {
+        const isGoogleUser = user.providerData.some((p) => p.providerId === "google.com");
+        if (!user.emailVerified && !isGoogleUser) {
+          const isExpired = await checkOrDeleteExpiredUnverifiedAccount(profile);
+          if (isExpired) {
+            sessionStorage.setItem("sajs_auth_error", "As part of our security enhancement policy, your account was automatically deleted because your email address was not verified within the 72-hour window. Please sign up again.");
+            window.location.href = "login.html";
+            return;
+          }
+          window.location.href = "verify-email.html";
+          return;
+        }
       }
       if (requiredRoles.length && !requiredRoles.includes(profile.role)) {
         window.location.href = "student-dashboard.html";
@@ -244,4 +284,37 @@ export async function resendVerificationEmail() {
   const user = auth.currentUser;
   if (!user) throw new Error("No user is currently signed in.");
   await sendEmailVerification(user);
+}
+
+/** Local saved accounts management for account switching */
+export function saveAccountToLocal(profile) {
+  if (!profile || !profile.email) return;
+  try {
+    const saved = JSON.parse(localStorage.getItem("sajs_saved_accounts") || "[]");
+    const filtered = saved.filter((a) => a.email.toLowerCase() !== profile.email.toLowerCase());
+    const entry = {
+      uid: profile.uid,
+      name: profile.name || "User",
+      email: profile.email,
+      role: profile.role || "student",
+      profilePicture: profile.profilePicture || ""
+    };
+    localStorage.setItem("sajs_saved_accounts", JSON.stringify([entry, ...filtered]));
+  } catch (e) {}
+}
+
+export function getSavedAccounts() {
+  try {
+    return JSON.parse(localStorage.getItem("sajs_saved_accounts") || "[]");
+  } catch (e) {
+    return [];
+  }
+}
+
+export function removeSavedAccount(email) {
+  try {
+    const saved = getSavedAccounts();
+    const filtered = saved.filter((a) => a.email.toLowerCase() !== (email || "").toLowerCase());
+    localStorage.setItem("sajs_saved_accounts", JSON.stringify(filtered));
+  } catch (e) {}
 }

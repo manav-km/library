@@ -50,21 +50,29 @@ if (profile.role === "teacher" || profile.role === "admin") {
   }
 }
 
-// ---- Recently viewed (session-scoped; a book-details.html visit records into sessionStorage) ----
-const viewedIds = JSON.parse(sessionStorage.getItem("sajs_recently_viewed") || "[]");
+// ---- Recently viewed (persisted in profile & localStorage) ----
+const localViewed = JSON.parse(localStorage.getItem("sajs_recently_viewed") || sessionStorage.getItem("sajs_recently_viewed") || "[]");
+const profileViewed = Array.isArray(profile.recentlyViewed) ? profile.recentlyViewed : [];
+const viewedIds = [...new Set([...profileViewed, ...localViewed])];
+
 const allBooks = await getAllBooks();
 const recentBooks = viewedIds.map((id) => allBooks.find((b) => b.BK_ID === id || b.id === id)).filter(Boolean);
 qs("#stat-viewed").textContent = recentBooks.length;
 
 const recentMount = qs("#recent-viewed");
 recentMount.innerHTML = recentBooks.length
-  ? recentBooks.map((b) => `
-      <a href="book-details.html?id=${b.BK_ID}" class="book-card">
-        <div class="book-cover" style="--spine-color:${spineColorFor(b.genre)}; display:flex;align-items:center;justify-content:center;padding:var(--sp-2);">
-          <span class="mono" style="font-size:0.65rem;color:var(--text-tertiary);">${b.bookName}</span>
-        </div>
-        <span class="bk-id mono">${b.BK_ID}</span>
-      </a>`).join("")
+  ? recentBooks.map((b) => {
+      const coverHTML = b.coverImage
+        ? `<img src="${escapeHTML(b.coverImage)}" alt="${escapeHTML(b.bookName)}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`
+        : `<span class="mono" style="font-size:0.65rem;color:var(--text-tertiary);">${escapeHTML(b.bookName)}</span>`;
+      return `
+        <a href="book-details.html?id=${b.BK_ID}" class="book-card">
+          <div class="book-cover" style="--spine-color:${spineColorFor(b.genre)}; display:flex;align-items:center;justify-content:center;padding:${b.coverImage ? '0' : 'var(--sp-2)'};overflow:hidden;">
+            ${coverHTML}
+          </div>
+          <span class="bk-id mono">${b.BK_ID}</span>
+        </a>`;
+    }).join("")
   : `<p class="text-tertiary">Books you open will show up here.</p>`;
 
 // ---- Own reviews across all books ----

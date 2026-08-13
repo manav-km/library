@@ -245,8 +245,10 @@ if (signupForm) {
 
     try {
       const profile = await signUp(payload);
-      showToast(isTeacherMode ? "Teacher account created — welcome!" : "Account created — welcome to the library.");
-      setTimeout(() => redirectByRole(profile), 500);
+      showToast("Account created! Please verify your email.", "info");
+      setTimeout(() => {
+        window.location.href = "verify-email.html";
+      }, 500);
     } catch (err) {
       console.error(err);
       showToast(formatAuthError(err), "error");
@@ -294,4 +296,22 @@ if (googleSignupForm) {
       showToast(formatAuthError(err), "error");
     }
   });
+}
+
+// ---- Switch Account Auto-Fill & Auth Errors ----
+const searchParams = new URLSearchParams(window.location.search);
+const switchEmail = searchParams.get("email") || sessionStorage.getItem("sajs_switch_email");
+if (switchEmail) {
+  const loginEmailInput = qs("#login-email");
+  if (loginEmailInput) {
+    loginEmailInput.value = switchEmail;
+    qs("#login-password")?.focus();
+  }
+  sessionStorage.removeItem("sajs_switch_email");
+}
+
+const authErr = sessionStorage.getItem("sajs_auth_error");
+if (authErr) {
+  showToast(authErr, "error");
+  sessionStorage.removeItem("sajs_auth_error");
 }
