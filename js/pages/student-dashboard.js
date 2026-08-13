@@ -1,5 +1,5 @@
 import { requireAuth, changeUserPassword, deleteUserProfile } from "../firebase/auth.js";
-import { getAllBooks, getReviewsForBook, updateUserProfile, logAuditAction, getReadingLists, getChallenges } from "../firebase/firestore.js";
+import { getAllBooks, getReviewsForBook, updateUserProfile, logAuditAction, getReadingLists, getChallenges, getAllReadingProgress, getBookIssuesForUser } from "../firebase/firestore.js";
 import { uploadImage } from "../firebase/storage.js";
 import { renderNavbar } from "../components/navbar.js";
 import { spineColorFor, initials, showToast, qs, starString, timeAgo, initGenreChipPicker } from "../utils/helpers.js";
@@ -157,17 +157,35 @@ const completedChallenges = activeChallenges.filter((c) => {
   return progress >= c.goal;
 }).length;
 
+const [userProgressList, userIssuesList] = await Promise.all([
+  getAllReadingProgress(profile.uid),
+  getBookIssuesForUser(profile.uid)
+]);
+
+const totalPagesRead = userProgressList.reduce((sum, p) => sum + (Number(p.currentPage) || 0), 0);
+const finishedBooks = userProgressList.filter((p) => p.status === "finished").length;
+const hasFiveStarReview = myReviews.some((r) => r.rating === 5);
+const issueCount = userIssuesList.length;
+
 await checkAndAwardAchievements(profile, {
   reviewCount: myReviews.length,
-  messageCount: 0, // real-time count would need extra fetch; leave 0 here
+  messageCount: 0,
   shelfBookCount,
   shelfGenreCount: shelfGenres.length,
   viewedCount,
-  completedChallenges
+  completedChallenges,
+  totalPagesRead,
+  finishedBooks,
+  hasFiveStarReview,
+  issueCount
 });
 
-// Re-read profile for updated achievements (optimistic: merge locally)
+// Re-read profile achievements array (which checkAndAwardAchievements updated locally)
 const earnedIds = new Set(profile.achievements || []);
+
+const countLabel = qs("#ach-count-label");
+if (countLabel) countLabel.textContent = `${earnedIds.size} / ${ALL_ACHIEVEMENTS.length} Unlocked`;
+
 const achMount = qs("#achievements-grid");
 if (achMount) {
   achMount.innerHTML = ALL_ACHIEVEMENTS.map((a) => {

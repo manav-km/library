@@ -114,10 +114,24 @@ qsa(".tab").forEach((tab) => {
    Catalogue Management
    ========================================================================== */
 let books = [];
+let allBookIssues = [];
 
 async function loadBooks() {
-  books = await getAllBooks();
+  const [bList, iList] = await Promise.all([getAllBooks(), getBookIssues()]);
+  books = bList;
+  allBookIssues = iList;
   renderBooksTable();
+}
+
+function getBookIssueStatus(book) {
+  const issues = allBookIssues.filter((i) => i.bookId === book.BK_ID || i.bookId === book.id);
+  if (issues.some((i) => i.status === "approved")) {
+    return `<span class="badge badge-approved">Issued</span>`;
+  }
+  if (issues.some((i) => i.status === "pending")) {
+    return `<span class="badge badge-pending">Requested</span>`;
+  }
+  return `<span class="badge badge-not-started">Not Issued</span>`;
 }
 
 function renderBooksTable() {
@@ -129,6 +143,7 @@ function renderBooksTable() {
       <td>${escapeHTML(b.bookName)}</td>
       <td>${escapeHTML(b.author)}</td>
       <td><span class="spine-tag">${b.genre}</span></td>
+      <td>${getBookIssueStatus(b)}</td>
       <td>
         <div class="flex gap-2">
           <button class="btn btn-ghost btn-sm edit-book-btn">Edit</button>
@@ -274,14 +289,14 @@ qs("#book-form")?.addEventListener("submit", async (e) => {
   };
 
   const coverFile = qs("#f-cover").files[0];
-  if (coverFile) bookData.coverImage = await withTimeout(uploadImage(coverFile, "covers", bookData.BK_ID), 15000, new Error("Image upload timed out."));
+  if (coverFile) bookData.coverImage = await uploadImage(coverFile, "covers", bookData.BK_ID);
 
   const pdfFile = qs("#f-pdf")?.files[0];
   if (pdfFile) bookData.pdfUrl = await withTimeout(uploadFile(pdfFile, "pdfs", bookData.BK_ID), 30000, new Error("PDF upload timed out."));
 
     const docId = qs("#book-doc-id").value;
     if (docId) {
-      await withTimeout(updateBook(docId, bookData));
+      await updateBook(docId, bookData);
       logAuditAction({
         action: "BOOK_EDIT",
         category: "Books",
@@ -291,7 +306,7 @@ qs("#book-form")?.addEventListener("submit", async (e) => {
       });
       showToast("Book updated.");
     } else {
-      await withTimeout(addBook(bookData));
+      await addBook(bookData);
       logAuditAction({
         action: "BOOK_ADD",
         category: "Books",

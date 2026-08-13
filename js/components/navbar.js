@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { href: "library.html", label: "Library" },
   { href: "discussions.html", label: "Discussions" },
   { href: "discover.html", label: "Discover People" },
-  { href: "leaderboard.html", label: "🏆 Leaderboard" }
+  { href: "leaderboard.html", label: "Leaderboard" }
 ];
 
 function roleHome(role) {

@@ -64,6 +64,7 @@ function renderOverview(b) {
       <div class="flex gap-3" style="margin-top:var(--sp-4); flex-wrap:wrap;">
         <a href="#sec-reviews" class="btn btn-primary btn-sm">Read reviews</a>
         <a href="discussions.html?book=${b.BK_ID}" class="btn btn-ghost btn-sm">Join the discussion</a>
+        <button class="btn btn-primary btn-sm" id="issue-book-btn">📋 Issue Book</button>
         <button class="btn btn-ghost btn-sm" id="add-to-shelf-btn">🔖 Add to shelf</button>
         ${canEdit ? `<button class="btn btn-ghost btn-sm" id="edit-book-details-btn">✏️ Edit book</button>` : ""}
       </div>

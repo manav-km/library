@@ -14,7 +14,8 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   updatePassword,
-  deleteUser
+  deleteUser,
+  sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs
@@ -40,6 +41,13 @@ export async function signInWithGoogle() {
 export async function signUp({ email, password, name, username, className, section, rollNumber, classTeacher, favouriteGenre, favouriteSubjects, subject, _isTeacherSignup }) {
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(cred.user, { displayName: name });
+
+  // Send verification email to confirm user's email address
+  try {
+    await sendEmailVerification(cred.user);
+  } catch (err) {
+    console.warn("Failed to send verification email:", err.message);
+  }
 
   const isAdminEmail = ADMIN_EMAILS.includes((email || "").toLowerCase());
   
@@ -229,4 +237,11 @@ export function requireAuth(requiredRoles = []) {
       resolve(profile);
     });
   });
+}
+
+/** Resends a verification email to the currently signed-in user. */
+export async function resendVerificationEmail() {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No user is currently signed in.");
+  await sendEmailVerification(user);
 }
